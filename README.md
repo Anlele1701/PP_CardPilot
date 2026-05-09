@@ -5,42 +5,62 @@ This repo uses **Nx** to manage:
 - `cardpilot-backend` — NestJS backend (`apps/cardpilot-backend`)
 - `cardpilot-mobile` — Flutter app (`apps/cardpilot-mobile`)
 
-## Prereqs
+## Prerequisites
 
-- Node.js (recommended: LTS)
-- Flutter SDK installed (`flutter --version`)
+| Requirement | Recommended | Check               |
+|-------------|-------------|---------------------|
+| Node.js     | **22.x**    | `node -v`           |
+| pnpm        | **10.28.0** | `pnpm -v`           |
+| Flutter SDK | **3.41.9**  | `flutter --version` |
+| Docker      | latest      | `docker --version`  |
 
-## Setup
+## Quickstart
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Anlele1701/PP_CardPilot.git
+cd PP_CardPilot
+```
+
+### 2. Set up Node.js + pnpm
+
+```bash
+corepack enable
+corepack prepare pnpm@10.28.0 --activate
+
+# pr 
+npm install -g pnpm@10.28.0
+```
+
+### 3. Install dependencies
 
 ```bash
 pnpm install
 ```
 
-## Run
+### 4. Setup envinronemnt variables
 
-Backend (NestJS):
-
-```bash
-pnpm run serve:backend
-```
-
-Mobile (Flutter):
+Will be using encrypted,
+Need `.env.keys` file in the repo root. Get from owner host.
 
 ```bash
-pnpm run run:mobile
+pnpm encrypt
 ```
 
-## Nx commands
+### 5. Infrastructure setup
 
 ```bash
-nx graph
-nx show projects
-nx serve cardpilot-backend
-nx run cardpilot-mobile:run
+pnpm infra
 ```
 
-## Dev (Nx Terminal UI)
+This launches the infrastructure stack.
 
+| Service  | Ports |
+|----------|-------|
+| Postgres | 5432  | 
+
+### 6. Start development
 Dev picker (select services with `space`), then Nx will open its built-in Terminal UI:
 
 ```bash
@@ -53,19 +73,18 @@ Run everything directly (no picker):
 pnpm run dev:all
 ```
 
-## Docker (Backend for Render)
+This launches the ```CardPilot Dev CLI```, an interactive CLI for running services.
+Backend (NestJS):
 
-Build locally:
-
-```bash
-docker build -t cardpilot-backend:local .
-docker run --rm -p 3000:3000 -e PORT=3000 cardpilot-backend:local
-```
-
-Push to Docker Hub (example):
+## Useful Nx commands
 
 ```bash
-docker login
-docker build -t <dockerhub_user>/cardpilot-backend:latest .
-docker push <dockerhub_user>/cardpilot-backend:latest
+pnpm nx graph
+pnpm nx show projects
+pnpm nx serve cardpilot-backend
+pnpm nx run cardpilot-mobile:run
 ```
+
+## Further Reading
+| Article | Description |
+|---------|-------------|
