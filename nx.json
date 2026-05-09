@@ -1,0 +1,66 @@
+{
+  "installation": {
+    "version": "22.7.1"
+  },
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "plugins": [
+    {
+      "plugin": "@nx/webpack/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "serveTargetName": "serve",
+        "previewTargetName": "preview",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps",
+        "serveStaticTargetName": "serve-static"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
+      },
+      "exclude": ["apps/cardpilot-backend-e2e/**/*"]
+    },
+    {
+      "plugin": "@nxrocks/nx-flutter",
+      "options": {
+        "analyzeTargetName": "analyze",
+        "cleanTargetName": "clean",
+        "formatTargetName": "format",
+        "testTargetName": "test",
+        "assembleTargetName": "assemble",
+        "attachTargetName": "attach",
+        "driveTargetName": "drive",
+        "genL10nTargetName": "gen-l10n",
+        "installTargetName": "install",
+        "runTargetName": "run",
+        "buildAarTargetName": "build-aar",
+        "buildApkTargetName": "build-apk",
+        "buildAppbundleTargetName": "build-appbundle",
+        "buildBundleTargetName": "build-bundle",
+        "buildIosTargetName": "build-ios",
+        "buildIosFrameworkTargetName": "build-ios-framework",
+        "buildIpaTargetName": "build-ipa",
+        "pubGetTargetName": "pub-get",
+        "pubUpgradeTargetName": "pub-upgrade",
+        "pubDowngradeTargetName": "pub-downgrade",
+        "pubOutdatedTargetName": "pub-outdated",
+        "pubAddTargetName": "pub-add",
+        "pubRemoveTargetName": "pub-remove",
+        "pubRunTargetName": "pub-run",
+        "pubPublishTargetName": "pub-publish",
+        "pubDepsTargetName": "pub-deps",
+        "pubVersionTargetName": "pub-version"
+      }
+    }
+  ],
+  "targetDefaults": {},
+  "analytics": false
+}
