@@ -88,3 +88,6 @@ pnpm nx run cardpilot-mobile:run
 ## Further Reading
 | Article | Description |
 |---------|-------------|
+| `docs/GIT_COMMIT_CONVENTIONS.md` | Conventional Commits rules enforced by Husky + Commitlint |
+| `docs/GIT_BRANCHING_STRATEGY.md` | Branch naming + PR + release flow |
+| `docs/MOBILE_ARCHITECTURE.md` | Mobile architecture notes |
