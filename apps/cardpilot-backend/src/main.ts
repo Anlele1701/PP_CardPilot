@@ -1,8 +1,3 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -16,13 +11,15 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
-  );
+
+  const port = Number(process.env.PORT ?? 3000);
+  const host = '0.0.0.0';
+
+  await app.listen(port, host);
+  Logger.log(`Application is running on http://${host}:${port}/${globalPrefix}`);
 }
 
-bootstrap();
+void bootstrap();
