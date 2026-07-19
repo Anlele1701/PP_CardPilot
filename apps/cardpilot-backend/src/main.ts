@@ -11,6 +11,7 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+  app.enableShutdownHooks();
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
@@ -19,7 +20,9 @@ async function bootstrap() {
   const host = '0.0.0.0';
 
   await app.listen(port, host);
-  Logger.log(`Application is running on http://${host}:${port}/${globalPrefix}`);
+  Logger.log(
+    `Application is running on http://${host}:${port}/${globalPrefix}`,
+  );
 }
 
 void bootstrap();

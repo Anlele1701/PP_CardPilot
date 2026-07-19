@@ -86,8 +86,10 @@ pnpm nx run cardpilot-mobile:run
 ```
 
 ## Further Reading
-| Article | Description |
-|---------|-------------|
-| `docs/GIT_COMMIT_CONVENTIONS.md` | Conventional Commits rules enforced by Husky + Commitlint |
-| `docs/GIT_BRANCHING_STRATEGY.md` | Branch naming + PR + release flow |
-| `docs/MOBILE_ARCHITECTURE.md` | Mobile architecture notes |
+| Article                                                                             | Description                                               |
+|-------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| `docs/GIT_COMMIT_CONVENTIONS.md`                                                    | Conventional Commits rules enforced by Husky + Commitlint |
+| `docs/GIT_BRANCHING_STRATEGY.md`                                                    | Branch naming + PR + release flow                         |
+| `docs/MOBILE_ARCHITECTURE.md`                                                       | Mobile architecture notes                                 |
+| `docs/BACKEND_ARCHITECTURE.md`                                                      | Backend architecture notes                                |
+| [CardPilot_ERD](https://dbdocs.io/lethanhduyan/Card-Pilot_ERD?view=table_structure) | Database Schema                                           |
