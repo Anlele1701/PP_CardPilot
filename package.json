@@ -6,9 +6,9 @@
   "scripts": {
     "nx": "nx",
     "dev": "tsx tools/dev-picker/index.ts",
-    "dev:all": "NX_TUI=true nx run-many -t serve,run -p cardpilot-backend,cardpilot-mobile --parallel",
+    "dev:all": "NX_TUI=true nx run-many -t serve,run -p cardpilot-backend,cardpilot-app --parallel",
     "dev:backend": "NX_TUI=true nx run cardpilot-backend:serve",
-    "dev:mobile": "NX_TUI=true nx run cardpilot-mobile:run",
+    "dev:mobile": "NX_TUI=true nx run cardpilot-app:run",
     "infra": "docker compose up -d --wait --pull missing postgres",
     "infra:down": "docker compose down",
     "infra:logs": "docker compose logs -f postgres",
@@ -22,7 +22,7 @@
     "migration:show": "pnpm typeorm migration:show -d apps/cardpilot-backend/src/database/data-source.ts",
     "migration:run": "pnpm typeorm migration:run -d apps/cardpilot-backend/src/database/data-source.ts",
     "migration:revert": "pnpm typeorm migration:revert -d apps/cardpilot-backend/src/database/data-source.ts",
-    "run:mobile": "nx run cardpilot-mobile:run",
+    "run:mobile": "nx run cardpilot-app:run",
     "commitlint": "commitlint",
     "prepare": "husky"
   },

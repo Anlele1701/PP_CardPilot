@@ -13,13 +13,28 @@ function nxBin(): string {
 
 function printBanner() {
   // ASCII-only banner for consistent terminal rendering.
-  console.log(chalk.cyan.bold('┌────────────────────────────────────────────┐'));
-  console.log(chalk.cyan.bold('│ CardPilot Dev                              │'));
-  console.log(chalk.cyan.bold('└────────────────────────────────────────────┘'));
+  console.log(
+    chalk.cyan.bold('┌────────────────────────────────────────────┐'),
+  );
+  console.log(
+    chalk.cyan.bold('│ CardPilot Dev                              │'),
+  );
+  console.log(
+    chalk.cyan.bold('└────────────────────────────────────────────┘'),
+  );
   console.log(chalk.dim('Select services with <space>, then press <enter>.\n'));
 }
 
-type Service = 'cardpilot-backend:serve' | 'cardpilot-mobile:run';
+type Service =
+  | 'cardpilot-backend:serve'
+  | 'cardpilot-app:run'
+  | 'cardpilot-widgetbook:run';
+
+const projectByService: Record<Service, string> = {
+  'cardpilot-backend:serve': 'cardpilot-backend',
+  'cardpilot-app:run': 'cardpilot-app',
+  'cardpilot-widgetbook:run': 'cardpilot-widgetbook',
+};
 
 function runNx(args: string[]) {
   const child = spawn(nxBin(), args, {
@@ -43,9 +58,14 @@ async function main() {
       message: `${chalk.bold('backend')}  ${chalk.dim('(cardpilot-backend:serve)')}`,
     },
     {
-      name: 'cardpilot-mobile:run',
-      value: 'cardpilot-mobile:run',
-      message: `${chalk.bold('mobile')}   ${chalk.dim('(cardpilot-mobile:run)')}`,
+      name: 'cardpilot-app:run',
+      value: 'cardpilot-app:run',
+      message: `${chalk.bold('mobile')}   ${chalk.dim('(cardpilot-app:run)')}`,
+    },
+    {
+      name: 'cardpilot-widgetbook:run',
+      value: 'cardpilot-widgetbook:run',
+      message: `${chalk.bold('widgetbook')} ${chalk.dim('(cardpilot-widgetbook:run)')}`,
     },
   ];
 
@@ -62,11 +82,17 @@ async function main() {
 
   if (selected.length === 0) process.exit(0);
 
-  // If both selected, run them in one Nx invocation so Nx TUI can manage logs.
-  const wantBackend = selected.includes('cardpilot-backend:serve');
-  const wantMobile = selected.includes('cardpilot-mobile:run');
-  if (wantBackend && wantMobile) {
-    runNx(['run-many', '-t', 'serve,run', '-p', 'cardpilot-backend,cardpilot-mobile', '--parallel']);
+  // Run multiple selections in one Nx invocation so the TUI manages all logs.
+  if (selected.length > 1) {
+    const projects = selected.map((service) => projectByService[service]);
+    runNx([
+      'run-many',
+      '-t',
+      'serve,run',
+      '-p',
+      projects.join(','),
+      '--parallel',
+    ]);
     return;
   }
 
