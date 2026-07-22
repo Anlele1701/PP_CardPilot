@@ -58,12 +58,12 @@ jobs:
 
       - name: Upload build to Widgetbook Cloud
         env:
-          WIDGETBOOK_API_KEY: ${{ secrets.WIDGETBOOK_API_KEY }}
+          WIDGETBOOK_CLOUD_API_KEY: ${{ secrets.WIDGETBOOK_CLOUD_API_KEY }}
         run: |
-          if [ -z "$WIDGETBOOK_API_KEY" ]; then
-            echo "Missing WIDGETBOOK_API_KEY repository secret."
+          if [ -z "WIDGETBOOK_CLOUD_API_KEY" ]; then
+            echo "Missing WIDGETBOOK_CLOUD_API_KEY repository secret."
             exit 1
           fi
 
           dart pub global run widgetbook_cli:widgetbook cloud build push \
-            --api-key "$WIDGETBOOK_API_KEY"
+            --api-key "WIDGETBOOK_CLOUD_API_KEY"
