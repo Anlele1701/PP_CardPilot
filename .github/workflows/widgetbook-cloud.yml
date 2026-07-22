@@ -1,0 +1,69 @@
+name: Deploy Widgetbook Cloud
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "apps/cardpilot-mobile/**"
+      - ".github/workflows/widgetbook-cloud.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: widgetbook-cloud-develop
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy Widgetbook
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/cardpilot-mobile/apps/cardpilot_widgetbook
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.9
+          cache: true
+
+      - name: Install Widgetbook dependencies
+        run: flutter pub get
+
+      - name: Generate Widgetbook metadata
+        run: dart run build_runner build
+
+      - name: Analyze Widgetbook
+        run: flutter analyze
+
+      - name: Test Widgetbook
+        run: flutter test
+
+      - name: Build Widgetbook for web
+        run: flutter build web --release --target lib/main.dart
+
+      - name: Install Widgetbook CLI
+        run: dart pub global activate widgetbook_cli 3.15.0
+
+      - name: Upload build to Widgetbook Cloud
+        env:
+          WIDGETBOOK_API_KEY: ${{ secrets.WIDGETBOOK_API_KEY }}
+        run: |
+          if [ -z "$WIDGETBOOK_API_KEY" ]; then
+            echo "Missing WIDGETBOOK_API_KEY repository secret."
+            exit 1
+          fi
+
+          dart pub global run widgetbook_cli:widgetbook cloud build push \
+            --api-key "$WIDGETBOOK_API_KEY"

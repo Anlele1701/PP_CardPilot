@@ -3,7 +3,9 @@
 This repo uses **Nx** to manage:
 
 - `cardpilot-backend` — NestJS backend (`apps/cardpilot-backend`)
-- `cardpilot-mobile` — Flutter app (`apps/cardpilot-mobile`)
+- `cardpilot-app` — Flutter app (`apps/cardpilot-mobile/apps/cardpilot_app`)
+- `cardpilot-widgetbook` — UI preview app (`apps/cardpilot-mobile/apps/cardpilot_widgetbook`)
+- `cardpilot-ui` — shared UI package (`apps/cardpilot-mobile/packages/cardpilot_ui`)
 
 ## Prerequisites
 
@@ -82,7 +84,7 @@ Backend (NestJS):
 pnpm nx graph
 pnpm nx show projects
 pnpm nx serve cardpilot-backend
-pnpm nx run cardpilot-mobile:run
+pnpm nx run cardpilot-app:run
 ```
 
 ## Further Reading

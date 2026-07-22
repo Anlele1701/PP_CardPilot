@@ -1,6 +1,0 @@
-{
-  "name": "cardpilot-mobile",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/cardpilot-mobile/lib",
-  "tags": ["type:flutter"]
-}
