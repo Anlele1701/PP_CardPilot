@@ -1,32 +1,83 @@
 # CardPilot Mobile Architecture
 
-CardPilot Mobile uses a feature-first MVVM architecture with lightweight Clean Architecture boundaries. The goal is to keep screens easy to build now while making the project safe to grow into many customer-facing features, API integrations, and AI-powered workflows later.
+CardPilot Mobile uses a Flutter workspace with a production app, a shared UI package, and a Widgetbook preview app. The architecture keeps product screens and feature logic in the app while keeping the shared UI package focused on reusable visual components.
 
 ## Architecture Goals
 
-- Keep UI code separate from business rules and data access.
-- Group files by product feature so large areas stay discoverable.
+- Keep app screens separate from shared UI primitives.
+- Keep UI components reusable without depending on app state, routing, or data access.
+- Group product code by feature so customer-facing areas remain discoverable.
+- Keep business rules and data access outside widgets.
+- Use Riverpod for feature state and dependency wiring.
 - Make API, cache, and AI integrations replaceable without rewriting screens.
-- Keep ViewModels testable without depending directly on Flutter widgets.
-- Avoid heavy framework choices too early while leaving room to adopt Riverpod or another DI/state tool later.
 
-## Current Folder Structure
+## Workspace Structure
 
 ```text
-lib/
+apps/cardpilot-mobile/
+  apps/
+    cardpilot_app/
+      lib/
+        main.dart
+        app/
+        core/
+        features/
+    cardpilot_widgetbook/
+      lib/
+        main.dart
+        mocks/
+  packages/
+    cardpilot_ui/
+      lib/
+        cardpilot_ui.dart
+        src/
+          components/
+          theme/
+```
+
+## Project Responsibilities
+
+### `cardpilot_app`
+
+The production Flutter application.
+
+- Owns `MaterialApp`, routing, feature screens, providers, and app lifecycle.
+- Owns feature state, use cases, repositories, and data sources.
+- Composes shared `cardpilot_ui` components into full screens.
+- Maps domain entities into UI package data objects when needed.
+
+### `cardpilot_ui`
+
+The shared design system and component package.
+
+- Owns design tokens such as colors, spacing, and themes.
+- Owns reusable components such as buttons, pagination, illustrations, and page sections.
+- Exports public UI APIs from `lib/cardpilot_ui.dart`.
+- Must not own product screens, routes, Riverpod providers, repositories, backend clients, or feature workflows.
+
+### `cardpilot_widgetbook`
+
+The isolated preview application for shared UI work.
+
+- Shows `cardpilot_ui` components in controlled states.
+- Uses mock data from `lib/mocks/`.
+- Can compose local screen-like previews, but those previews stay in Widgetbook and are not exported by `cardpilot_ui`.
+
+## App Folder Structure
+
+```text
+apps/cardpilot-mobile/apps/cardpilot_app/lib/
   main.dart
   app/
     cardpilot_app.dart
-    app_dependencies.dart
   core/
     config/
-    constants/
     errors/
     result/
     routing/
-    theme/
   features/
     onboarding/
+      onboarding_providers.dart
       data/
         datasources/
         models/
@@ -36,42 +87,56 @@ lib/
         repositories/
         usecases/
       presentation/
-        viewmodels/
         views/
         widgets/
+```
+
+## Shared UI Folder Structure
+
+```text
+apps/cardpilot-mobile/packages/cardpilot_ui/lib/
+  cardpilot_ui.dart
+  src/
+    components/
+      app_primary_button.dart
+      onboarding/
+        onboarding_hero_illustrations.dart
+        onboarding_page_view.dart
+        onboarding_pagination.dart
+        onboarding_slide_data.dart
+    theme/
+      app_colors.dart
+      app_spacing.dart
+      app_theme.dart
 ```
 
 ## Layer Responsibilities
 
 ### `main.dart`
 
-The smallest possible entry point. It only starts the Flutter app.
+The smallest possible entry point. It wraps the app in `ProviderScope` and starts `CardPilotApp`.
 
 ### `app/`
 
-Owns application-level wiring.
+Owns application-level composition.
 
-- `cardpilot_app.dart` configures `MaterialApp`, themes, routes, and app-level behavior.
-- `app_dependencies.dart` creates dependencies and passes them into features.
-
-For now, dependencies are wired manually. When the app grows, this file can be replaced or backed by Riverpod, GetIt, Injectable, or another dependency injection approach.
+- `cardpilot_app.dart` configures `MaterialApp`, theme, routing, and app-level behavior.
+- App-level wiring should stay here unless it belongs to a specific feature.
 
 ### `core/`
 
-Shared infrastructure used across many features.
+Shared app infrastructure used across features.
 
 - `config/`: app name, environment constants, backend URLs, feature flags.
-- `constants/`: spacing, durations, breakpoints, shared values.
 - `errors/`: app-level failure objects.
 - `result/`: success/failure wrappers for predictable error handling.
 - `routing/`: route names and route generation.
-- `theme/`: colors, typography, light/dark themes.
 
-Keep `core/` small. If code only belongs to one feature, it should stay inside that feature instead of becoming global too early.
+Theme and design tokens live in `cardpilot_ui`, not in app `core`, when they are reusable UI primitives.
 
 ### `features/`
 
-Each product area gets its own folder. This is where most future CardPilot work should go.
+Each product area gets its own folder. Most future CardPilot work should go here.
 
 Examples:
 
@@ -86,19 +151,19 @@ features/
   profile/
 ```
 
-Each feature follows the same internal layers: `data`, `domain`, and `presentation`.
+Each feature can use `data`, `domain`, and `presentation` layers.
 
 ## Feature Layer Details
 
 ### `presentation/`
 
-Contains everything related to the UI.
+Contains feature UI and presentation state.
 
-- `views/`: full screens or pages.
-- `widgets/`: feature-specific reusable widgets.
-- `viewmodels/`: MVVM state and user actions.
+- `views/`: full app screens or pages.
+- `widgets/`: feature-specific widgets that are not broadly reusable.
+- Feature providers/controllers: Riverpod `Notifier`, `AsyncNotifier`, or providers that expose screen state and user actions.
 
-The View should be mostly declarative. It observes the ViewModel and renders the current state. The ViewModel handles loading, state transitions, validation, and calling use cases.
+Views should be mostly declarative. A view observes Riverpod state, renders the current state, and delegates actions to a controller/provider.
 
 ### `domain/`
 
@@ -108,7 +173,7 @@ Contains business concepts and rules.
 - `repositories/`: abstract contracts that describe what data the feature needs.
 - `usecases/`: specific business actions, such as `GetOnboardingSlides`.
 
-The domain layer should not import Flutter UI, HTTP clients, local database packages, or platform-specific code.
+The domain layer should not import Flutter UI, HTTP clients, local database packages, Riverpod, or platform-specific code.
 
 ### `data/`
 
@@ -118,7 +183,7 @@ Contains implementation details for retrieving and saving data.
 - `models/`: API/database DTOs and mapping into domain entities.
 - `repositories/`: concrete implementations of domain repository contracts.
 
-The data layer can know about APIs and persistence, but the UI should not call data sources directly.
+The data layer can know about APIs and persistence, but views should not call data sources directly.
 
 ## Dependency Direction
 
@@ -130,27 +195,38 @@ presentation -> domain <- data
 
 In practice:
 
-- Views depend on ViewModels.
-- ViewModels depend on use cases.
+- App screens depend on Riverpod providers/controllers and shared UI components.
+- Providers/controllers depend on use cases.
 - Use cases depend on repository interfaces.
 - Repository implementations depend on data sources.
 - Data models convert into domain entities.
+- App screens map domain entities into `cardpilot_ui` data objects when shared components need UI-specific input.
 
-This keeps business logic independent from the UI and makes it easier to test or replace infrastructure later.
+This keeps business logic independent from Flutter layout and keeps shared UI independent from app workflows.
 
-## MVVM Rules
+## Riverpod Rules
 
-- A View owns layout and user interaction widgets.
-- A ViewModel owns screen state and user actions.
-- A ViewModel should expose simple state fields or immutable state objects.
-- A ViewModel should not know about widget layout, `BuildContext`, or navigation details unless there is a deliberate reason.
-- A View should not call repositories or data sources directly.
+- Use providers to wire dependencies and expose feature state.
+- Prefer immutable state objects for screen state.
+- Keep provider/controller logic free of widget layout concerns.
+- Avoid `BuildContext` in controllers unless there is a deliberate app-level reason.
+- Do not put Riverpod dependencies in `cardpilot_ui`.
 
-Current state management uses `ChangeNotifier` because it is built into Flutter and keeps the initial project lightweight. If state gets more complex, prefer moving to Riverpod before ViewModels become difficult to compose.
+The current onboarding flow uses `NotifierProvider.autoDispose` in `features/onboarding/onboarding_providers.dart`.
+
+## UI Package Rules
+
+- Shared UI components should accept plain values and callbacks.
+- Shared UI components may depend on Flutter and `cardpilot_ui` theme tokens.
+- Shared UI components should not fetch data, navigate, read providers, or know feature routes.
+- Full product screens belong in `cardpilot_app`, even when most of their children come from `cardpilot_ui`.
+- Screen-like previews belong in `cardpilot_widgetbook`, not in `cardpilot_ui`.
+
+This is why onboarding has an app-owned `OnboardingScreen` and shared UI-owned `OnboardingPageView`, `OnboardingPagination`, and `AppPrimaryButton`.
 
 ## API And Backend Integration
 
-When CardPilot starts calling the NestJS backend, add shared API infrastructure under `core/network/`, then connect it through feature data sources.
+When CardPilot starts calling the NestJS backend, add shared API infrastructure under app `core/network/`, then connect it through feature data sources.
 
 Suggested future structure:
 
@@ -172,11 +248,11 @@ features/
         cards_repository_impl.dart
 ```
 
-The backend should return JSON over REST. The mobile app should map API models into domain entities before the data reaches ViewModels.
+The backend should return JSON over REST. The mobile app should map API models into domain entities before data reaches providers/controllers.
 
 ## AI Feature Guidance
 
-AI-related code should not be placed directly inside random screens. Treat AI as a feature or shared capability depending on how it is used.
+AI-related code should not be placed directly inside random screens. Treat AI as a feature or shared app capability depending on how it is used.
 
 If AI is a user-facing area:
 
@@ -188,7 +264,7 @@ features/
     presentation/
 ```
 
-If AI becomes shared infrastructure for many features:
+If AI becomes shared infrastructure for many app features:
 
 ```text
 core/
@@ -198,14 +274,14 @@ core/
     ai_response_parser.dart
 ```
 
-Prefer starting with `features/ai_assistant/`. Move only truly shared primitives into `core/ai/` later.
+Prefer starting with `features/ai_assistant/`. Move only truly shared app infrastructure into `core/ai/` later. Do not put AI workflow code in `cardpilot_ui`.
 
 ## Testing Strategy
 
-Recommended test placement:
+Recommended app test placement:
 
 ```text
-test/
+apps/cardpilot-mobile/apps/cardpilot_app/test/
   features/
     onboarding/
       presentation/
@@ -213,34 +289,44 @@ test/
       data/
 ```
 
+Recommended UI package test placement:
+
+```text
+apps/cardpilot-mobile/packages/cardpilot_ui/test/
+```
+
 Testing priorities:
 
 - Use case tests for business behavior.
-- ViewModel tests for loading, error, and action states.
-- Widget tests for important customer flows.
+- Provider/controller tests for loading, error, and action states.
+- Widget tests for important customer flows in `cardpilot_app`.
+- Component tests for reusable widgets in `cardpilot_ui`.
 - Repository tests for API mapping and failure handling.
 
 ## Naming Conventions
 
-- Screens end with `_screen.dart`.
-- ViewModels end with `_view_model.dart`.
+- App screens end with `_screen.dart`.
+- Riverpod state/controller files can be grouped in `<feature>_providers.dart` while features are small.
 - Use cases use verb-first names, for example `get_cards.dart`.
 - Repository contracts live in `domain/repositories`.
 - Repository implementations live in `data/repositories` and end with `_impl.dart`.
 - API or database DTOs live in `data/models` and end with `_model.dart`.
+- Shared UI components should use product-neutral component names unless the concept is intentionally reusable across app surfaces.
 
 ## When Adding A New Feature
 
-1. Create a folder under `features/<feature_name>/`.
+1. Create a folder under `cardpilot_app/lib/features/<feature_name>/`.
 2. Add `domain/entities` for core objects.
 3. Add `domain/repositories` for required data contracts.
 4. Add `domain/usecases` for business actions.
 5. Add `data/models`, `data/datasources`, and `data/repositories`.
-6. Add `presentation/viewmodels`, `presentation/views`, and `presentation/widgets`.
-7. Register dependencies in `app/app_dependencies.dart`.
+6. Add `presentation/views` for app screens.
+7. Add Riverpod providers/controllers for state and dependency wiring.
 8. Register routes in `core/routing`.
-9. Add tests for ViewModels and use cases first.
+9. Move only broadly reusable visual pieces into `cardpilot_ui`.
+10. Add Widgetbook previews for reusable UI components.
+11. Add tests for use cases and providers/controllers first.
 
 ## Practical Recommendation
 
-This architecture is intentionally not too heavy. CardPilot is early, so the best move is to keep the boundaries clean without creating unnecessary abstractions. Add structure when a feature needs it, not before. The main rule is simple: screens should not know how data is fetched, and data sources should not know how screens are built.
+Keep the boundaries simple and explicit: app screens own product flows; domain owns business concepts; data owns infrastructure; `cardpilot_ui` owns reusable visuals; Widgetbook owns previews. Add abstractions only when a feature needs them.
