@@ -95,3 +95,14 @@ pnpm nx run cardpilot-app:run
 | `docs/MOBILE_ARCHITECTURE.md`                                                       | Mobile architecture notes                                 |
 | `docs/BACKEND_ARCHITECTURE.md`                                                      | Backend architecture notes                                |
 | [CardPilot_ERD](https://dbdocs.io/lethanhduyan/Card-Pilot_ERD?view=table_structure) | Database Schema                                           |
+| `docs/BRD.md`                                                                        | Business Requirements Document                             |
+| `docs/PRD.md`                                                                        | Product Requirements Document                              |
+| `docs/SRS.md`                                                                        | Software Requirements Specification                        |
+| `docs/architecture/system.md`                                                        | System architecture (bird-eye view)                        |
+| `docs/architecture/api.md`                                                           | API design (implemented + planned endpoints)                |
+| `docs/architecture/database.md`                                                      | Full ERD + table definitions (grounded in the real migration) |
+| `docs/architecture/design-system.md`                                                 | `cardpilot_ui` design tokens + component inventory          |
+| `docs/architecture/ai.md`                                                            | AI/ML roadmap (OCR, forecasting, recommendation)             |
+| `docs/processes/deployment-phases.md`                                               | Phase 1/2 roadmap overview                                  |
+| `docs/processes/devops-cicd.md`                                                     | CI/CD pipelines, infra, secrets handling                    |
+| `docs/template/README.md`                                                           | Templates for every document type above                    |
