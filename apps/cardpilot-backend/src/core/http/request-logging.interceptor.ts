@@ -29,10 +29,20 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const url = request.url ?? 'UNKNOWN_URL';
     const ip = request.ip ?? 'unknown';
 
+    if (this.isHealthCheckUrl(url)) {
+      return next.handle();
+    }
+
     this.logger.log(
       `Incoming request method=${method} url=${url} traceId=${traceId} requestDateTime=${requestDateTime} ip=${ip}`,
     );
 
     return next.handle();
+  }
+
+  private isHealthCheckUrl(url: string): boolean {
+    const pathname = url.split('?')[0].replace(/\/$/, '');
+
+    return pathname === '/health' || pathname.endsWith('/health');
   }
 }
