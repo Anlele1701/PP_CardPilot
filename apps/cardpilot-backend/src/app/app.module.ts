@@ -43,5 +43,41 @@ import { RequestLoggingInterceptor } from '../core/http/request-logging.intercep
       useClass: ApiExceptionFilter,
     },
   ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RequestContextGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestLoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiResponseInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ApiExceptionFilter,
+    },
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RequestContextGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestLoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiResponseInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ApiExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

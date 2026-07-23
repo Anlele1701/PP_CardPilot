@@ -37,6 +37,7 @@ dependencies:
   flutter_riverpod: ^3.0.0
   cardpilot_ui:
     path: ../../packages/cardpilot_ui
+  supabase_flutter: ^2.16.0
 
 dev_dependencies:
   flutter_test:

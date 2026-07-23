@@ -1,5 +1,5 @@
 class AppRoutes {
   const AppRoutes._();
 
-  static const onboarding = '/';
+  static const login = '/login';
 }

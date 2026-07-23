@@ -40,6 +40,37 @@ Widget loadingPrimaryButton(BuildContext context) {
 }
 
 @widgetbook.UseCase(
+  name: 'Enabled',
+  type: ui.SocialAuthButton,
+  path: '[Components]',
+)
+Widget enabledSocialAuthButton(BuildContext context) {
+  return _componentCanvas(
+    ui.SocialAuthButton(
+      label: 'Continue with Google',
+      leading: const Icon(Icons.account_circle_outlined),
+      onPressed: () {},
+    ),
+  );
+}
+
+@widgetbook.UseCase(
+  name: 'Loading',
+  type: ui.SocialAuthButton,
+  path: '[Components]',
+)
+Widget loadingSocialAuthButton(BuildContext context) {
+  return _componentCanvas(
+    ui.SocialAuthButton(
+      label: 'Continue with Google',
+      leading: const Icon(Icons.account_circle_outlined),
+      isLoading: true,
+      onPressed: () {},
+    ),
+  );
+}
+
+@widgetbook.UseCase(
   name: 'Page 1',
   type: ui.OnboardingPagination,
   path: '[Components]',
