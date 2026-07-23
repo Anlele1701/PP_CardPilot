@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BanksModule } from '../contexts/banks/banks.module';
-import { CardsModule } from '../contexts/cards/cards.module';
 import { SystemModule } from '../contexts/system/system.module';
 import { ApiExceptionFilter } from '../core/http/api-exception.filter';
 import { ApiResponseInterceptor } from '../core/http/api-response.interceptor';
@@ -25,7 +24,6 @@ import { RequestLoggingInterceptor } from '../core/http/request-logging.intercep
     }),
     SystemModule,
     BanksModule,
-    CardsModule,
   ],
   providers: [
     {
