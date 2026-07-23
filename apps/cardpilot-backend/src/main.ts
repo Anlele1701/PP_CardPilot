@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -14,14 +14,19 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const globalPrefix = 'api';
+  const defaultApiVersion = '1';
   app.setGlobalPrefix(globalPrefix);
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: defaultApiVersion,
+  });
 
   const port = Number(process.env.PORT ?? 3000);
   const host = '0.0.0.0';
 
   await app.listen(port, host);
   Logger.log(
-    `Application is running on http://${host}:${port}/${globalPrefix}`,
+    `Application is running on http://${host}:${port}/${globalPrefix}/v${defaultApiVersion}`,
   );
 }
 

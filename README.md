@@ -10,7 +10,7 @@ This repo uses **Nx** to manage:
 ## Prerequisites
 
 | Requirement | Recommended | Check               |
-|-------------|-------------|---------------------|
+| ----------- | ----------- | ------------------- |
 | Node.js     | **22.x**    | `node -v`           |
 | pnpm        | **10.28.0** | `pnpm -v`           |
 | Flutter SDK | **3.41.9**  | `flutter --version` |
@@ -31,7 +31,7 @@ cd PP_CardPilot
 corepack enable
 corepack prepare pnpm@10.28.0 --activate
 
-# pr 
+# pr
 npm install -g pnpm@10.28.0
 ```
 
@@ -54,15 +54,19 @@ pnpm encrypt
 
 ```bash
 pnpm infra
+pnpm migration:run
 ```
 
-This launches the infrastructure stack.
+This launches the infrastructure stack and applies pending database migrations.
+The bank and merchant category code reference data is included in a data
+migration, so each database receives it exactly once.
 
 | Service  | Ports |
-|----------|-------|
-| Postgres | 5432  | 
+| -------- | ----- |
+| Postgres | 5432  |
 
 ### 6. Start development
+
 Dev picker (select services with `space`), then Nx will open its built-in Terminal UI:
 
 ```bash
@@ -75,7 +79,7 @@ Run everything directly (no picker):
 pnpm run dev:all
 ```
 
-This launches the ```CardPilot Dev CLI```, an interactive CLI for running services.
+This launches the `CardPilot Dev CLI`, an interactive CLI for running services.
 Backend (NestJS):
 
 ## Useful Nx commands
@@ -88,8 +92,9 @@ pnpm nx run cardpilot-app:run
 ```
 
 ## Further Reading
+
 | Article                                                                             | Description                                               |
-|-------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `docs/GIT_COMMIT_CONVENTIONS.md`                                                    | Conventional Commits rules enforced by Husky + Commitlint |
 | `docs/GIT_BRANCHING_STRATEGY.md`                                                    | Branch naming + PR + release flow                         |
 | `docs/MOBILE_ARCHITECTURE.md`                                                       | Mobile architecture notes                                 |
