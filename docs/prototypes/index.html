@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CardPilot — Phase 1 MVP Documentation & Prototype Hub</title>
+  
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme.js"></script>
+
+  <style>
+    .hero-section {
+      text-align: center;
+      padding: 80px 20px 50px;
+      position: relative;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 46px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.15;
+      letter-spacing: -1px;
+    }
+
+    .hero-title span {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .grid-portal {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 28px;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 20px 100px;
+    }
+
+    .portal-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .portal-card:hover {
+      border-color: var(--border-active);
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius-xl);
+      background: var(--primary-soft);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      border: 1px solid var(--primary-border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero Section Banner -->
+  <div class="hero-section">
+    <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 18px; background:var(--primary-soft); border:1px solid var(--primary-border); border-radius:var(--radius-pill); font-size:12px; font-weight:800; color:var(--primary); margin-bottom:20px; letter-spacing:0.5px;">
+      <span class="material-symbols-rounded icon-sm">flight_takeoff</span> CARDPILOT PHASE 1 MVP HUB
+    </div>
+    
+    <h1 class="hero-title"><span>System Design & Prototype Portal</span></h1>
+    <p class="hero-desc">Trung tâm tài liệu thiết kế hệ thống cao cấp, bộ Design System chuẩn hóa, và Trình giả lập giao diện 13 màn hình Phase 1 MVP (Local-first & Core Tracking).</p>
+  </div>
+
+  <!-- Portal Navigation Grid -->
+  <div class="grid-portal">
+    
+    <!-- Portal Card 1: Interactive App Simulator -->
+    <a href="prototype.html" class="portal-card">
+      <div>
+        <div class="card-icon">
+          <span class="material-symbols-rounded icon-lg">smartphone</span>
+        </div>
+        <h2 style="font-family:var(--font-heading); font-size:24px; font-weight:700; margin-bottom:10px;">Mobile App Simulator</h2>
+        <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">Trải nghiệm giả lập di động Luxe với đầy đủ 13 màn hình (S01–S13), tính toán hoàn tiền real-time, thử nghiệm chế độ Offline Local Guest & Sync Engine.</p>
+      </div>
+      <div style="margin-top:28px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:6px;">
+        Mở Trình Giả Lập <span class="material-symbols-rounded icon-sm">arrow_forward</span>
+      </div>
+    </a>
+
+    <!-- Portal Card 2: Design System Specifications -->
+    <a href="design-system.html" class="portal-card">
+      <div>
+        <div class="card-icon" style="background:var(--success-soft); color:var(--success); border-color:rgba(16,185,129,0.3);">
+          <span class="material-symbols-rounded icon-lg">palette</span>
+        </div>
+        <h2 style="font-family:var(--font-heading); font-size:24px; font-weight:700; margin-bottom:10px;">Design System Specification</h2>
+        <p style="font-size:14px; color:var(--text-secondary); line-height:1.6;">Quy chuẩn toàn bộ Design Tokens (Obsidian Colors, Typography Scale, Spacing, Radius, Variants, Glassmorphism) và 100% Google Material Icons Rounded.</p>
+      </div>
+      <div style="margin-top:28px; font-weight:700; color:var(--success); display:flex; align-items:center; gap:6px;">
+        Xem Design System <span class="material-symbols-rounded icon-sm">arrow_forward</span>
+      </div>
+    </a>
+
+  </div>
+
+</body>
+</html>
