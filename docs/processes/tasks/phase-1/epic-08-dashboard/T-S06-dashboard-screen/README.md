@@ -8,17 +8,22 @@
 
 ## Mô tả
 
-Màn hình chính sau khi đăng nhập/vào local-only mode: danh sách Cashback Jar theo từng thẻ, biểu đồ tròn phân bổ chi tiêu theo category, empty state mời "Thêm thẻ đầu tiên" nếu chưa có thẻ nào.
+**Trung Tâm Điều Khiển Tài Chính (Dashboard Screen):**
+Màn hình Dashboard (`S06`) là trung tâm hiển thị tình hình hoàn tiền và chi tiêu tín dụng của người dùng. Màn hình giúp người dùng nhanh chóng biết được:
+- Đã nhận bao nhiêu tiền cashback trong tháng trên tổng hạn mức tối đa của từng thẻ (Cashback Jars).
+- Phân bổ chi tiêu theo danh mục (Pie Chart Breakdown).
+- Truy cập nhanh vào tính năng Ghi giao dịch (`S09`) và Danh sách thẻ (`S08`).
 
-## Acceptance Criteria
+## Acceptance Criteria & Edge Cases
 
-- [ ] Chưa có thẻ nào → empty state, nút dẫn sang Add Card (S07), không hiển thị Cashback Jar/Pie chart trống rỗng gây rối mắt
-- [ ] Có ≥ 1 thẻ, chưa có giao dịch nào → Cashback Jar hiển thị 0/cap, Pie chart empty state riêng (khác message với "chưa có thẻ")
-- [ ] Có giao dịch → mỗi thẻ hiển thị đúng 1 Cashback Jar: đã dùng bao nhiêu / cap bao nhiêu trong chu kỳ hiện tại, progress bar tỷ lệ đúng
-- [ ] Pie chart hiển thị đúng tỷ lệ % chi tiêu theo category, tap vào 1 lát cắt (nếu có tương tác) hiển thị số tiền cụ thể
-- [ ] Badge mode hiển thị đúng "LOCAL GUEST" (local-only) hoặc "SYNCED CLOUD" (đã đăng nhập) — theo đúng hành vi mô phỏng trong prototype
-- [ ] Vừa log 1 giao dịch mới (từ S09) quay lại Dashboard → số liệu Cashback Jar cập nhật ngay, không cần thoát app/reload thủ công
-- [ ] Loading/error state khi 2 API dashboard fail — không để trắng màn hình
+- [ ] **Empty State (Chưa có thẻ):** Nếu tài khoản chưa có thẻ nào, hiển thị minh họa thân thiện + Nút *"Thêm thẻ đầu tiên của bạn"* hướng dẫn sang `S07`. Ẩn biểu đồ và hũ hoàn tiền trống để tránh làm rối mắt.
+- [ ] **Zero-Transaction State (Đã có thẻ, chưa có giao dịch):** Mỗi thẻ hiển thị Hũ hoàn tiền ở mức `0đ / [Hạn mức cap]`. Phần Biểu đồ phân bổ chi tiêu hiển thị thông điệp *"Chưa có giao dịch nào trong tháng này. Hãy thêm giao dịch để xem phân tích."*
+- [ ] **Đầy Đủ Dữ Liệu:** 
+  * Mỗi thẻ hiển thị 1 Cashback Jar riêng: Số tiền đã hoàn, Hạn mức hoàn tối đa trong tháng (Cap), % Tiến độ kèm Progress Bar màu sắc tương ứng với thương hiệu ngân hàng.
+  * Biểu đồ tròn thể hiện % chi tiêu theo từng Ngành hàng (Ẩm thực, Siêu thị, Di chuyển, Giải trí...).
+- [ ] **Badge Mode Trực Quan:** Hiển thị rõ badge `"LOCAL GUEST"` (nếu đang ở chế độ dùng thử) hoặc `"SYNCED CLOUD"` (nếu đã đăng nhập tài khoản server) ở góc trên màn hình.
+- [ ] **Cập Nhật Realtime (Reactive State Management):** Ngay sau khi người dùng ghi một giao dịch mới từ `S09` và quay lại Dashboard, dữ liệu Cashback Jar và Biểu đồ phải được cập nhật tức thì (thông qua Riverpod Provider invalidation), không bắt người dùng phải quẹt pull-to-refresh hay thoát app.
+- [ ] **Bảo Vệ Lỗi API:** Nếu API Dashboard tạm thời gián đoạn, hiển thị card Error State với nút *"Thử lại"* thay vì làm sập toàn bộ giao diện app.
 
 ## Dependencies
 
@@ -29,23 +34,24 @@ Màn hình chính sau khi đăng nhập/vào local-only mode: danh sách Cashbac
 
 - [SRS — 3.8 FR-DASH](../../../../../SRS.md)
 - [PRD — 2.4 Dashboard](../../../../../PRD.md#24-dashboard)
+- [ARCH-DS — Shared Components & Theme Tokens](../../../../../MOBILE_ARCHITECTURE.md#cardpilot_ui)
 
 ## Subtasks
 
 | ID | Module | Subtask | Status | File |
 |----|--------|---------|--------|------|
-| T-S06.1 | `BE` | GET /api/dashboard/cashback-jars | Backlog | [T-S06.1-be-cashback-jars-api.md](./T-S06.1-be-cashback-jars-api.md) |
-| T-S06.2 | `BE` | GET /api/dashboard/category-breakdown | Backlog | [T-S06.2-be-category-breakdown-api.md](./T-S06.2-be-category-breakdown-api.md) |
-| T-S06.3 | `UI` | Cashback Jar component (cardpilot_ui) | Backlog | [T-S06.3-ui-cashback-jar-component.md](./T-S06.3-ui-cashback-jar-component.md) |
-| T-S06.4 | `UI` | Category Pie Chart component (cardpilot_ui) | Backlog | [T-S06.4-ui-category-pie-chart.md](./T-S06.4-ui-category-pie-chart.md) |
-| T-S06.5 | `MOBILE` | Dashboard screen assembly (empty state, mode badge) | Backlog | [T-S06.5-mobile-dashboard-screen.md](./T-S06.5-mobile-dashboard-screen.md) |
-| T-S06.6 | `QA` | Test case: empty state, cập nhật realtime sau khi log giao dịch | Backlog | [T-S06.6-qa-dashboard-tests.md](./T-S06.6-qa-dashboard-tests.md) |
+| T-S06.1 | `BE` | GET /api/dashboard/cashback-jars — API tính tổng tiền hoàn & progress cap | Backlog | [T-S06.1-be-cashback-jars-api.md](./T-S06.1-be-cashback-jars-api.md) |
+| T-S06.2 | `BE` | GET /api/dashboard/category-breakdown — API phân bổ % chi tiêu theo MCC | Backlog | [T-S06.2-be-category-breakdown-api.md](./T-S06.2-be-category-breakdown-api.md) |
+| T-S06.3 | `UI` | Cashback Jar component (phát triển trong `cardpilot_ui`) | Backlog | [T-S06.3-ui-cashback-jar-component.md](./T-S06.3-ui-cashback-jar-component.md) |
+| T-S06.4 | `UI` | Category Pie Chart component (phát triển trong `cardpilot_ui`) | Backlog | [T-S06.4-ui-category-pie-chart.md](./T-S06.4-ui-category-pie-chart.md) |
+| T-S06.5 | `MOBILE` | Dashboard screen assembly — Lắp ráp view, handle empty & guest mode state | Backlog | [T-S06.5-mobile-dashboard-screen.md](./T-S06.5-mobile-dashboard-screen.md) |
+| T-S06.6 | `QA` | Test matrix: empty state, zero transactions, real-time invalidation | Backlog | [T-S06.6-qa-dashboard-tests.md](./T-S06.6-qa-dashboard-tests.md) |
 
 ## Audit Trail
 
 | Status | Created By | Created Date | Updated By | Updated Date | Reviewed/Approved By | Review Date | Ghi chú |
 |--------|-----------|---------------|-----------|---------------|------------------------|--------------|---------|
-| Backlog | TBD | 2026-07-25 | — | — | — | — | Chờ T-MOBILE-001 |
+| Backlog | Senior PO | 2026-07-25 | Senior PO | 2026-07-25 | Senior PO | 2026-07-25 | Đã cập nhật chi tiết PO cho Cashback Jars, Reactive UI & Error handling |
 
 ---
 Index toàn backlog: [`../../../../tasks.md`](../../../../tasks.md)
