@@ -19,7 +19,7 @@ Nếu T-BE-004 chọn JWT tự xây: migration tạo bảng `refresh_tokens` (`i
 
 ## Dependencies
 
-- **Depends On (Task):** [T-BE-004](../T-BE-004-quyet-dinh-auth-provider/README.md) (điều kiện: chỉ áp dụng nếu chọn JWT tự xây)
+- **Depends On (Task):** [T-BE-004](../T-BE-004-consider-auth-provider/README.md) (điều kiện: chỉ áp dụng nếu chọn JWT tự xây)
 - **Depends On (Phase Gate):** —
 
 ## Ref Docs

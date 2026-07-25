@@ -57,7 +57,7 @@ Toàn bộ 13 màn hình đã có bản mô phỏng tương tác tại [`../prot
 
 | ID | Task | Module | Status | Depends On (Task) |
 |----|------|--------|--------|---------------------|
-| [T-BE-004](./tasks/phase-1/epic-02-auth/T-BE-004-quyet-dinh-auth-provider/README.md) | Quyết định auth provider | `BE` | Ready | — |
+| [T-BE-004](./tasks/phase-1/epic-02-auth/T-BE-004-consider-auth-provider/README.md) | Quyết định auth provider | `BE` | Ready | — |
 | [T-BE-009](./tasks/phase-1/epic-02-auth/T-BE-009-auth-guard-rbac/README.md) | Auth Guard + RBAC | `BE` | Backlog | T-S03.1 |
 | [T-BE-010](./tasks/phase-1/epic-02-auth/T-BE-010-refresh-token-storage/README.md) | Refresh token storage | `BE` | Backlog | T-BE-004 (điều kiện) |
 | [T-MOBILE-001](./tasks/phase-1/epic-02-auth/T-MOBILE-001-core-network-api-client/README.md) | core/network — API client | `MOBILE` | Backlog | T-BE-009 |

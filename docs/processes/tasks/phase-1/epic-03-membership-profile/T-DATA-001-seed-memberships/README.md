@@ -19,7 +19,7 @@ Seed 4-5 tier (Bronze → Obsidian) vào bảng `memberships`, mỗi tier có gi
 
 ## Dependencies
 
-- **Depends On (Task):** [T-BE-004](../../epic-02-auth/T-BE-004-quyet-dinh-auth-provider/README.md)
+- **Depends On (Task):** [T-BE-004](../../epic-02-auth/T-BE-004-consider-auth-provider/README.md)
 - **Depends On (Phase Gate):** —
 
 ## Ref Docs
