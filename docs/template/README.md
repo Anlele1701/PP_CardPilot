@@ -16,6 +16,7 @@ Mọi tài liệu thật trong `docs/` phải có 1 template tương ứng tại
 | [architecture/ai-template.md](./architecture/ai-template.md) | [`../architecture/ai.md`](../architecture/ai.md) | Roadmap AI/ML (OCR, forecasting, recommendation) |
 | [processes/deployment-phases-overview-template.md](./processes/deployment-phases-overview-template.md) | [`../processes/deployment-phases.md`](../processes/deployment-phases.md) | Roadmap tổng quan theo phase |
 | [processes/phase-detail-template.md](./processes/phase-detail-template.md) | [`../processes/deployment/deployment-phase-N.md`](../processes/deployment/) | Chi tiết task/screen/API/ERD của 1 phase |
+| [processes/task-template.md](./processes/task-template.md) | [`../processes/tasks.md`](../processes/tasks.md) (index) + [`../processes/tasks/phase-N/epic-NN-slug/T-ID-slug/`](../processes/tasks/) (1 folder/task, gồm task + subtask) | Backlog: task = màn hình (user-facing) hoặc capability (admin/infra), subtask theo module, acceptance criteria, ref docs bấm được, link prototype, audit trail |
 | [processes/devops-cicd-template.md](./processes/devops-cicd-template.md) | [`../processes/devops-cicd.md`](../processes/devops-cicd.md) | CI/CD pipeline, infra, secrets thật đang chạy |
 
 `docs/GIT_BRANCHING_STRATEGY.md` và `docs/GIT_COMMIT_CONVENTIONS.md` đã có sẵn từ trước và không cần template riêng — chúng tự đủ ngắn gọn và ổn định để không cần khuôn mẫu.

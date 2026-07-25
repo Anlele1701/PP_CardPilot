@@ -968,9 +968,22 @@
       document.getElementById('mode-badge').style.color = "#15803D";
     }
 
-    // Initialize Default Screen on Load: Start at S01 (Splash Screen)
+    // Initialize Default Screen on Load: Start at S01 (Splash Screen),
+    // unless a deep link like prototype.html#view-s07 or prototype.html#s07 asks for a specific screen
+    // (used by docs/processes/tasks/ screen-task files to link straight to the right screen).
+    function screenIdFromHash() {
+      const hash = (window.location.hash || '').replace('#', '');
+      const match = hash.match(/^(view-)?(s\d{2})$/i);
+      return match ? match[2].toLowerCase() : null;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      showAppScreen('s01');
+      showAppScreen(screenIdFromHash() || 's01');
+    });
+
+    window.addEventListener('hashchange', () => {
+      const screenId = screenIdFromHash();
+      if (screenId) showAppScreen(screenId);
     });
   </script>
 </body>
