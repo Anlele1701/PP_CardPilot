@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CardPilot — Phase 1 MVP Liquid Interactive Simulator & Architecture Explorer</title>
+  
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme.js"></script>
+
+  <style>
+    /* Header Navbar */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-heading);
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .brand-badge {
+      background: var(--gradient-primary);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.4);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-elevated);
+      padding: 4px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 8px 20px;
+      font-family: var(--font-main);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover { color: var(--text-primary); }
+    .tab-btn.active {
+      background: var(--gradient-primary);
+      color: #FFFFFF;
+      box-shadow: var(--shadow-glow);
+    }
+
+    /* Layout */
+    .main-container {
+      display: flex;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    .prototype-layout {
+      display: flex;
+      width: 100%;
+      gap: 2.5rem;
+      align-items: flex-start;
+    }
+
+    .screen-selector-panel {
+      flex: 1;
+      background: var(--bg-card);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2xl);
+      padding: 1.5rem;
+    }
+
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .screen-card-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .screen-card-btn:hover {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .screen-card-btn.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .screen-id {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .screen-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .screen-desc {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      line-height: 1.3;
+    }
+
+    /* iPhone Simulator Shell */
+    .mobile-simulator-wrapper {
+      position: sticky;
+      top: 95px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .mobile-device {
+      width: 385px;
+      height: 790px;
+      background: #030712;
+      border-radius: 50px;
+      padding: 12px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.12), inset 0 0 0 2px rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .mobile-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--app-bg);
+      border-radius: 40px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      color: var(--app-ink);
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--app-ink);
+      z-index: 100;
+    }
+
+    .dynamic-island {
+      width: 110px;
+      height: 28px;
+      background: #000000;
+      border-radius: 20px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .app-viewport {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .app-screen-view {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .app-screen-view.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .bottom-nav {
+      height: 65px;
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: none; /* Controlled dynamically in JS: hidden on auth screens S01-S05 */
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #94A3B8;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .nav-item.active { color: var(--primary); font-weight:700; }
+
+    .fab-btn {
+      position: absolute;
+      bottom: 80px;
+      right: 18px;
+      background: var(--gradient-primary);
+      color: white;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: none; /* Controlled dynamically in JS */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+      cursor: pointer;
+      border: none;
+      z-index: 50;
+      transition: transform 0.2s;
+    }
+    .fab-btn:hover { transform: scale(1.08); }
+
+    /* Architecture Tab */
+    .architecture-layout {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      gap: 2rem;
+    }
+
+    .arch-diagram-box {
+      background: #080C14;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #38BDF8;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header>
+    <a href="index.html" class="brand-logo">
+      <span class="material-symbols-rounded icon-md" style="color:var(--primary)">flight_takeoff</span>
+      <span>CardPilot</span>
+      <span class="brand-badge">PHASE 1 MVP</span>
+    </a>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchMainTab('prototype')">
+        <span class="material-symbols-rounded">smartphone</span>
+        Mobile Simulator (S01-S13)
+      </button>
+      <button class="tab-btn" onclick="switchMainTab('architecture')">
+        <span class="material-symbols-rounded">account_tree</span>
+        System Design & Data Flow
+      </button>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="design-system.html" class="btn btn-secondary btn-sm">
+        <span class="material-symbols-rounded">palette</span> Design System
+      </a>
+      <button onclick="toggleTheme()" class="btn btn-ghost btn-sm">
+        <span class="material-symbols-rounded">contrast</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="main-container">
+
+    <!-- TAB 1: INTERACTIVE SIMULATOR -->
+    <div id="tab-prototype" class="prototype-layout">
+      
+      <!-- Left Panel Navigator (Ordered Chronologically S01 -> S13) -->
+      <div class="screen-selector-panel">
+        <div class="panel-title">
+          <span>Danh Sách 13 Màn Hình Phase 1 (S01 → S13)</span>
+          <span style="font-size:0.8rem; color:var(--text-tertiary);">Tap vào card để xem thử</span>
+        </div>
+
+        <div class="screen-grid">
+          <!-- Auth & Onboarding Flow (No Bottom Navigation) -->
+          <div class="screen-card-btn active" id="btn-s01" onclick="showAppScreen('s01')">
+            <span class="screen-id">S01 • Entry</span>
+            <span class="screen-name">Splash Screen</span>
+            <span class="screen-desc">Logo, kiểm tra Auth token / Local storage</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s02" onclick="showAppScreen('s02')">
+            <span class="screen-id">S02</span>
+            <span class="screen-name">Onboarding</span>
+            <span class="screen-desc">Carousel 3 slide giá trị ứng dụng</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s03" onclick="showAppScreen('s03')">
+            <span class="screen-id">S03</span>
+            <span class="screen-name">Login Screen</span>
+            <span class="screen-desc">Đăng nhập Cloud + Nút 'Dùng thử local'</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s04" onclick="showAppScreen('s04')">
+            <span class="screen-id">S04</span>
+            <span class="screen-name">Register</span>
+            <span class="screen-desc">Tạo tài khoản mới (Bronze Member)</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s05" onclick="showAppScreen('s05')">
+            <span class="screen-id">S05</span>
+            <span class="screen-name">Forgot Password</span>
+            <span class="screen-desc">Gửi OTP khôi phục mật khẩu</span>
+          </div>
+
+          <!-- Main Authenticated App Flow (With Bottom Navigation Bar) -->
+          <div class="screen-card-btn" id="btn-s06" onclick="showAppScreen('s06')">
+            <span class="screen-id">S06 • Core Home</span>
+            <span class="screen-name">Dashboard</span>
+            <span class="screen-desc">Cashback Jars, Category breakdown</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s07" onclick="showAppScreen('s07')">
+            <span class="screen-id">S07</span>
+            <span class="screen-name">Add/Edit Card</span>
+            <span class="screen-desc">Chọn Ngân hàng, sản phẩm thẻ, ngày sao kê</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s08" onclick="showAppScreen('s08')">
+            <span class="screen-id">S08 • Main Tab</span>
+            <span class="screen-name">Card List</span>
+            <span class="screen-desc">Danh sách thẻ tín dụng đã sở hữu</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s09" onclick="showAppScreen('s09')">
+            <span class="screen-id">S09 • Interactive</span>
+            <span class="screen-name">Add Transaction</span>
+            <span class="screen-desc">Ghi log + Auto MCC + Realtime Cashback</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s10" onclick="showAppScreen('s10')">
+            <span class="screen-id">S10 • Main Tab</span>
+            <span class="screen-name">Transaction History</span>
+            <span class="screen-desc">Lịch sử giao dịch + Bộ lọc thẻ/danh mục</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s11" onclick="showAppScreen('s11')">
+            <span class="screen-id">S11</span>
+            <span class="screen-name">Transaction Detail</span>
+            <span class="screen-desc">Phân tích cashback + Báo sai mã MCC</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s12" onclick="showAppScreen('s12')">
+            <span class="screen-id">S12 • Main Tab</span>
+            <span class="screen-name">Profile</span>
+            <span class="screen-desc">Profile cá nhân, Membership tier, Local Sync</span>
+          </div>
+
+          <div class="screen-card-btn" id="btn-s13" onclick="showAppScreen('s13')">
+            <span class="screen-id">S13</span>
+            <span class="screen-name">Edit Profile</span>
+            <span class="screen-desc">Cập nhật thông tin họ tên, ngày sinh</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Simulator Frame -->
+      <div class="mobile-simulator-wrapper">
+        <div class="mobile-device">
+          <div class="mobile-screen">
+            
+            <!-- Status Bar -->
+            <div class="status-bar" id="app-status-bar">
+              <span id="status-bar-clock">09:41</span>
+              <div class="dynamic-island"></div>
+              <div style="display:flex; gap:4px; align-items:center;">
+                <span class="material-symbols-rounded icon-xs">signal_cellular_4_bar</span>
+                <span class="material-symbols-rounded icon-xs">wifi</span>
+                <span class="material-symbols-rounded icon-xs">battery_full</span>
+              </div>
+            </div>
+
+            <!-- Viewport Screen Content -->
+            <div class="app-viewport">
+              
+              <!-- S01: Splash Screen (NO BOTTOM NAV) -->
+              <div id="view-s01" class="app-screen-view active" onclick="showAppScreen('s02')" style="background: linear-gradient(180deg, #0F172A, #070B14); justify-content: center; align-items: center; text-align: center; color: white; cursor:pointer;">
+                <span class="material-symbols-rounded icon-xl" style="color:var(--primary); margin-bottom:12px;">flight_takeoff</span>
+                <h1 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px;">CARDPILOT</h1>
+                <p style="color: #94A3B8; font-size: 0.85rem; margin-top: 6px;">Tối ưu hoàn tiền thẻ tín dụng</p>
+                <div style="margin-top: 32px; font-size: 0.75rem; color: var(--primary); font-weight:600;">Tap bất kỳ đâu để vào Onboarding</div>
+              </div>
+
+              <!-- S02: Onboarding Screen (NO BOTTOM NAV) -->
+              <div id="view-s02" class="app-screen-view" style="padding: 20px; justify-content: space-between;">
+                <div style="display: flex; justify-content: flex-end;">
+                  <button onclick="showAppScreen('s03')" style="background: none; border: none; color: var(--app-muted); font-weight: 600; cursor: pointer;">Bỏ qua</button>
+                </div>
+                <div style="text-align: center; padding: 20px 0;">
+                  <div style="background: #E0F2FE; border-radius: 24px; padding: 40px 20px; margin-bottom: 24px; color: var(--primary);">
+                    <span class="material-symbols-rounded icon-xl">savings</span>
+                  </div>
+                  <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--app-ink); margin-bottom: 8px;">Tối Ưu Hoàn Tiền</h2>
+                  <p style="color: var(--app-muted); font-size: 0.85rem; line-height: 1.5;">Theo dõi chính xác hạn mức hoàn tiền (Cashback Jars) của từng thẻ tín dụng hàng tháng.</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+                  <div style="display: flex; gap: 6px;">
+                    <div style="width: 24px; height: 8px; background: var(--primary); border-radius: 10px;"></div>
+                    <div style="width: 8px; height: 8px; background: #CBD5E1; border-radius: 50%;"></div>
+                    <div style="width: 8px; height: 8px; background: #CBD5E1; border-radius: 50%;"></div>
+                  </div>
+                  <button class="btn btn-primary btn-block btn-lg" onclick="showAppScreen('s03')">Bắt Đầu Ngay</button>
+                </div>
+              </div>
+
+              <!-- S03: Login Screen (NO BOTTOM NAV) -->
+              <div id="view-s03" class="app-screen-view" style="padding: 24px; justify-content: space-between;">
+                <div>
+                  <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--app-ink); margin-bottom: 4px;">Đăng Nhập</h2>
+                  <p style="color: var(--app-muted); font-size: 0.85rem; margin-bottom: 24px;">Chào mừng bạn quay trở lại CardPilot</p>
+                  
+                  <div style="margin-bottom: 14px;">
+                    <label class="input-label" style="color:var(--app-ink);">Email</label>
+                    <input type="email" class="input" value="alex@example.com" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  </div>
+
+                  <div style="margin-bottom: 14px;">
+                    <label class="input-label" style="color:var(--app-ink);">Mật khẩu</label>
+                    <input type="password" class="input" value="••••••••••" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  </div>
+
+                  <button class="btn btn-primary btn-block btn-lg" onclick="showAppScreen('s06')" style="margin-top: 8px;">Đăng Nhập Cloud</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; text-align: center;">
+                  <div style="font-size: 0.8rem; color: var(--app-muted);">Hoặc</div>
+                  <button class="btn btn-secondary btn-block btn-lg" onclick="enterGuestMode()" style="border-color:var(--primary); color:var(--primary);">
+                    <span class="material-symbols-rounded icon-sm">bolt</span> Dùng thử không cần tài khoản (Local-Only)
+                  </button>
+                  <div style="font-size: 0.8rem; color: var(--app-muted); margin-top: 8px;">
+                    Chưa có tài khoản? <a href="#" onclick="showAppScreen('s04')" style="color: var(--primary); font-weight: 700; text-decoration: none;">Đăng ký</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- S04: Register Screen (NO BOTTOM NAV) -->
+              <div id="view-s04" class="app-screen-view" style="padding: 24px;">
+                <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--app-ink); margin-bottom: 4px;">Tạo Tài Khoản</h2>
+                <p style="color: var(--app-muted); font-size: 0.85rem; margin-bottom: 20px;">Bắt đầu tối ưu dòng tiền ngay hôm nay</p>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <input type="text" placeholder="Họ và tên" value="Alex Nguyễn" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  <input type="email" placeholder="Email" value="alex@example.com" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  <input type="password" placeholder="Mật khẩu" value="••••••••" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  <button class="btn btn-primary btn-block btn-lg" onclick="showAppScreen('s06')" style="margin-top: 10px;">Đăng Ký & Nhận Bronze Member</button>
+                </div>
+              </div>
+
+              <!-- S05: Forgot Password (NO BOTTOM NAV) -->
+              <div id="view-s05" class="app-screen-view" style="padding: 24px;">
+                <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--app-ink); margin-bottom: 4px;">Quên Mật Khẩu</h2>
+                <p style="color: var(--app-muted); font-size: 0.85rem; margin-bottom: 20px;">Nhập email đã đăng ký để nhận mã reset</p>
+                <input type="email" placeholder="Email" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1; margin-bottom: 16px;">
+                <button class="btn btn-primary btn-block btn-lg" onclick="alert('Đã gửi mã OTP reset mật khẩu!')">Gửi Link Reset</button>
+              </div>
+
+              <!-- S06: Dashboard (Home Screen - HAS BOTTOM NAV) -->
+              <div id="view-s06" class="app-screen-view" style="padding: 16px; background: #F8FAFC;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <div>
+                    <div style="font-size: 0.8rem; color: var(--app-muted);">Xin chào, Alex!</div>
+                    <div style="font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; color: var(--app-ink);">Dashboard</div>
+                  </div>
+                  <div id="mode-badge" class="chip-badge" style="background:#FEF3C7; color:#D97706;">LOCAL GUEST</div>
+                </div>
+
+                <!-- Total Cashback Summary Banner -->
+                <div style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #10B981 100%); color: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);">
+                  <div style="font-size: 0.75rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">TỔNG HOÀN TIỀN THÁNG NÀY</div>
+                  <div style="font-size: 1.6rem; font-weight: 800; font-family: var(--font-heading); margin: 6px 0 12px 0;">
+                    <span id="dash-total-cashback">2.450.000</span> VND <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.8;">/ 4.000.000 VND</span>
+                  </div>
+                  <div style="height:10px; background:rgba(255,255,255,0.25); border-radius:10px; overflow:hidden;">
+                    <div id="dash-total-progress" style="height:100%; width:61%; background:linear-gradient(90deg, #60A5FA, #34D399); border-radius:10px;"></div>
+                  </div>
+                  <div style="font-size: 0.75rem; opacity: 0.9; text-align: right; margin-top: 6px; font-weight:500;">Đạt 61% hạn mức hoàn tiền tối đa</div>
+                </div>
+
+                <!-- Cashback Jars List -->
+                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; color: var(--app-ink);">Hũ Hoàn Tiền Theo Thẻ (Cashback Jars)</div>
+
+                <div class="card" style="background:#FFF; border-color:#E2E8F0; padding:16px; margin-bottom:12px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 700; font-size: 0.9rem; display:flex; align-items:center; gap:8px;">
+                      <span class="material-symbols-rounded icon-sm" style="color:var(--primary)">credit_card</span> MSB Visa Signature
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700;">Chốt: Ngày 20</span>
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--app-muted); margin-top: 6px;">Hoàn tiền: <strong>1.200.000 VND</strong> / 2.000.000 VND</div>
+                  <div style="height:8px; background:#E2E8F0; border-radius:8px; overflow:hidden; margin-top:8px;">
+                    <div style="height:100%; width:60%; background:var(--gradient-primary); border-radius:8px;"></div>
+                  </div>
+                </div>
+
+                <div class="card" style="background:#FFF; border-color:#E2E8F0; padding:16px; margin-bottom:12px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 700; font-size: 0.9rem; display:flex; align-items:center; gap:8px;">
+                      <span class="material-symbols-rounded icon-sm" style="color:var(--primary)">credit_card</span> TPBank EVO World
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700;">Chốt: Ngày 05</span>
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--app-muted); margin-top: 6px;">Hoàn tiền: <strong>1.250.000 VND</strong> / 2.000.000 VND</div>
+                  <div style="height:8px; background:#E2E8F0; border-radius:8px; overflow:hidden; margin-top:8px;">
+                    <div style="height:100%; width:62.5%; background:var(--gradient-primary); border-radius:8px;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- S07: Add/Edit Card -->
+              <div id="view-s07" class="app-screen-view" style="padding: 20px;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 16px;">Thêm Thẻ Tín Dụng</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Ngân Hàng</label>
+                    <select class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                      <option>MSB - Ngân hàng Hàng Hải Việt Nam</option>
+                      <option>TPBank - Ngân hàng Tiên Phong</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Sản Phẩm Thẻ</label>
+                    <select class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                      <option>MSB Visa Signature</option>
+                      <option>MSB Mastercard Super Free</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Tên gợi nhớ (Nickname)</label>
+                    <input type="text" value="Thẻ Chi Tiêu Ăn Uống Mới" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  </div>
+
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Ngày chốt sao kê hàng tháng</label>
+                    <input type="number" value="20" min="1" max="31" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  </div>
+
+                  <button class="btn btn-primary btn-block btn-lg" onclick="alert('Đã lưu thẻ!'); showAppScreen('s08');" style="margin-top: 12px;">Lưu Thẻ</button>
+                </div>
+              </div>
+
+              <!-- S08: Card List Screen -->
+              <div id="view-s08" class="app-screen-view" style="padding: 16px; background: #F8FAFC;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h3 style="font-family: var(--font-heading);">Danh Sách Thẻ</h3>
+                  <button class="btn btn-primary btn-sm" onclick="showAppScreen('s07')"><span class="material-symbols-rounded icon-xs">add</span> Thêm Thẻ</button>
+                </div>
+
+                <!-- Card Tile 1 -->
+                <div style="background: linear-gradient(135deg, #1E3A8A, #2563EB); color: white; border-radius: 18px; padding: 20px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);">
+                  <div style="font-size: 0.75rem; opacity: 0.85; font-weight: 700; letter-spacing: 0.5px;">MSB VISA SIGNATURE</div>
+                  <div style="font-size: 1.2rem; font-weight: 800; font-family:monospace; margin: 14px 0;">**** **** **** 8899</div>
+                  <div style="font-size: 0.75rem; display: flex; justify-content: space-between; opacity: 0.9;">
+                    <span>Chốt sao kê: Ngày 20</span>
+                    <span>Cap: 2.000.000 VND</span>
+                  </div>
+                </div>
+
+                <!-- Card Tile 2 -->
+                <div style="background: linear-gradient(135deg, #0F172A, #334155); color: white; border-radius: 18px; padding: 20px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3);">
+                  <div style="font-size: 0.75rem; opacity: 0.85; font-weight: 700; letter-spacing: 0.5px;">TPBANK EVO WORLD</div>
+                  <div style="font-size: 1.2rem; font-weight: 800; font-family:monospace; margin: 14px 0;">**** **** **** 1234</div>
+                  <div style="font-size: 0.75rem; display: flex; justify-content: space-between; opacity: 0.9;">
+                    <span>Chốt sao kê: Ngày 05</span>
+                    <span>Cap: 2.000.000 VND</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- S09: Add Transaction Screen (Interactive) -->
+              <div id="view-s09" class="app-screen-view" style="padding: 20px;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 16px;">Ghi Log Giao Dịch</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Chọn Thẻ</label>
+                    <select class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                      <option>MSB Visa Signature (Default)</option>
+                      <option>TPBank EVO World</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Tên Merchant / Cửa Hàng</label>
+                    <input type="text" id="txn-merchant-input" value="Starbucks Coffee" oninput="updateCashbackPreview()" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                    <div style="font-size: 0.75rem; color: var(--primary); margin-top: 4px; display:flex; align-items:center; gap:4px; font-weight:600;">
+                      <span class="material-symbols-rounded icon-xs">auto_awesome</span> Candidate MCC: <strong id="txn-mcc-tag">5814 - Fast Food (95%)</strong>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="input-label" style="color:var(--app-ink);">Số Tiền Giao Dịch (VND)</label>
+                    <input type="number" id="txn-amount-input" value="150000" oninput="updateCashbackPreview()" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1; font-weight: bold; font-size: 1.1rem;">
+                  </div>
+
+                  <!-- Real-time Cashback Estimation Preview Card -->
+                  <div style="background: #E0F2FE; border: 1px solid var(--primary); border-radius: 16px; padding: 14px;">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: var(--primary); letter-spacing:0.5px;">ESTIMATED CASHBACK PREVIEW</div>
+                    <div style="font-size: 1.3rem; font-weight: 800; color: var(--success); margin: 4px 0;">
+                      + <span id="preview-cashback-val">15.000</span> VND <span style="font-size: 0.8rem; font-weight: normal; color: var(--app-ink);">(Tỷ lệ 10%)</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--app-muted);">Rule: MSB Signature - Khuyến mãi F&B</div>
+                  </div>
+
+                  <button class="btn btn-primary btn-block btn-lg" onclick="submitTransaction()" style="margin-top: 10px;">
+                    <span class="material-symbols-rounded icon-sm">add_circle</span> Lưu Giao Dịch & Cộng Cashback
+                  </button>
+                </div>
+              </div>
+
+              <!-- S10: Transaction History -->
+              <div id="view-s10" class="app-screen-view" style="padding: 16px; background: #F8FAFC;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 12px;">Lịch Sử Giao Dịch</h3>
+                
+                <div class="search-bar" style="background:#FFF; margin-bottom:12px;">
+                  <span class="material-symbols-rounded">search</span>
+                  <input placeholder="Tìm kiếm merchant..." style="color:#102033;">
+                </div>
+
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--app-muted); margin-bottom: 8px;">HÔM NAY (24/07/2026)</div>
+
+                <div onclick="showAppScreen('s11')" class="card" style="background:#FFF; border-color:#E2E8F0; padding:14px; margin-bottom:8px; border-radius:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:#E0F2FE; color:var(--primary); display:flex; align-items:center; justify-content:center;">
+                      <span class="material-symbols-rounded">local_cafe</span>
+                    </div>
+                    <div>
+                      <div style="font-weight: 700; font-size: 0.9rem;">Starbucks Coffee</div>
+                      <div style="font-size: 0.75rem; color: var(--app-muted);">MCC 5814 • Fast Food</div>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-weight: 700; color: var(--app-ink);">- 150.000 VND</div>
+                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 700;">+ 15.000 VND Hoàn</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- S11: Transaction Detail -->
+              <div id="view-s11" class="app-screen-view" style="padding: 20px;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 16px;">Chi Tiết Giao Dịch</h3>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <div style="width:64px; height:64px; border-radius:50%; background:#E0F2FE; color:var(--primary); display:flex; align-items:center; justify-content:center; margin:0 auto 10px auto;">
+                    <span class="material-symbols-rounded icon-lg">local_cafe</span>
+                  </div>
+                  <div style="font-size: 1.3rem; font-weight: 800; color: var(--app-ink);">Starbucks Coffee</div>
+                  <div style="font-size: 1.4rem; font-weight: bold; color: var(--app-ink); margin-top: 4px;">- 150.000 VND</div>
+                  <div style="font-size: 0.8rem; color: var(--app-muted); margin-top: 2px;">24/07/2026 lúc 14:30</div>
+                </div>
+
+                <div style="background: var(--app-subtle); border-radius: 16px; padding: 16px; margin-bottom: 16px; font-size: 0.85rem; line-height: 1.6;">
+                  <div><strong>Thẻ:</strong> MSB Visa Signature (**** 8899)</div>
+                  <div><strong>Mã MCC:</strong> 5814 (Fast Food)</div>
+                  <div><strong>Hoàn tiền:</strong> <span style="color: var(--success); font-weight: bold;">+ 15.000 VND (10%)</span></div>
+                  <div><strong>Giải thích:</strong> Áp dụng quy tắc F&B Special cho thẻ MSB Signature.</div>
+                </div>
+
+                <button class="btn btn-secondary btn-block btn-lg" onclick="alert('Đã gửi phản hồi báo sai mã MCC!')">
+                  <span class="material-symbols-rounded icon-sm">report_problem</span> Báo Sai Mã MCC Cửa Hàng Này
+                </button>
+              </div>
+
+              <!-- S12: Profile Screen -->
+              <div id="view-s12" class="app-screen-view" style="padding: 20px; background: #F8FAFC;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 16px;">Cá Nhân</h3>
+                
+                <div class="card" style="background:#FFF; border-color:#E2E8F0; padding:16px; margin-bottom:16px; border-radius:18px; display:flex; align-items:center; gap:14px;">
+                  <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">AN</div>
+                  <div>
+                    <div style="font-weight: 800; font-size: 1rem; color: var(--app-ink);">Alex Nguyễn</div>
+                    <div style="font-size: 0.8rem; color: var(--app-muted);">alex@example.com</div>
+                    <span class="chip-badge" style="background: #E0F2FE; color: #0284C7; margin-top: 4px;">BRONZE MEMBER</span>
+                  </div>
+                </div>
+
+                <!-- Sync Box -->
+                <div style="background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+                  <div style="font-weight: 700; font-size: 0.85rem; color: #92400E;">Trạng thái: Local-First (Guest Mode)</div>
+                  <div style="font-size: 0.75rem; color: #B45309; margin: 4px 0 12px 0;">Dữ liệu lưu an toàn trên máy. Tạo tài khoản để sync dữ liệu lên Cloud.</div>
+                  <button class="btn btn-primary btn-block btn-sm" onclick="syncLocalDataToCloud()" style="background: #D97706;">
+                    <span class="material-symbols-rounded icon-xs">cloud_upload</span> Đồng Bộ Dữ Liệu Lên Cloud
+                  </button>
+                </div>
+
+                <button class="btn btn-secondary btn-block btn-md" onclick="showAppScreen('s13')" style="margin-bottom: 10px;">
+                  <span class="material-symbols-rounded icon-sm">edit</span> Chỉnh Sửa Thông Tin
+                </button>
+                <button class="btn btn-danger btn-block btn-md" onclick="showAppScreen('s03')">
+                  <span class="material-symbols-rounded icon-sm">logout</span> Đăng Xuất
+                </button>
+              </div>
+
+              <!-- S13: Edit Profile -->
+              <div id="view-s13" class="app-screen-view" style="padding: 20px;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 16px;">Sửa Profile</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <input type="text" value="Alex Nguyễn" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  <input type="date" value="1995-08-15" class="input" style="background:#FFF; color:#102033; border-color:#CBD5E1;">
+                  <button class="btn btn-primary btn-block btn-lg" onclick="alert('Đã cập nhật profile!'); showAppScreen('s12');">Lưu Thay Đổi</button>
+                </div>
+              </div>
+
+            </div> <!-- /app-viewport -->
+
+            <!-- Bottom Navigation Bar (ONLY APPEARS ON AUTHENTICATED APP STACK: S06, S07, S08, S09, S10, S11, S12, S13) -->
+            <div class="bottom-nav" id="app-bottom-nav">
+              <div class="nav-item" id="nav-item-home" onclick="showAppScreen('s06')">
+                <span class="material-symbols-rounded">home</span>
+                <span>Home</span>
+              </div>
+              <div class="nav-item" id="nav-item-cards" onclick="showAppScreen('s08')">
+                <span class="material-symbols-rounded">credit_card</span>
+                <span>Cards</span>
+              </div>
+              <div class="nav-item" id="nav-item-history" onclick="showAppScreen('s10')">
+                <span class="material-symbols-rounded">receipt_long</span>
+                <span>History</span>
+              </div>
+              <div class="nav-item" id="nav-item-me" onclick="showAppScreen('s12')">
+                <span class="material-symbols-rounded">person</span>
+                <span>Me</span>
+              </div>
+            </div>
+
+            <!-- Floating Action Button (FAB) (Only on Dashboard S06) -->
+            <button class="fab-btn" id="app-fab-btn" onclick="showAppScreen('s09')">
+              <span class="material-symbols-rounded">add</span>
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: SYSTEM ARCHITECTURE & DATA FLOW -->
+    <div id="tab-architecture" class="architecture-layout">
+      
+      <div class="card-glass">
+        <h2 style="font-family:var(--font-heading); margin-bottom:12px; display:flex; align-items:center; gap:10px;">
+          <span class="material-symbols-rounded" style="color:var(--primary)">account_tree</span>
+          High-Level Hybrid Local-First Architecture
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+          CardPilot áp dụng mô hình Hybrid Local-First. Toàn bộ tính năng CRUD thẻ & log giao dịch hoạt động 100% khi không có mạng thông qua SQLite cục bộ, và tự động sync bất đồng bộ lên NestJS API khi có mạng.
+        </p>
+        <div class="arch-diagram-box">
+┌────────────────────────────────────────────────────────────────────────┐
+│                         FLUTTER MOBILE CLIENT                          │
+│  ┌────────────────────┐      ┌──────────────────┐    ┌──────────────┐  │
+│  │ presentation (Views)│ ───► │ Riverpod State   │ ─►│ Domain Layer │  │
+│  └────────────────────┘      └──────────────────┘    └──────┬───────┘  │
+│                                                             │          │
+│                              ┌──────────────────────────────┴───────┐  │
+│                              ▼                                      ▼  │
+│                    ┌───────────────────┐                 ┌──────────┴┐ │
+│                    │ Local SQLite Cache│                 │Sync Engine│ │
+│                    │ (sqflite / drift) │                 │ & Outbox  │ │
+│                    └───────────────────┘                 └─────┬─────┘ │
+└────────────────────────────────────────────────────────────────┼───────┘
+                                                                 │ REST / HTTPS
+                                                                 ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                   NESTJS BACKEND MONOLITH (Fastify)                    │
+│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌───────────┐  │
+│   │ Auth Context │  │ Card Context │  │ Txn Context  │  │ MCC Engine│  │
+│   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └─────┬─────┘  │
+└──────────┼─────────────────┼─────────────────┼────────────────┼────────┘
+           │                 │ TypeORM         │                │
+           ▼                 ▼                 ▼                ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                   PostgreSQL 17 (Supabase Hosted)                      │
+└────────────────────────────────────────────────────────────────────────┘
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let isGuestMode = true;
+    let currentCashback = 2450000;
+
+    function switchMainTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab-prototype').style.display = tab === 'prototype' ? 'flex' : 'none';
+      document.getElementById('tab-architecture').style.display = tab === 'architecture' ? 'flex' : 'none';
+
+      if (tab === 'prototype') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      }
+    }
+
+    function showAppScreen(screenId) {
+      // 1. Hide all screens & deactivate buttons
+      document.querySelectorAll('.app-screen-view').forEach(view => view.classList.remove('active'));
+      document.querySelectorAll('.screen-card-btn').forEach(btn => btn.classList.remove('active'));
+
+      // 2. Activate target screen & navigator button
+      const targetView = document.getElementById('view-' + screenId);
+      if (targetView) targetView.classList.add('active');
+
+      const targetBtn = document.getElementById('btn-' + screenId);
+      if (targetBtn) targetBtn.classList.add('active');
+
+      // 3. Control Bottom Navigation & FAB visibility
+      const bottomNav = document.getElementById('app-bottom-nav');
+      const fabBtn = document.getElementById('app-fab-btn');
+      
+      // Auth / Onboarding screens (S01 to S05) MUST NOT HAVE Bottom Navigation or FAB
+      const unauthScreens = ['s01', 's02', 's03', 's04', 's05'];
+      
+      if (unauthScreens.includes(screenId)) {
+        if (bottomNav) bottomNav.style.display = 'none';
+        if (fabBtn) fabBtn.style.display = 'none';
+      } else {
+        if (bottomNav) bottomNav.style.display = 'flex';
+        // FAB button only shows on S06 (Dashboard) or S10
+        if (fabBtn) fabBtn.style.display = (screenId === 's06' ? 'flex' : 'none');
+      }
+
+      // 4. Highlight current active bottom navigation tab icon
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      if (screenId === 's06') document.getElementById('nav-item-home')?.classList.add('active');
+      if (screenId === 's08') document.getElementById('nav-item-cards')?.classList.add('active');
+      if (screenId === 's10') document.getElementById('nav-item-history')?.classList.add('active');
+      if (screenId === 's12') document.getElementById('nav-item-me')?.classList.add('active');
+    }
+
+    function enterGuestMode() {
+      isGuestMode = true;
+      document.getElementById('mode-badge').innerText = "LOCAL GUEST";
+      document.getElementById('mode-badge').style.background = "#FEF3C7";
+      document.getElementById('mode-badge').style.color = "#D97706";
+      showAppScreen('s06');
+    }
+
+    function updateCashbackPreview() {
+      const amount = parseFloat(document.getElementById('txn-amount-input').value) || 0;
+      const merchant = document.getElementById('txn-merchant-input').value.toLowerCase();
+      
+      let rate = 0.10;
+      let mccText = "5814 - Fast Food (95%)";
+
+      if (merchant.includes('shopee') || merchant.includes('tiki')) {
+        rate = 0.08;
+        mccText = "5311 - Department Store (90%)";
+      } else if (merchant.includes('petro') || merchant.includes('xăng')) {
+        rate = 0.05;
+        mccText = "5541 - Service Station (98%)";
+      }
+
+      document.getElementById('txn-mcc-tag').innerText = mccText;
+      const estimated = Math.round(amount * rate);
+      document.getElementById('preview-cashback-val').innerText = estimated.toLocaleString('vi-VN');
+    }
+
+    function submitTransaction() {
+      const amount = parseFloat(document.getElementById('txn-amount-input').value) || 0;
+      const estimated = Math.round(amount * 0.10);
+      
+      currentCashback += estimated;
+      document.getElementById('dash-total-cashback').innerText = currentCashback.toLocaleString('vi-VN');
+      
+      const pct = Math.min(100, Math.round((currentCashback / 4000000) * 100));
+      document.getElementById('dash-total-progress').style.width = pct + '%';
+
+      alert(`Đã thêm giao dịch thành công! +${estimated.toLocaleString('vi-VN')} VND Cashback đã được cộng vào Hũ Hoàn Tiền.`);
+      showAppScreen('s06');
+    }
+
+    function syncLocalDataToCloud() {
+      alert("Đang kích hoạt Local Sync Engine...\nĐã tải dữ liệu từ SQLite local lên NestJS Backend thành công!");
+      isGuestMode = false;
+      document.getElementById('mode-badge').innerText = "SYNCED CLOUD";
+      document.getElementById('mode-badge').style.background = "#DCFCE7";
+      document.getElementById('mode-badge').style.color = "#15803D";
+    }
+
+    // Initialize Default Screen on Load: Start at S01 (Splash Screen),
+    // unless a deep link like prototype.html#view-s07 or prototype.html#s07 asks for a specific screen
+    // (used by docs/processes/tasks/ screen-task files to link straight to the right screen).
+    function screenIdFromHash() {
+      const hash = (window.location.hash || '').replace('#', '');
+      const match = hash.match(/^(view-)?(s\d{2})$/i);
+      return match ? match[2].toLowerCase() : null;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      showAppScreen(screenIdFromHash() || 's01');
+    });
+
+    window.addEventListener('hashchange', () => {
+      const screenId = screenIdFromHash();
+      if (screenId) showAppScreen(screenId);
+    });
+  </script>
+</body>
+</html>
