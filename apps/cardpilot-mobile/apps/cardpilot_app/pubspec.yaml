@@ -38,6 +38,7 @@ dependencies:
   cardpilot_ui:
     path: ../../packages/cardpilot_ui
   supabase_flutter: ^2.16.0
+  toastification: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -51,11 +52,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: "^0.14.4"
 
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/icon.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

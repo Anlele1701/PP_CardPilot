@@ -12,12 +12,33 @@ class SupabaseAuthDataSource {
   final SupabaseClient? client;
   final String redirectUrl;
 
-  Future<bool> signInWithSocialProvider(SocialAuthProvider provider) {
-    final configuredClient = client;
+  Future<AuthResponse> signInWithEmail({
+    required String email,
+    required String password,
+  }) {
+    final configuredClient = _configuredClient();
+    return configuredClient.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+  }
 
-    if (configuredClient == null) {
-      throw const AuthConfigurationException();
-    }
+  Future<AuthResponse> signUpWithEmail({
+    required String fullName,
+    required String email,
+    required String password,
+  }) {
+    final configuredClient = _configuredClient();
+    return configuredClient.auth.signUp(
+      email: email,
+      password: password,
+      data: {'full_name': fullName},
+      emailRedirectTo: kIsWeb ? null : redirectUrl,
+    );
+  }
+
+  Future<bool> signInWithSocialProvider(SocialAuthProvider provider) {
+    final configuredClient = _configuredClient();
 
     return configuredClient.auth.signInWithOAuth(
       switch (provider) {
@@ -29,6 +50,18 @@ class SupabaseAuthDataSource {
           ? LaunchMode.platformDefault
           : LaunchMode.externalApplication,
     );
+  }
+
+  Future<void> signOut() {
+    return _configuredClient().auth.signOut();
+  }
+
+  SupabaseClient _configuredClient() {
+    final configuredClient = client;
+    if (configuredClient == null) {
+      throw const AuthConfigurationException();
+    }
+    return configuredClient;
   }
 }
 

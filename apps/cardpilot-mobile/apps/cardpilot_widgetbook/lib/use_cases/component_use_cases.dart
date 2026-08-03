@@ -70,66 +70,6 @@ Widget loadingSocialAuthButton(BuildContext context) {
   );
 }
 
-@widgetbook.UseCase(
-  name: 'Page 1',
-  type: ui.OnboardingPagination,
-  path: '[Components]',
-)
-Widget onboardingPaginationPageOne(BuildContext context) {
-  return const Center(
-    child: ui.OnboardingPagination(currentPage: 0, pageCount: 3),
-  );
-}
-
-@widgetbook.UseCase(
-  name: 'Page 2',
-  type: ui.OnboardingPagination,
-  path: '[Components]',
-)
-Widget onboardingPaginationPageTwo(BuildContext context) {
-  return const Center(
-    child: ui.OnboardingPagination(currentPage: 1, pageCount: 3),
-  );
-}
-
-@widgetbook.UseCase(
-  name: 'Page 3',
-  type: ui.OnboardingPagination,
-  path: '[Components]',
-)
-Widget onboardingPaginationPageThree(BuildContext context) {
-  return const Center(
-    child: ui.OnboardingPagination(currentPage: 2, pageCount: 3),
-  );
-}
-
-@widgetbook.UseCase(
-  name: 'Pilot',
-  type: ui.OnboardingHeroIllustration,
-  path: '[Components]',
-)
-Widget pilotOnboardingIllustration(BuildContext context) {
-  return _illustrationCanvas(ui.OnboardingIllustration.pilot);
-}
-
-@widgetbook.UseCase(
-  name: 'Cashback',
-  type: ui.OnboardingHeroIllustration,
-  path: '[Components]',
-)
-Widget cashbackOnboardingIllustration(BuildContext context) {
-  return _illustrationCanvas(ui.OnboardingIllustration.cashback);
-}
-
-@widgetbook.UseCase(
-  name: 'Insights',
-  type: ui.OnboardingHeroIllustration,
-  path: '[Components]',
-)
-Widget insightsOnboardingIllustration(BuildContext context) {
-  return _illustrationCanvas(ui.OnboardingIllustration.insights);
-}
-
 Widget _componentCanvas(Widget child) {
   return Scaffold(
     body: Center(
@@ -140,16 +80,6 @@ Widget _componentCanvas(Widget child) {
           child: child,
         ),
       ),
-    ),
-  );
-}
-
-Widget _illustrationCanvas(ui.OnboardingIllustration illustration) {
-  return Center(
-    child: SizedBox(
-      width: 390,
-      height: 360,
-      child: ui.OnboardingHeroIllustration(illustration: illustration),
     ),
   );
 }

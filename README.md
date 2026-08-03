@@ -82,6 +82,22 @@ pnpm run dev:all
 This launches the `CardPilot Dev CLI`, an interactive CLI for running services.
 Backend (NestJS):
 
+### Mobile authentication configuration
+
+The Flutter app currently authenticates directly with Supabase Auth. Create the
+ignored file `apps/cardpilot-mobile/apps/cardpilot_app/.env` locally:
+
+```dotenv
+SUPABASE_URL=https://PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+```
+
+The `cardpilot-app:run` Nx target passes this file through
+`--dart-define-from-file=.env`. Do not commit real environment files or keys.
+Native OAuth returns to the app through
+`io.cardpilot.app://login-callback/`; configure the same redirect URL in
+Supabase Auth.
+
 ## Useful Nx commands
 
 ```bash
@@ -106,6 +122,7 @@ pnpm nx run cardpilot-app:run
 | `docs/architecture/system.md`                                                        | System architecture (bird-eye view)                        |
 | `docs/architecture/api.md`                                                           | API design (implemented + planned endpoints)                |
 | `docs/architecture/database.md`                                                      | Full ERD + table definitions (grounded in the real migration) |
+| `docs/architecture/mobile-sqlite.md`                                                 | Proposed Drift/SQLite schema, cache, sync, migration, and implementation plan |
 | `docs/architecture/design-system.md`                                                 | `cardpilot_ui` design tokens + component inventory          |
 | `docs/architecture/ai.md`                                                            | AI/ML roadmap (OCR, forecasting, recommendation)             |
 | `docs/processes/deployment-phases.md`                                               | Phase 1/2 roadmap overview                                  |

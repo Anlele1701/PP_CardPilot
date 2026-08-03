@@ -41,7 +41,7 @@ CardPilot = "Đồng phi công" cho ví thẻ tín dụng của bạn — luôn 
 | Change User Information | Form chỉnh sửa profile | P1 | 1 |
 | View User Information | Xem thông tin cá nhân + Membership Level hiện tại | P0 | 1 |
 
-> **Trạng thái hiện tại & điểm cần thống nhất**: Flutter app hôm nay đã có 1 flow **Onboarding carousel** hoàn chỉnh (3 slide giới thiệu: "CardPilot" / "Track every card benefit" / "AI insights for your wallet", nút "Get started" ở slide cuối — xem `apps/cardpilot_app/lib/features/onboarding/`) nhưng nút "Get started" hiện tại **chưa điều hướng đi đâu** (chỉ hiện SnackBar). Yêu cầu sản phẩm gốc lại nêu **"No onboard screen, show login/logout và có option Skip"** — đây là điểm mâu thuẫn cần đội ngũ quyết định: (a) giữ onboarding carousel rồi mới tới Login, hay (b) bỏ carousel, vào thẳng Login/Sign-up kèm nút Skip. Tài liệu này tạm giữ giả định (a) vì đó là những gì đã build, và ghi rõ cần xác nhận lại trước khi code thêm màn Login.
+> **Trạng thái hiện tại**: Flutter app vào thẳng Sign in; onboarding carousel đã được gỡ. Mobile đã hỗ trợ Supabase email/password, Google/Facebook OAuth, sign-out và nút `Continue as guest`. Cả guest và authenticated user dùng chung `initial_setup`: nhập display name → tạo thẻ đầu tiên → Home shell. Persistence nghiệp vụ hiện là in-memory prototype; SQLite, backend user bootstrap và cloud sync vẫn chưa implement. Forgot-password hiện mới là thông báo placeholder.
 
 ### 2.2 User Membership Management
 
@@ -167,13 +167,15 @@ Chưa có yêu cầu chính thức (VD: WCAG level, đa ngôn ngữ) — **TBD**
 
 ## 4. User Flows
 
-### 4.1 New User Onboarding (giả định giữ carousel hiện có — cần xác nhận, xem #2.1)
+### 4.1 New User Onboarding
 ```
-Mở app → Onboarding carousel (3 slide) → "Get started" →
-Sign in / Register / Skip (dùng local) →
-[Nếu Sign in/Register] → Dashboard rỗng, mời thêm thẻ đầu tiên
-[Nếu Skip] → Dashboard local-only (có quảng cáo), mời thêm thẻ đầu tiên
+Mở app → Sign in →
+[Email/password hoặc Google/Facebook] → Supabase xác thực → Initial setup
+[Continue as guest] → Initial setup local-only
+Initial setup → Nhập display name → Tạo thẻ đầu tiên → Home shell
 ```
+
+> Shared initial setup và Home shell đã implement bằng in-memory repository để kiểm tra UX. Dữ liệu chưa tồn tại sau khi app process bị đóng. Thiết kế Drift/SQLite để thay adapter này nằm tại [`architecture/mobile-sqlite.md`](./architecture/mobile-sqlite.md) và đang chờ review.
 
 ### 4.2 Add First Card
 ```
@@ -191,11 +193,14 @@ Nhập số tiền + ngày → Lưu → Hiển thị hoàn tiền ước tính n
 ```
 User dùng local-only bấm "Đăng nhập/Đăng ký" từ Settings →
 Xác thực tài khoản → Hệ thống đối chiếu transactions local (SQLite) với cloud (Postgres) →
-[Cơ chế xác định giao dịch hợp lệ + xử lý trùng lặp — CHƯA THIẾT KẾ, xem BRD #9 Constraints] →
+[Outbox + idempotency + optimistic conflict handling theo mobile SQLite proposal] →
 Đồng bộ thành công → Tiếp tục dùng app với dữ liệu đã hợp nhất
 ```
 
-> Flow 4.4 có 1 bước chưa thiết kế (conflict resolution khi sync) — đây là open question quan trọng nhất về mặt kỹ thuật, xem `ARCH-DB` mục Local Cache Strategy.
+> Flow 4.4 đã có kiến trúc đề xuất nhưng chưa implement. Các quyết định còn cần
+> duyệt gồm workspace topology, encryption/backup, backend dataset version,
+> server version, idempotency retention và conflict UX; xem
+> `architecture/mobile-sqlite.md`.
 
 ## 5. Release Criteria
 

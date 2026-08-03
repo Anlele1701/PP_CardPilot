@@ -15,12 +15,12 @@ Middleware/Guard xác thực Bearer token (`AuthGuard`) áp dụng cho mọi rou
 - [ ] Request không có header `Authorization: Bearer <token>` tới route được đánh dấu cần auth → trả `401 Unauthorized`
 - [ ] Token hết hạn hoặc invalid signature → trả `401 Unauthorized`, message phân biệt được với case thiếu token (phục vụ mobile tự động refresh token)
 - [ ] Route đánh dấu `@Roles('admin')` mà user thường (role `user`) gọi vào → trả `403 Forbidden`
-- [ ] Route không đánh dấu auth (VD: `POST /api/auth/login`) vẫn hoạt động bình thường không bị guard chặn
+- [ ] Route public (VD: `GET /api/health`, `GET /api/v1/banks`) vẫn hoạt động bình thường không bị guard chặn
 - [ ] `request.user` được populate đúng thông tin user (tối thiểu `id`, `role`) để các controller phía sau dùng được ngay, không cần decode token lại
 
 ## Dependencies
 
-- **Depends On (Task):** [T-S03.1](../T-S03-login-screen/T-S03.1-be-login-api.md) (cần có cơ chế issue token để test guard end-to-end)
+- **Depends On (Task):** [T-BE-004](../T-BE-004-quyet-dinh-auth-provider/README.md) (cần chốt Supabase claim và identity mapping để test end-to-end)
 - **Depends On (Phase Gate):** —
 
 ## Ref Docs
@@ -35,7 +35,7 @@ Middleware/Guard xác thực Bearer token (`AuthGuard`) áp dụng cho mọi rou
 
 | Status | Created By | Created Date | Updated By | Updated Date | Reviewed/Approved By | Review Date | Ghi chú |
 |--------|-----------|---------------|-----------|---------------|------------------------|--------------|---------|
-| Backlog | TBD | 2026-07-25 | — | — | — | — | Chờ Login API (T-S03.1) có thể issue token để test — critical path, block gần như mọi epic/màn hình sau |
+| Backlog | TBD | 2026-07-25 | — | — | — | — | Chờ chốt Supabase claim/identity mapping — critical path cho API nghiệp vụ được bảo vệ |
 
 ---
 Index toàn backlog: [`../../../../tasks.md`](../../../../tasks.md)

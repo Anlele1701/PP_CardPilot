@@ -83,11 +83,16 @@ Kích hoạt qua `"prepare": "husky"` trong `package.json` (chạy khi `pnpm ins
 | `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` | GitHub Actions secret (`backend-deploy.yml`) | Có (CI) | Đăng nhập Docker Hub để push image |
 | `RENDER_DEPLOY_HOOK_URL` | GitHub Actions secret (`backend-deploy.yml`) | Có (CI) | Trigger Render redeploy |
 | `WIDGETBOOK_CLOUD_API_KEY` | GitHub Actions secret (`widgetbook-cloud.yml`) | Có (CI, guard fail-fast) | Push build lên Widgetbook Cloud |
+| `SUPABASE_URL` | Flutter compile-time define (`--dart-define-from-file`) | Có (mobile auth) | Project URL; không hard-code trong source |
+| `SUPABASE_PUBLISHABLE_KEY` | Flutter compile-time define (`--dart-define-from-file`) | Có (mobile auth) | Publishable/anon key; không dùng service-role key trong app |
 
 ### Known Documentation Gaps
 
 - `README.md` (bước "4. Setup environment variables") mô tả quy trình `.env.keys` + lệnh `pnpm encrypt` để giải mã biến môi trường ("Will be using encrypted... Get from owner host"). **Quy trình này không tồn tại trong code hiện tại**: không có script `encrypt` trong `package.json`, không có `@dotenvx/dotenvx`/`dotenv-vault` hay package encryption nào trong dependency tree, và `.gitignore` không hề nhắc tới `.env.keys`/`.env.vault`. Thực tế hiện tại chỉ dùng `.env` phẳng (qua `dotenv`) theo mẫu `.env.example`. Cần đội ngũ xác nhận: (a) tính năng encryption từng có nhưng đã gỡ, hay (b) README viết trước khi implement và chưa cập nhật lại. Cho tới khi xác nhận, làm theo `.env.example` thực tế, bỏ qua bước `pnpm encrypt` trong README.
-- Không có secret nào cho auth provider (JWT secret, Supabase Auth key, v.v.) — vì auth chưa được implement (xem `SRS` FR-AUTH).
+- Mobile auth đã dùng Supabase. File `.env` mobile phải được cấp ở local/CI và
+  truyền bằng `--dart-define-from-file`; tuyệt đối không đưa Supabase
+  `service_role` key vào Flutter bundle. Backend verification secret/config vẫn
+  pending cho tới khi Auth Guard được implement.
 
 ## 6. Disaster Recovery / Backup
 

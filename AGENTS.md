@@ -19,6 +19,7 @@ Before planning or changing repository code, read these files completely:
 - `README.md`
 - Backend: `docs/BACKEND_ARCHITECTURE.md`
 - Mobile: `docs/MOBILE_ARCHITECTURE.md`
+- Mobile SQLite/cache/sync work: `docs/architecture/mobile-sqlite.md`
 - Git conventions: `docs/GIT_COMMIT_CONVENTIONS.md`
 - Branching: `docs/GIT_BRANCHING_STRATEGY.md`
 
@@ -39,6 +40,9 @@ After reading the documentation:
 - Nx 22.7.x; prefer Nx targets from the repository root.
 - Flutter 3.41.9 stable.
 - PostgreSQL for the backend; SQLite, if added, belongs to the mobile application and has its own schema/migration lifecycle.
+- Follow `docs/architecture/mobile-sqlite.md` for workspace scoping, Drift
+  migrations, reference-cache versioning, outbox writes, and sync contracts;
+  do not copy PostgreSQL tables into Flutter without the documented mapping.
 
 Install dependencies with `pnpm install`. Do not edit generated dependency folders such as `node_modules`, `.dart_tool`, `build`, or `dist`.
 

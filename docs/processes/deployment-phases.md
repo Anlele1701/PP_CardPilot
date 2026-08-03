@@ -40,7 +40,7 @@
 | Phase | Goal | Key Tables | Chi tiết |
 |-------|------|------------|----------|
 | 1 — MVP | Auth + Local-only mode + Card CRUD + Transaction Logging thủ công + MCC/Rule seed + Dashboard cốt lõi | `users`, `memberships`, `banks`, `credit_cards`, `user_cards`, `merchant_category_codes`, `merchants`, `reward_rules`, `reward_rule_mccs`, `transactions`, `cashback_calculations` | [→ phase-1](./deployment/deployment-phase-1.md) |
-| 2 — Smart Tracking | OCR + Recurring Bill Detection + Spend Forecast + Card Recommendation + Notification (Android) | `merchant_mcc_candidates`, `merchant_mcc_feedbacks` (đưa vào dùng đầy đủ), local SQLite cache tables | [→ phase-2](./deployment/deployment-phase-2.md) |
+| 2 — Smart Tracking | OCR + Recurring Bill Detection + Spend Forecast + Card Recommendation + Notification (Android) | `merchant_mcc_candidates`, `merchant_mcc_feedbacks`, SQLite schema v2 transaction/reward tables | [→ phase-2](./deployment/deployment-phase-2.md) |
 
 ---
 
@@ -48,10 +48,10 @@
 
 | Component | Phase 1 | Phase 2 |
 |-----------|---------|---------|
-| Mobile | Flutter (Riverpod, Clean Architecture theo feature) | + local SQLite cache, + OCR SDK, + push notification SDK (Android) |
+| Mobile | Flutter + Riverpod; proposed Drift schema v1 for workspace/setup/cards/reference cache | + Drift schema v2 transaction/reward tables, + OCR SDK, + push notification SDK (Android) |
 | Backend | NestJS + Fastify + TypeORM + PostgreSQL (modular monolith, bounded contexts) | — (giữ nguyên kiến trúc, thêm bounded context mới) |
-| Auth | JWT tự xây **hoặc** Supabase Auth (chưa quyết định — xem `ARCH-SYS` #7.1) | — |
-| Database | PostgreSQL 17 (Supabase-hosted), schema đã có qua migration | + SQLite on-device (local-first cache) |
+| Auth | Supabase Auth trên mobile; backend token verification/profile bootstrap còn pending | — |
+| Database | PostgreSQL 17 + proposed SQLite v1 local-first foundation | + SQLite v2 transaction/reward cache migration |
 | AI/ML | Rule-based MCC lookup (không cần model) | + OCR (on-device hoặc cloud, TBD), + OpenCV preprocessing, + Forecast heuristic |
 | Infra | Docker Compose (chỉ Postgres local), Render (backend), Docker Hub (registry) | — (chưa có kế hoạch thay đổi hạ tầng) |
 | CI/CD | GitHub Actions: build & deploy trên `develop` (backend + Widgetbook Cloud), chưa có CI trên PR | + CI lint/test trên PR (khuyến nghị, xem `PROC-CICD` Known Gap) |
@@ -77,13 +77,14 @@
 | reward_rules | New | — | 15 |
 | reward_rule_mccs | New | — | 3 |
 | cashback_calculations | New | — | 8 |
-| **SQLite: local cache tables** | — | New (xem `ARCH-DB` #3) | TBD |
+| **SQLite: workspace/profile/cards/reference/outbox** | Proposed v1 | Evolve through tested migrations | See `mobile-sqlite.md` |
+| **SQLite: transactions/MCC/rewards/conflicts** | — | Proposed v2 | See `mobile-sqlite.md` |
 
 **Tổng tables tích lũy:**
 
 | Phase | New Tables (PG) | Modified | Cumulative |
 |-------|----------------|----------|------------|
-| 1 | 14 (đã có qua 1 migration duy nhất) | — | 14 |
+| 1 | 14 (schema migration + separate reference-data migration) | — | 14 |
 | 2 | 0 (chỉ SQLite local, ngoài phạm vi Postgres) | 0 | 14 |
 
 > Toàn bộ 14 bảng Postgres đã được tạo **cùng lúc** trong 1 migration (`1784410000000-create-initial-schema.ts`) trước khi có bất kỳ application code nào — khác với cách phát triển tăng dần table-theo-phase như dự án tham khảo khác. Bảng Database Evolution ở trên phản ánh **khi nào bảng được đưa vào SỬ DỤNG bởi tính năng thật**, không phải khi nào bảng được tạo trong Postgres.
@@ -95,7 +96,7 @@
 ```mermaid
 flowchart LR
     subgraph Client
-        MOBILE[Flutter App<br/>SQLite local cache - Phase 2]
+        MOBILE[Flutter App<br/>Drift SQLite local-first]
     end
 
     subgraph Backend["Backend (NestJS, modular monolith)"]
@@ -105,16 +106,16 @@ flowchart LR
 
     subgraph Storage
         PG[(PostgreSQL / Supabase)]
-        LOCAL[(SQLite - on device, Phase 2)]
+        LOCAL[(SQLite - v1 proposed for Phase 1)]
     end
 
     subgraph External
-        AUTH[Auth provider - TBD]
+        AUTH[Supabase Auth]
         OCR[OCR / Vision - Phase 2, provider TBD]
     end
 
     MOBILE -->|REST/HTTPS - khi đã đăng nhập & sync| API
-    MOBILE -->|Read/Write - offline-first, Phase 2| LOCAL
+    MOBILE -->|Read/Write - offline-first| LOCAL
     MOBILE -.->|Nút Sync| API
     MOBILE -.->|Ảnh hoá đơn - Phase 2| OCR
     API --> SVC

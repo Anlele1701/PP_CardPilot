@@ -3,20 +3,23 @@
 **Module (chủ đạo):** `MOBILE`
 **Phase:** 1
 **Epic:** Epic 2 — Authentication & Authorization
-**Status:** Backlog
+**Status:** In Progress
 **Prototype:** — (hành vi xuyên suốt nhiều màn hình — S01 Splash, S03 Login nút "Dùng thử", S12 Profile nút Sync — không phải 1 view riêng)
 
 ## Mô tả
 
-Cho phép user bấm "Dùng thử" (Skip) ở S03 Login → vào thẳng Dashboard (S06) mà không cần tài khoản, dữ liệu lưu SQLite cục bộ (chọn package `sqflite`/`drift` — quyết định kỹ thuật thuộc task này). Không cần đồng bộ 2 chiều lên cloud trong Phase 1 (đó là Phase 2), nhưng schema local phải tương thích để nâng cấp sau mà không mất dữ liệu.
+Cho phép user bấm `Continue as guest` ở S03 Login mà không cần tài khoản. UI
+hiện chọn `AccessMode.guest`, chạy shared profile/card setup rồi vào Home và
+không gọi Supabase Auth. Workspace hiện chỉ nằm trong memory; Drift/SQLite,
+restart persistence và sync vẫn chưa implement.
 
 ## Acceptance Criteria
 
-- [ ] Chọn xong `sqflite` hoặc `drift`, ghi rõ lý do (nhu cầu query aggregation cho Cashback Jar cần join/group phức tạp)
-- [ ] Bấm "Dùng thử" ở S03 → vào Dashboard (S06) ngay, badge mode hiển thị "LOCAL GUEST" (theo đúng hành vi mô phỏng trong prototype `enterGuestMode()`)
+- [x] Proposed Drift architecture documented for review (typed joins, reactive queries, transactions, generated/tested migrations)
+- [x] Bấm `Continue as guest` ở S03 → shared initial setup → Home, Profile hiển thị `Guest · local-only`
 - [ ] Toàn bộ thao tác CRUD thẻ/giao dịch ở local-only mode ghi vào SQLite, không gọi API backend
 - [ ] Thoát app và mở lại → dữ liệu local-only vẫn còn (persist qua SQLite, không mất khi restart app)
-- [ ] Schema SQLite local đặt tên field/table tương thích để map sang API backend khi user quyết định đăng nhập đồng bộ (không cần đặt lại tên field ở Phase 2)
+- [x] Domain/API ↔ SQLite mapping, ID strategy, physical types, sync metadata, and v1/v2 migration boundary are documented for review
 
 ## Dependencies
 
@@ -26,6 +29,7 @@ Cho phép user bấm "Dùng thử" (Skip) ở S03 Login → vào thẳng Dashboa
 ## Ref Docs
 
 - [ARCH-DB — 3. Local Cache Schema (SQLite, Mobile)](../../../../../architecture/database.md)
+- [Mobile SQLite Architecture Proposal](../../../../../architecture/mobile-sqlite.md)
 - [BRD — 3.2 Local-only Mode (No Account)](../../../../../BRD.md)
 
 ## Subtasks
@@ -37,6 +41,8 @@ Cho phép user bấm "Dùng thử" (Skip) ở S03 Login → vào thẳng Dashboa
 | Status | Created By | Created Date | Updated By | Updated Date | Reviewed/Approved By | Review Date | Ghi chú |
 |--------|-----------|---------------|-----------|---------------|------------------------|--------------|---------|
 | Backlog | TBD | 2026-07-25 | — | — | — | — | Không blocker cứng nhưng nên làm sau khi đã có S03 (nút "Dùng thử" nằm ở đó) |
+| In Progress | CardPilot Team | 2026-07-25 | CardPilot Team | 2026-08-02 | — | — | Guest UI/setup complete; SQLite persistence remains |
+| In Progress | CardPilot Team | 2026-07-25 | CardPilot Team | 2026-08-03 | — | — | Drift/SQLite schema, sync contracts, migrations, tests, and delivery slices proposed for review |
 
 ---
 Index toàn backlog: [`../../../../tasks.md`](../../../../tasks.md)

@@ -39,46 +39,6 @@ final directories = <_widgetbook.WidgetbookNode>[
         ],
       ),
       _widgetbook.WidgetbookComponent(
-        name: 'OnboardingHeroIllustration',
-        useCases: [
-          _widgetbook.WidgetbookUseCase(
-            name: 'Cashback',
-            builder: _cardpilot_widgetbook_use_cases_component_use_cases
-                .cashbackOnboardingIllustration,
-          ),
-          _widgetbook.WidgetbookUseCase(
-            name: 'Insights',
-            builder: _cardpilot_widgetbook_use_cases_component_use_cases
-                .insightsOnboardingIllustration,
-          ),
-          _widgetbook.WidgetbookUseCase(
-            name: 'Pilot',
-            builder: _cardpilot_widgetbook_use_cases_component_use_cases
-                .pilotOnboardingIllustration,
-          ),
-        ],
-      ),
-      _widgetbook.WidgetbookComponent(
-        name: 'OnboardingPagination',
-        useCases: [
-          _widgetbook.WidgetbookUseCase(
-            name: 'Page 1',
-            builder: _cardpilot_widgetbook_use_cases_component_use_cases
-                .onboardingPaginationPageOne,
-          ),
-          _widgetbook.WidgetbookUseCase(
-            name: 'Page 2',
-            builder: _cardpilot_widgetbook_use_cases_component_use_cases
-                .onboardingPaginationPageTwo,
-          ),
-          _widgetbook.WidgetbookUseCase(
-            name: 'Page 3',
-            builder: _cardpilot_widgetbook_use_cases_component_use_cases
-                .onboardingPaginationPageThree,
-          ),
-        ],
-      ),
-      _widgetbook.WidgetbookComponent(
         name: 'SocialAuthButton',
         useCases: [
           _widgetbook.WidgetbookUseCase(

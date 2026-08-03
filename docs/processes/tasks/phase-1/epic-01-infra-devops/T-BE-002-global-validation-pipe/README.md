@@ -15,7 +15,7 @@ Bật `ValidationPipe` toàn cục (`app.useGlobalPipes(new ValidationPipe({ whi
 - [ ] Gửi request thiếu field bắt buộc trong DTO → trả `400 Bad Request` với message liệt kê rõ field nào thiếu, KHÔNG crash server
 - [ ] Gửi field thừa không khai báo trong DTO → bị strip (whitelist) hoặc trả `400` (tuỳ cấu hình `forbidNonWhitelisted`), không lọt xuống tầng service
 - [ ] Gửi đúng type nhưng sai định dạng (VD: email không hợp lệ, số âm cho field phải dương) → trả `400` với message theo đúng decorator validation (VD: `@IsEmail()`, `@Min(0)`)
-- [ ] Áp dụng nhất quán cho toàn bộ route hiện có (`GET /api/cards` demo) và mọi route mới sẽ thêm sau — verify bằng cách viết 1 DTO test bất kỳ và xác nhận pipe áp dụng mà không cần khai báo lại per-route
+- [ ] Áp dụng nhất quán cho route hiện có và mọi route mới — verify bằng một DTO test trên endpoint có input mà không cần khai báo pipe lại per-route
 
 ## Dependencies
 
