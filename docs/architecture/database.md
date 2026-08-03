@@ -1,10 +1,15 @@
 # Database Design Document
 # CardPilot - Credit Card Cashback & Rewards Intelligence Platform
 
-**Version:** 1.0
-**Date:** 2026-07-22
+**Version:** 1.1
+**Date:** 2026-08-03
 
-> Toàn bộ schema dưới đây được copy trực tiếp từ migration thật: `apps/cardpilot-backend/src/database/migrations/1784410000000-create-initial-schema.ts` (migration duy nhất tồn tại tại thời điểm viết tài liệu này). Chưa có TypeORM entity class nào trong code — `AppModule` bật `autoLoadEntities: true` nhưng hiện không có gì để load. Coi migration này là **nguồn sự thật duy nhất** cho DB schema.
+> PostgreSQL schema source of truth is
+> `apps/cardpilot-backend/src/database/migrations/1784410000000-create-initial-schema.ts`;
+> reference rows are added once by
+> `1784783921000-seed-reference-data.ts`. The `banks` context also has a
+> TypeORM entity used by application code. When this prose differs from an
+> applied migration, the migration wins and this document must be corrected.
 
 ---
 
@@ -13,7 +18,7 @@
 | Database | Type | Purpose | Trạng thái |
 |----------|------|---------|-----------|
 | PostgreSQL (Supabase-hosted) | Relational (OLTP) | Toàn bộ dữ liệu nghiệp vụ — source of truth | Active (schema tồn tại, chưa có application code đọc/ghi) |
-| SQLite (on-device, Flutter) | Embedded | Cache cục bộ cho chế độ local-first / offline | Planned — chưa có dependency (`sqflite`/`drift`/...) nào trong `pubspec.yaml` |
+| SQLite (on-device, Flutter) | Embedded | Local-first user data + reference cache + sync outbox | Proposed with Drift — dependency/code chưa được thêm |
 
 Kết nối runtime dùng `DATABASE_URL` (khuyến nghị Supabase session pooler); migration CLI dùng `DIRECT_DATABASE_URL` (kết nối trực tiếp, fallback về `DATABASE_URL` nếu không có) — xem `apps/cardpilot-backend/src/database/data-source.ts`.
 
@@ -196,9 +201,16 @@ erDiagram
     }
 ```
 
-### 2.2 Table Definitions
+### 2.2 Table Definitions Overview
 
-Copy nguyên trạng từ migration `1784410000000-create-initial-schema.ts` (thứ tự tạo bảng = thứ tự dependency FK):
+The SQL listing below is an architectural overview, not executable migration
+input. Common audit fields may be omitted from the diagram/listing for
+readability. Always inspect
+`1784410000000-create-initial-schema.ts` for exact current columns, defaults,
+constraints, and drop order. In particular, the current migration includes
+`updated_at`, `banks.short_name`, and
+`merchant_category_codes.valid_payment`, which mobile cache mapping must handle
+when those values are exposed by API DTOs.
 
 ```sql
 -- =============================================
@@ -436,26 +448,83 @@ CREATE TABLE "cashback_calculations" (
 
 - **Không có cột nào được enforce bằng Postgres CHECK/enum** ngoài FK constraints. Các cột "trông giống enum" hiện tại chỉ là `varchar` tự do: `user_memberships.status`, `credit_cards.network`/`card_type`, `merchant_mcc_candidates.source`/`status`, `transactions.mcc_source`/`source`, `merchant_mcc_feedbacks.evidence_type`/`status`, `reward_rules.reward_type`/`eligible_channel`, `reward_rule_mccs.match_type`, `cashback_calculations.status`. Khi build application layer, cân nhắc thêm CHECK constraint hoặc validate ở tầng service để tránh giá trị rác.
 - `merchant_category_codes.code` là PK dạng `varchar(4)` (chính MCC code, VD "5812"), không phải UUID — khác với mọi bảng khác.
-- Không có cột `updated_at` ở hầu hết các bảng (ngoại trừ `merchant_category_codes`) — cân nhắc bổ sung nếu cần audit thay đổi.
+- Migration hiện tại có `updated_at` trên các bảng mutable. Backend DTO phải
+  expose audit/version data một cách có chủ đích; không nên trả toàn bộ ORM row.
 - Tất cả FK dùng `DEFERRABLE INITIALLY IMMEDIATE`.
 - `transactions.source` mặc định `'manual'` — thiết kế đã chừa chỗ cho nguồn khác (`ocr`, `import`, ...) ở Phase 2 mà không cần đổi schema.
 
 ---
 
-## 3. Local Cache Schema (SQLite, Mobile)
+## 3. Local Database (SQLite, Mobile)
 
-**Chưa implement.** `apps/cardpilot-mobile/apps/cardpilot_app/pubspec.yaml` hiện không khai báo `sqflite`/`drift`/`hive`/`isar` hay bất kỳ thư viện local-database nào — mọi dữ liệu trong app (kể cả onboarding slides) hiện là hardcode in-memory, không persist qua restart.
+**Proposed, chưa implement.** `cardpilot_app/pubspec.yaml` chưa khai báo Drift
+hoặc thư viện SQLite. Dữ liệu profile/thẻ của shared initial setup vẫn được giữ
+bởi `InitialSetupMemoryDataSource` và mất khi app process kết thúc.
 
-Khi implement local-first mode (`BRD` #9 Constraints), cần thiết kế tối thiểu:
+Thiết kế chi tiết đã được tách sang
+[`mobile-sqlite.md`](./mobile-sqlite.md). Tài liệu đó là nguồn review cho:
 
-| Local Table (đề xuất) | Map với bảng Postgres | Ghi chú |
-|--------------------------|--------------------------|---------|
-| `local_transactions` | `transactions` | Ghi trước khi có mạng; đánh dấu `is_synced` |
-| `local_cashback_calculations` | `cashback_calculations` | Có thể tính lại tại chỗ (client-side) nếu đã cache `reward_rules` liên quan |
-| `local_user_cards` | `user_cards` | Cache thẻ user đã thêm |
-| `local_reward_rules_cache` | `reward_rules` + `reward_rule_mccs` | Cache read-only, refresh định kỳ khi có mạng |
+- lựa chọn Drift và package/folder ownership;
+- schema v1 cho workspace, profile, bank/card cache, user card, outbox và sync state;
+- schema v2 cho transaction, MCC, reward rule và conflict records;
+- startup routing, account isolation và guest-to-account claim;
+- dataset version/ETag refresh, push/pull sync và optimistic concurrency;
+- migration workflow, required tests và implementation slices.
 
-**Open question chưa có lời giải** (xem `BRD` #9, `SRS` FR-AUTH-08): cơ chế xác định giao dịch hợp lệ khi đồng bộ (tránh user chỉnh sửa local rồi sync để gian lận điểm thưởng/level), và chiến lược xử lý xung đột (conflict resolution) khi cùng 1 giao dịch tồn tại cả local lẫn cloud. Phải giải quyết trước khi bật tính năng "Sync" cho người dùng thật.
+### 3.1 Local table summary
+
+| Local table | Purpose | Sync behavior |
+|-------------|---------|---------------|
+| `local_workspaces` | Ranh giới guest/authenticated trên thiết bị | Link tới Supabase identity khi có account |
+| `local_profiles` | Profile của workspace | Push khi guest liên kết account |
+| `local_user_cards` | Thẻ user tạo trên thiết bị | Push/upsert theo client-generated UUID |
+| `local_transactions` | Giao dịch manual/OCR | Outbox push theo client-generated UUID |
+| `local_cashback_calculations` | Kết quả dự tính để dashboard offline | Server có quyền tính lại và overwrite |
+| `banks_cache` | Danh mục ngân hàng read-only | Pull snapshot theo server dataset version/ETag |
+| `credit_cards_cache` | Danh mục sản phẩm thẻ read-only | Pull snapshot theo server dataset version/ETag |
+| `merchant_category_codes_cache` | Danh mục MCC read-only | Pull snapshot theo server dataset version/ETag |
+| `reward_rules_cache` | Master data read-only | Pull theo server version |
+| `sync_outbox` | Danh sách mutation chờ gửi | Retry an toàn theo idempotency key |
+| `sync_state` | Cursor, last sync time, dataset version và ETag | Local only |
+
+Mọi record user-generated cần client UUID, timestamps, tombstone,
+`sync_status`, và `server_version`. Timestamp vật lý dùng UTC epoch milliseconds;
+money dùng integer minor units. Chi tiết column/constraint/index nằm trong
+`mobile-sqlite.md` và không được suy ra chỉ từ bảng tóm tắt này.
+
+### 3.2 Delivery phases
+
+1. Review/approve `mobile-sqlite.md`; thêm Drift foundation và migration v1.
+2. Thay `InitialSetupMemoryDataSource` bằng Drift adapter cho
+   workspace/profile/first card và restore startup routing.
+3. Chuyển card management và transaction management sang local repositories;
+   UI luôn đọc SQLite dù online hay offline.
+4. Dùng `sync_outbox`; mỗi local mutation và outbox item được ghi trong cùng
+   SQLite transaction.
+5. Sau Supabase sign-in, gọi backend bootstrap rồi upload guest profile/cards
+   theo batch idempotent.
+6. Thêm transaction upload, pull cursor, tombstone delete và conflict handling.
+7. Bật retry khi app resume/network reconnect; foreground UI luôn
+   hiển thị sync status nhưng không chặn local writes.
+
+Reference-data cache (`banks`, `credit_cards`, MCC, reward rules) should use a
+server-owned dataset version or HTTP ETag. Mobile stores the received version
+in `sync_metadata`, checks it on app start/resume after a TTL, and replaces the
+small local snapshot inside one SQLite transaction only when the version
+changes. This also handles server-side deletion without relying only on
+`updated_at` timestamps.
+
+### 3.3 Conflict policy
+
+- Server là source of truth cho membership, reward rules, cashback chính thức
+  và các field authorization.
+- User-editable profile/card fields dùng latest accepted `updated_at`, nhưng
+  backend kiểm tra `server_version` để phát hiện stale update.
+- Transaction dùng immutable client UUID để deduplicate. Chỉnh sửa tạo version
+  mới; xoá dùng tombstone thay vì hard delete trước khi tất cả device sync.
+- Cashback/membership được backend tính lại; client values chỉ là estimate và
+  không được dùng để cấp điểm/hạng.
+- Batch sync nhận `idempotency_key`; retry cùng mutation không tạo duplicate.
 
 ---
 
@@ -463,7 +532,8 @@ Khi implement local-first mode (`BRD` #9 Constraints), cần thiết kế tối 
 
 | Migration File | Mô tả |
 |-----------------|--------|
-| `1784410000000-create-initial-schema.ts` | Migration duy nhất — tạo toàn bộ 14 bảng (users → memberships → user_memberships → banks → credit_cards → user_cards → merchant_category_codes → merchants → merchant_mcc_candidates → transactions → merchant_mcc_feedbacks → reward_rules → reward_rule_mccs → cashback_calculations) theo đúng thứ tự dependency FK, kèm indexes trên `merchant_mcc_feedbacks`. `down()` drop toàn bộ theo thứ tự ngược lại. |
+| `1784410000000-create-initial-schema.ts` | Tạo toàn bộ 14 bảng PostgreSQL theo thứ tự dependency FK và các indexes/constraints ban đầu. |
+| `1784783921000-seed-reference-data.ts` | Seed banks và MCC reference data đúng một lần; có `down()` chỉ xoá các reference row thuộc migration. |
 
 Chạy migration qua:
 ```bash

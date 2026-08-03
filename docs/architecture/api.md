@@ -3,8 +3,10 @@
 
 **Version:** 1.0
 **Date:** 2026-07-22
-**Base URL (local dev):** `http://localhost:3000/api`
+**Base URL (local dev):** `http://localhost:3000/api/v1`
 **Global prefix:** `/api` (set in `apps/cardpilot-backend/src/main.ts`)
+
+URI versioning defaults to `v1`. Health is version-neutral at `/api/health`.
 
 ---
 
@@ -19,20 +21,21 @@
 
 ### 1.2 Response Format
 
-**Chưa có global response envelope hoặc global error handler nào được implement.** Endpoint hiện tại trả JSON thô trực tiếp (xem ví dụ mục 2). Khi build các module thật (auth/users/cards/transactions/...), khuyến nghị định nghĩa 1 format nhất quán trước khi nhân rộng ra nhiều controller — ví dụ:
+Success and error responses use the global API envelope:
 
 ```json
-// Đề xuất — resource response
-{ "id": "uuid", "field": "value" }
-
-// Đề xuất — error response
+// Success
 {
-  "success": false,
-  "error": { "code": "VALIDATION_ERROR", "message": "..." }
+  "responseStatus": { "code": "SUCCESS", "message": "Success" },
+  "responseData": { "id": "uuid", "field": "value" }
+}
+
+// Error
+{
+  "responseStatus": { "code": "VALIDATION_ERROR", "message": "..." },
+  "responseData": null
 }
 ```
-
-> Đây là **đề xuất**, chưa phải quy ước đang thực thi trong code.
 
 ### 1.3 HTTP Status Codes
 
@@ -47,21 +50,26 @@
 
 ### 1.4 Authentication
 
-**Chưa implement.** Không có endpoint nào yêu cầu `Authorization` header hôm nay. Xem `SRS` FR-AUTH-09, NFR-SEC-04 cho yêu cầu dự kiến (JWT hoặc Supabase Auth — quyết định kiến trúc còn mở, xem `ARCH-SYS` #7.1).
+Backend authorization chưa implement và endpoint hiện tại chưa yêu cầu
+`Authorization`. Mobile đã dùng Supabase Auth; backend cần verify Supabase
+Bearer token trước khi mở API dữ liệu user.
 
 ### 1.5 Rate Limiting
 
 Chưa có — "—".
 
-### 1.6 Request Tracing
+### 1.6 Request Context And Tracing
 
-Chưa có `X-Request-ID` hay tương đương — "—".
+- Client may send `X-Request-ID`; backend generates one when absent.
+- Versioned business endpoints require `X-Request-Datetime`.
+- Health allows a missing request datetime.
+- Responses echo the trace through `X-Request-ID` and `X-Response-ID`.
 
 ---
 
 ## 2. System APIs (Implemented)
 
-### GET /api
+### GET /api/v1
 
 Trả thông tin metadata tĩnh của API.
 
@@ -91,38 +99,64 @@ Health check — ping kết nối PostgreSQL qua `@nestjs/terminus`.
 
 ---
 
-## 3. Cards Demo APIs (Implemented — Scaffold Only)
+## 3. Bank APIs (Implemented)
 
-> **Lưu ý quan trọng**: context `cards` hiện tại là **demo scaffold**, hoàn toàn tách biệt khỏi bảng `credit_cards`/`user_cards` thật trong database. Dữ liệu trả về là 2 bản ghi hardcode trong memory (`InMemoryCardRepository`). Đừng nhầm đây là API quản lý thẻ thật — xem mục 5 (Card Management APIs, Planned) cho API thật sẽ thay thế/bổ sung context này.
+### GET /api/v1/banks
 
-### GET /api/cards
+Returns banks ordered by name from PostgreSQL. Each item contains `id`,
+`swiftCode`, `name`, and `shortName`; the global response interceptor wraps the
+array in `responseData`.
 
-**Response (200):**
-```json
-[
-  { "id": "card_1", "name": "Pilot Starter Deck", "createdAt": "2026-01-10T10:00:00.000Z" },
-  { "id": "card_2", "name": "Control Ledger", "createdAt": "2026-02-14T08:30:00.000Z" }
-]
-```
+The current implementation does **not** emit ETag, dataset version, or
+`updatedAt`. Mobile may fetch it when the cache is empty, but reliable change
+detection remains pending.
+
+### GET /api/v1/reference-data/manifest (Proposed)
+
+Returns server-owned versions and ETags for complete reference snapshots such
+as banks, credit cards, MCCs, and reward rules. Dataset endpoints should accept
+`If-None-Match` and may return `304 Not Modified`. This contract is required for
+SQLite cache invalidation; see `mobile-sqlite.md`.
 
 ---
 
-## 4. Auth APIs (Planned)
+## 4. Auth/Profile Backend APIs (Planned)
 
-Xem `SRS` FR-AUTH-01→09. Chưa quyết định: JWT tự xây trong NestJS hay Supabase Auth (xem `ARCH-SYS` #7.1).
+Mobile authentication is already delegated to Supabase Auth. The backend still
+needs Supabase token verification plus profile/bootstrap and sync APIs. The
+legacy `/api/auth/register` and `/api/auth/login` proposals below should not be
+implemented as password-accepting endpoints unless the auth architecture is
+explicitly changed away from Supabase.
 
-### POST /api/auth/register (Planned)
-Đăng ký tài khoản bằng email. Ghi vào `users`.
+### POST /api/v1/auth/bootstrap (Planned)
 
-### POST /api/auth/login (Planned)
-Đăng nhập, trả access/refresh token.
+Nhận Supabase access token qua `Authorization: Bearer <token>`, verify token,
+sau đó tạo hoặc tải `public.users` tương ứng với `auth.users.id`. Endpoint này
+không nhận password và không tự phát hành access/refresh token.
 
-### POST /api/auth/logout (Planned)
+### Authentication operations owned by Supabase
 
-### POST /api/auth/forgot-password (Planned)
+Đăng ký email/password, đăng nhập, OAuth, refresh session, forgot-password và
+sign-out hiện do `supabase_flutter` gọi Supabase Auth trực tiếp. Backend chỉ cần
+Auth Guard verify Supabase Bearer token cho các API nghiệp vụ được bảo vệ.
 
-### POST /api/auth/sync (Planned)
-Đồng bộ dữ liệu local (SQLite) → cloud khi user đăng nhập từ chế độ local-only. Cần thiết kế cơ chế dedupe/conflict resolution trước khi implement — xem `ARCH-DB` Local Cache Strategy.
+Authentication endpoints do not own business-data synchronization.
+
+### POST /api/v1/sync/claim-guest (Proposed)
+
+Links an authenticated backend user to a client guest workspace and accepts an
+idempotent initial profile/card snapshot.
+
+### POST /api/v1/sync/push (Proposed)
+
+Accepts ordered outbox operations with client UUID, idempotency key, payload
+version, and optional base server version.
+
+### GET /api/v1/sync/pull?cursor=... (Proposed)
+
+Returns user-data changes after an opaque cursor plus the next cursor. Conflict,
+retention, retry, and tombstone rules are defined in
+[`mobile-sqlite.md`](./mobile-sqlite.md).
 
 ---
 
@@ -132,12 +166,12 @@ Liên quan tới bảng `banks`, `credit_cards`, `user_cards`. Xem `SRS` FR-CARD
 
 | Method | Endpoint | Auth | Related Tables | Mô tả |
 |--------|----------|------|-----------------|--------|
-| GET | `/api/banks` | Bearer | `banks` (R) | Danh sách ngân hàng có sẵn |
-| GET | `/api/credit-cards` | Bearer | `credit_cards` (R) | Danh sách sản phẩm thẻ, filter theo `bank_id` |
-| GET | `/api/user-cards` | Bearer | `user_cards` (R), `credit_cards` (R) | Danh sách thẻ user đã thêm |
-| POST | `/api/user-cards` | Bearer | `user_cards` (W) | Thêm thẻ: `{ credit_card_id, nickname, billing_cycle_day, is_default }` |
-| PATCH | `/api/user-cards/:id` | Bearer | `user_cards` (RW) | Sửa nickname/billing_cycle_day/is_default |
-| DELETE | `/api/user-cards/:id` | Bearer | `user_cards` (W) | Xoá thẻ (không cascade xoá `transactions`) |
+| GET | `/api/v1/banks` | Public (current) | `banks` (R) | Danh sách ngân hàng có sẵn; đã implement |
+| GET | `/api/v1/credit-cards` | Bearer | `credit_cards` (R) | Danh sách sản phẩm thẻ, filter theo `bank_id` |
+| GET | `/api/v1/user-cards` | Bearer | `user_cards` (R), `credit_cards` (R) | Danh sách thẻ user đã thêm |
+| POST | `/api/v1/user-cards` | Bearer | `user_cards` (W) | Thêm thẻ: `{ credit_card_id, nickname, billing_cycle_day, is_default }` |
+| PATCH | `/api/v1/user-cards/:id` | Bearer | `user_cards` (RW) | Sửa nickname/billing_cycle_day/is_default |
+| DELETE | `/api/v1/user-cards/:id` | Bearer | `user_cards` (W) | Xoá thẻ (không cascade xoá `transactions`) |
 
 ---
 

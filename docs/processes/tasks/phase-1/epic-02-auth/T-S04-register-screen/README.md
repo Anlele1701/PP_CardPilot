@@ -3,16 +3,22 @@
 **Module (chủ đạo):** `MOBILE` — xem subtask cho breakdown (BE/MOBILE/QA)
 **Phase:** 1
 **Epic:** Epic 2 — Authentication & Authorization
-**Status:** Backlog
+**Status:** In Progress
 **Prototype:** [prototype.html#view-s04](../../../../../prototypes/prototype.html#view-s04) — mở file, tự nhảy tới S04 (Register — Bronze Member)
 
 ## Mô tả
 
 Form tạo tài khoản mới bằng email/password. Khi tạo thành công, user tự động được gán membership tier Bronze (cross-epic với Epic 3 — Membership).
 
+> **Current implementation:** `SignUpScreen` supports full name,
+> email/password/confirmation, terms acceptance, shared validation, Supabase
+> email sign-up, Google/Facebook OAuth, loading state, Toastification feedback,
+> and navigation back to Sign in. Backend `users` bootstrap and Bronze
+> membership assignment are not implemented.
+
 ## Acceptance Criteria
 
-- [ ] Nhập email hợp lệ + password đạt độ mạnh tối thiểu (quy tắc cụ thể: TBD — cần Product/Security xác nhận độ dài/ký tự bắt buộc) + xác nhận password khớp → gọi `POST /api/auth/register` thành công, tự động đăng nhập, điều hướng Dashboard (S06)
+- [x] Mobile gửi email/password hợp lệ tới Supabase Auth; sau khi có session thì điều hướng qua shared initial setup hoặc Home theo trạng thái nghiệp vụ.
 - [ ] Email đã tồn tại → hiển thị inline error "Email đã được sử dụng", không tạo user trùng
 - [ ] Email sai định dạng → nút Đăng ký disable / hiển thị lỗi ngay khi rời field (client-side validate trước khi gọi API)
 - [ ] Đăng ký thành công → user mới có `user_memberships` record Bronze active ngay lập tức (verify qua `GET /api/users/me` trả đúng tier Bronze)
@@ -33,9 +39,9 @@ Form tạo tài khoản mới bằng email/password. Khi tạo thành công, use
 
 | ID | Module | Subtask | Status | File |
 |----|--------|---------|--------|------|
-| T-S04.1 | `BE` | Register API — POST /api/auth/register | Backlog | [T-S04.1-be-register-api.md](./T-S04.1-be-register-api.md) |
+| T-S04.1 | `BE` | Bootstrap backend user from Supabase identity | Backlog | [T-S04.1-be-register-api.md](./T-S04.1-be-register-api.md) |
 | T-S04.2 | `BE` | Gán membership Bronze mặc định khi tạo user | Backlog | [T-S04.2-be-gan-bronze-mac-dinh.md](./T-S04.2-be-gan-bronze-mac-dinh.md) |
-| T-S04.3 | `MOBILE` | Register screen UI/logic | Backlog | [T-S04.3-mobile-register-screen.md](./T-S04.3-mobile-register-screen.md) |
+| T-S04.3 | `MOBILE` | Register screen UI/logic | In Progress | [T-S04.3-mobile-register-screen.md](./T-S04.3-mobile-register-screen.md) |
 | T-S04.4 | `QA` | Test case: email trùng, password yếu, thành công | Backlog | [T-S04.4-qa-register-tests.md](./T-S04.4-qa-register-tests.md) |
 
 ## Audit Trail
@@ -43,6 +49,7 @@ Form tạo tài khoản mới bằng email/password. Khi tạo thành công, use
 | Status | Created By | Created Date | Updated By | Updated Date | Reviewed/Approved By | Review Date | Ghi chú |
 |--------|-----------|---------------|-----------|---------------|------------------------|--------------|---------|
 | Backlog | TBD | 2026-07-25 | — | — | — | — | Chờ T-MOBILE-001 |
+| In Progress | CardPilot Team | 2026-07-25 | CardPilot Team | 2026-08-02 | — | — | Mobile Supabase sign-up implemented; backend membership/bootstrap pending |
 
 ---
 Index toàn backlog: [`../../../../tasks.md`](../../../../tasks.md)

@@ -57,15 +57,15 @@ Toàn bộ 13 màn hình đã có bản mô phỏng tương tác tại [`../prot
 
 | ID | Task | Module | Status | Depends On (Task) |
 |----|------|--------|--------|---------------------|
-| [T-BE-004](./tasks/phase-1/epic-02-auth/T-BE-004-consider-auth-provider/README.md) | Quyết định auth provider | `BE` | Ready | — |
+| [T-BE-004](./tasks/phase-1/epic-02-auth/T-BE-004-quyet-dinh-auth-provider/README.md) | Supabase Auth architecture decision | `BE` | In Progress | — |
 | [T-BE-009](./tasks/phase-1/epic-02-auth/T-BE-009-auth-guard-rbac/README.md) | Auth Guard + RBAC | `BE` | Backlog | T-S03.1 |
-| [T-BE-010](./tasks/phase-1/epic-02-auth/T-BE-010-refresh-token-storage/README.md) | Refresh token storage | `BE` | Backlog | T-BE-004 (điều kiện) |
+| [T-BE-010](./tasks/phase-1/epic-02-auth/T-BE-010-refresh-token-storage/README.md) | Custom refresh token storage | `BE` | Not Required | T-BE-004 |
 | [T-MOBILE-001](./tasks/phase-1/epic-02-auth/T-MOBILE-001-core-network-api-client/README.md) | core/network — API client | `MOBILE` | Backlog | T-BE-009 |
-| [T-MOBILE-008](./tasks/phase-1/epic-02-auth/T-MOBILE-008-local-only-mode/README.md) | Local-only mode | `MOBILE` | Backlog | — |
+| [T-MOBILE-008](./tasks/phase-1/epic-02-auth/T-MOBILE-008-local-only-mode/README.md) | Local-only mode | `MOBILE` | In Progress | — |
 | [T-S01](./tasks/phase-1/epic-02-auth/T-S01-splash-screen/README.md) | Splash Screen | `MOBILE` (1 subtask) | Backlog | T-MOBILE-001 |
-| [T-S02](./tasks/phase-1/epic-02-auth/T-S02-onboarding-screen/README.md) | Onboarding Screen ⚠️ mâu thuẫn chưa giải quyết | `MOBILE` (1 subtask) | Ready | — |
-| [T-S03](./tasks/phase-1/epic-02-auth/T-S03-login-screen/README.md) | Login Screen | `MOBILE` (3 subtask: BE/MOBILE/QA) | Backlog | T-MOBILE-001 |
-| [T-S04](./tasks/phase-1/epic-02-auth/T-S04-register-screen/README.md) | Register Screen | `MOBILE` (4 subtask: BE/BE/MOBILE/QA) | Backlog | T-MOBILE-001 |
+| [T-S02](./tasks/phase-1/epic-02-auth/T-S02-onboarding-screen/README.md) | Remove Onboarding / Start At Sign In | `MOBILE` (1 subtask) | Done | — |
+| [T-S03](./tasks/phase-1/epic-02-auth/T-S03-login-screen/README.md) | Login Screen | `MOBILE` (3 subtask: BE/MOBILE/QA) | In Progress | T-MOBILE-001 |
+| [T-S04](./tasks/phase-1/epic-02-auth/T-S04-register-screen/README.md) | Register Screen | `MOBILE` (4 subtask: BE/BE/MOBILE/QA) | In Progress | T-MOBILE-001 |
 | [T-S05](./tasks/phase-1/epic-02-auth/T-S05-forgot-password-screen/README.md) | Forgot Password Screen | `MOBILE` (2 subtask: BE/MOBILE) | Backlog | T-MOBILE-001 |
 
 ### Epic 3: Membership & Profile
@@ -74,7 +74,7 @@ Toàn bộ 13 màn hình đã có bản mô phỏng tương tác tại [`../prot
 | ID | Task | Module | Status | Depends On (Task) |
 |----|------|--------|--------|---------------------|
 | [T-DATA-001](./tasks/phase-1/epic-03-membership-profile/T-DATA-001-seed-memberships/README.md) | Seed memberships | `DATA` | Backlog | T-BE-004 |
-| [T-S12](./tasks/phase-1/epic-03-membership-profile/T-S12-profile-screen/README.md) | Profile Screen | `MOBILE` (4 subtask: BE/BE/MOBILE/QA) | Backlog | T-MOBILE-001 |
+| [T-S12](./tasks/phase-1/epic-03-membership-profile/T-S12-profile-screen/README.md) | Profile Screen | `MOBILE` (4 subtask: BE/BE/MOBILE/QA) | In Progress | T-MOBILE-001 |
 | [T-S13](./tasks/phase-1/epic-03-membership-profile/T-S13-edit-profile-screen/README.md) | Edit Profile Screen (bổ sung gap PATCH) | `MOBILE` (2 subtask: BE/MOBILE) | Backlog | T-S12.1 |
 
 ### Epic 4: Card Management
@@ -153,7 +153,7 @@ flowchart LR
 
 > **Ghi nhận trung thực**: Epic 1 (Infra & DevOps) không có cạnh nối vào epic khác — không task nào trong `deployment-phase-1.md` gốc khai báo phụ thuộc kỹ thuật vào CI/structured logging/validation pipe, dù nên áp dụng cho mọi API mới. Gap trong task breakdown gốc, không phải lỗi khi chuyển đổi.
 
-> **Critical path**: `T-BE-004 → T-S03.1 (Login API) → T-BE-009 (Auth Guard) → T-MOBILE-001 (network client) → {S01, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13}` — Auth Guard + network client block gần như toàn bộ backlog màn hình.
+> **Critical path hiện tại**: `T-BE-004 (identity mapping) → T-BE-009 (Supabase token verification/Auth Guard) → T-S03.1 (user bootstrap) → T-MOBILE-001 (network client) → các feature cần cloud data`. Mobile Sign in/Sign up/guest/setup/Home shell đã có thể tiếp tục độc lập; blocker còn lại áp dụng cho backend profile và đồng bộ cloud.
 
 ## 6. Module × Epic Matrix
 

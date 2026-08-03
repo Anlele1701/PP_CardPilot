@@ -102,14 +102,17 @@ erDiagram
 | `recurring_bill_subscriptions` | Nhỏ — vài chục record/user, retention vô thời hạn |
 | `device_push_tokens` | 1 record/thiết bị, cần xoá khi user gỡ app hoặc logout (chưa thiết kế cơ chế detect) |
 
-### 3.7. Local Cache Strategy (Mobile SQLite) — chi tiết cho Phase 2
+### 3.7. SQLite schema v2 — transactions and reward intelligence
 
 | Local Table (SQLite) | Nguồn (Postgres) | Sync Direction | Conflict Resolution | Mục đích |
 |-----------------------|-------------------|-----------------|----------------------|----------|
-| `local_transactions` | `transactions` | Device → Server (khi bấm Sync) | **Chưa thiết kế** — cần quyết định trước khi launch (xem `BRD` #9, `ARCH-DB` #3) | Ghi log giao dịch offline |
-| `local_user_cards` | `user_cards` | Device ↔ Server | Server-wins khi có xung đột field (nickname/billing_cycle_day) | Quản lý thẻ offline |
-| `local_reward_rules_cache` | `reward_rules` + `reward_rule_mccs` | Server → Device (read-only) | N/A (read-only cache) | Tính cashback ngay cả khi offline |
-| `local_cashback_calculations` | `cashback_calculations` | Tính lại tại chỗ (client-side), đồng bộ khi có mạng | Server-wins sau khi tính lại từ server | Hiển thị Cashback Jar khi offline |
+| `local_transactions` | `transactions` | Device ↔ Server through outbox/pull cursor | Client UUID dedupe; stale mutable update becomes explicit conflict | Ghi log giao dịch offline |
+| `local_user_cards` | `user_cards` | Device ↔ Server | Optimistic `server_version`; do not silently drop a conflict | Quản lý thẻ offline; table begins in schema v1 |
+| `reward_rules_cache` | `reward_rules` + `reward_rule_mccs` | Server → Device snapshot | Server dataset version/ETag wins | Tính cashback ngay cả khi offline |
+| `local_cashback_calculations` | `cashback_calculations` | Local estimate; server may replace | Server authoritative for official result | Hiển thị Cashback Jar khi offline |
+
+Full physical fields, scaled money/rate rules, migration tests, and conflict
+records are defined in `docs/architecture/mobile-sqlite.md`.
 
 ---
 
@@ -119,8 +122,8 @@ erDiagram
 
 | Method | Endpoint | Auth | Related Tables | Mô tả |
 |--------|----------|------|-----------------|--------|
-| POST | `/api/sync/transactions` | Bearer | `transactions` (W) | Đẩy batch giao dịch local lên cloud, trả về kết quả từng item (accepted/duplicate/conflict) |
-| GET | `/api/sync/status` | Bearer | — | Trạng thái đồng bộ gần nhất |
+| POST | `/api/v1/sync/push` | Supabase Bearer | User-owned tables (W) | Đẩy ordered outbox batch, trả accepted/conflict theo operation |
+| GET | `/api/v1/sync/pull?cursor=...` | Supabase Bearer | User-owned tables (R) | Pull server changes bằng opaque cursor |
 
 ### OCR / Receipt (2)
 

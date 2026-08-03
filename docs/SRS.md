@@ -4,7 +4,7 @@
 **Version:** 1.0
 **Date:** 2026-07-22
 
-> Trạng thái implementation hiện tại (2026-07-22): backend chỉ có 3 endpoint (`GET /api`, `GET /api/health`, `GET /api/cards` — endpoint cuối là demo in-memory, không liên quan tới schema thật). Toàn bộ schema PostgreSQL (14 bảng) đã tồn tại qua migration `1784410000000-create-initial-schema.ts` nhưng chưa có application code nào đọc/ghi vào đó. Mobile app chỉ có flow Onboarding hoàn chỉnh; chưa có auth, network client, hay local database nào. Mọi FR dưới đây vẫn được liệt kê đầy đủ theo roadmap — cột **Trạng thái** cho biết mức độ đã implement.
+> Trạng thái implementation hiện tại: backend có system/health/banks nhưng chưa có API ghi dữ liệu user hoặc auth guard. Mobile vào thẳng Sign in và đã tích hợp Supabase Auth cho email/password, Google/Facebook OAuth và sign-out; guest/authenticated user dùng chung initial profile/card setup và Home shell. Local business persistence vẫn là in-memory prototype; chưa có backend network client hoặc SQLite database.
 
 ---
 
@@ -62,14 +62,14 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 
 | ID | Requirement | Priority | Phase | Trạng thái |
 |----|-------------|----------|-------|-----------|
-| FR-AUTH-01 | Hệ thống cho phép đăng ký tài khoản bằng email | P0 | 1 | Chưa implement |
-| FR-AUTH-02 | Hệ thống cho phép đăng nhập | P0 | 1 | Chưa implement |
-| FR-AUTH-03 | Hệ thống cho phép đăng xuất | P0 | 1 | Chưa implement |
-| FR-AUTH-04 | Hệ thống cho phép quên mật khẩu / reset password | P0 | 1 | Chưa implement |
-| FR-AUTH-05 | Hệ thống cho phép dùng app ở chế độ local-only không cần tài khoản (dữ liệu chỉ lưu SQLite, không sync, có quảng cáo) | P0 | 1 | Chưa implement |
-| FR-AUTH-06 | User có thể xem/chỉnh sửa thông tin cá nhân (`full_name`, `born_date`) | P1 | 1 | Chưa implement |
-| FR-AUTH-07 | User có thể xem membership level hiện tại | P0 | 1 | Chưa implement |
-| FR-AUTH-08 | User ở chế độ local-only có thể đăng ký/đăng nhập để đồng bộ dữ liệu local lên cloud | P1 | 2 | Chưa implement — cần thiết kế conflict resolution trước (xem `ARCH-DB`) |
+| FR-AUTH-01 | Hệ thống cho phép đăng ký tài khoản bằng email | P0 | 1 | Mobile + Supabase Auth đã implement; chưa bootstrap profile vào CardPilot backend |
+| FR-AUTH-02 | Hệ thống cho phép đăng nhập | P0 | 1 | Mobile hỗ trợ email/password + Google/Facebook qua Supabase; backend chưa verify token |
+| FR-AUTH-03 | Hệ thống cho phép đăng xuất | P0 | 1 | Mobile gọi Supabase `signOut()` và xoá navigation stack; không có backend logout endpoint |
+| FR-AUTH-04 | Hệ thống cho phép quên mật khẩu / reset password | P0 | 1 | Chưa implement; UI hiện chỉ báo placeholder |
+| FR-AUTH-05 | Hệ thống cho phép dùng app ở chế độ local-only không cần tài khoản (dữ liệu chỉ lưu SQLite, không sync, có quảng cáo) | P0 | 1 | UI flow đã implement; Drift/SQLite architecture proposed, persistence và quảng cáo chưa implement |
+| FR-AUTH-06 | User có thể xem/chỉnh sửa thông tin cá nhân (`full_name`, `born_date`) | P1 | 1 | Có setup/display name prototype; chưa có edit form hoặc backend profile API |
+| FR-AUTH-07 | User có thể xem membership level hiện tại | P0 | 1 | Profile shell hiển thị Bronze placeholder; chưa đọc membership thật |
+| FR-AUTH-08 | User ở chế độ local-only có thể đăng ký/đăng nhập để đồng bộ dữ liệu local lên cloud | P1 | 2 | Push/pull/outbox/conflict contract proposed in `mobile-sqlite.md`; chưa implement |
 | FR-AUTH-09 | Hệ thống enforce phân quyền User/Admin cho các API ghi dữ liệu master (banks, credit_cards, reward_rules, merchant_category_codes) | P0 | 1 | Chưa implement — **bắt buộc trước khi mở API ghi dữ liệu thật** |
 
 ### 3.2 User Membership Module (FR-MEMBER)
@@ -146,6 +146,7 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 | NFR-PERF-01 | API response time (P95), các endpoint CRUD đơn giản | < 300ms (Draft) |
 | NFR-PERF-02 | Dashboard forecast/aggregation response time (P95) | < 1s (Draft) |
 | NFR-PERF-03 | Local SQLite read cho màn hình Dashboard (khi có) | < 100ms |
+| NFR-PERF-04 | Reference screen with a usable stale cache | Render from SQLite without waiting for network refresh |
 
 ### 4.2 Availability (NFR-AVAIL)
 
@@ -153,6 +154,7 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 |----|-------------|--------|
 | NFR-AVAIL-01 | Backend uptime (Render, single instance, Phase 1) | Best-effort — chưa có SLA chính thức |
 | NFR-AVAIL-02 | App phải hoạt động đầy đủ tính năng ghi log/dashboard khi offline (local-only mode) | Bắt buộc (P0) |
+| NFR-AVAIL-03 | Local entity write and its outbox operation commit atomically | Bắt buộc trước khi bật cloud sync |
 
 ### 4.3 Security (NFR-SEC)
 
@@ -164,6 +166,8 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 | NFR-SEC-04 | API xác thực bằng access token (JWT hoặc tương đương) cho mọi endpoint ghi dữ liệu user | **Chưa implement — chặn Phase 1 release** |
 | NFR-SEC-05 | Phân quyền Admin cho các API ghi dữ liệu master (`banks`, `credit_cards`, `reward_rules`, `merchant_category_codes`) | **Chưa implement** |
 | NFR-SEC-06 | Dữ liệu tài chính nhạy cảm (giao dịch, số tiền) không log ra plaintext trong log hệ thống | Chưa có logging chuẩn hoá — hiện dùng Nest `Logger` mặc định |
+| NFR-SEC-07 | Mọi local user-data query được scope bằng `workspace_id`; logout không để account khác đọc lại workspace | Proposed, chưa implement |
+| NFR-SEC-08 | Không lưu Supabase token/service-role key trong CardPilot SQLite; quyết định encryption/backup trước production financial data | Review gate |
 
 ### 4.4 Scalability (NFR-SCALE)
 
@@ -180,6 +184,7 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 | NFR-MAINT-02 | API documentation cập nhật theo `ARCH-API` mỗi khi thêm/đổi endpoint | Quy ước mới — cần tuân thủ từ đây |
 | NFR-MAINT-03 | Test coverage: mỗi use case/domain entity mới nên có unit test tương ứng | Đã áp dụng cho `cards` demo context (`*.spec.ts`), cần duy trì khi build context thật |
 | NFR-MAINT-04 | CI chạy lint + test trước khi merge | **Chưa có** — 2 workflow hiện tại (`backend-deploy.yml`, `widgetbook-cloud.yml`) chỉ build & deploy trên nhánh `develop`, không có bước lint/test trên PR (xem `PROC-CICD`) |
+| NFR-MAINT-05 | Mỗi thay đổi SQLite schema tăng Drift `schemaVersion`, commit schema snapshot và có migration/data-integrity test | Proposed in `mobile-sqlite.md` |
 
 ---
 
@@ -199,6 +204,7 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 | Interface | Protocol | Trạng thái |
 |-----------|----------|-----------|
 | PostgreSQL (Supabase) | TCP (pg wire), qua TypeORM | Đã kết nối (runtime + migration CLI) |
+| Supabase Auth | HTTPS/OAuth + native deep link | Mobile đã tích hợp email/password, Google, Facebook và persisted session; backend token verification chưa có |
 | OCR / Receipt-scan provider | TBD | Chưa chọn nhà cung cấp — Phase 2 |
 | Push notification (Android) | TBD (khả năng cao: Firebase Cloud Messaging) | Chưa tích hợp — Phase 2 |
 | Nguồn dữ liệu chính sách ngân hàng | Thủ công (không có API chính thức) | Quy trình thu thập thủ công, xem `PRD` #2.6 |

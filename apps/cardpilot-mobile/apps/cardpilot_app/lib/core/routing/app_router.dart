@@ -1,22 +1,62 @@
 import 'package:flutter/material.dart';
 
-import '../../features/onboarding/presentation/views/onboarding_screen.dart';
+import '../../features/auth/presentation/views/sign_in_screen.dart';
+import '../../features/auth/presentation/views/sign_up_screen.dart';
+import '../../features/home/presentation/views/home_screen.dart';
+import '../../features/initial_setup/presentation/views/card_setup_screen.dart';
+import '../../features/initial_setup/presentation/views/profile_setup_screen.dart';
+import '../presentation/views/error_screen.dart';
 import 'app_routes.dart';
 
 class AppRouter {
-  static const initialRoute = AppRoutes.onboarding;
+  static const initialRoute = AppRoutes.signIn;
+
   const AppRouter();
 
   Route<void> onGenerateRoute(RouteSettings settings) {
     return switch (settings.name) {
-      AppRoutes.onboarding => MaterialPageRoute(
-        builder: (_) => const OnboardingScreen(),
+      AppRoutes.signIn => MaterialPageRoute(
+        builder: (_) => const SignInScreen(),
+        settings: settings,
+      ),
+      AppRoutes.signUp => MaterialPageRoute(
+        builder: (_) => const SignUpScreen(),
+        settings: settings,
+      ),
+      AppRoutes.setupProfile => MaterialPageRoute(
+        builder: (_) => const ProfileSetupScreen(),
+        settings: settings,
+      ),
+      AppRoutes.setupCard => MaterialPageRoute(
+        builder: (_) => const CardSetupScreen(),
+        settings: settings,
+      ),
+      AppRoutes.home => MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+        settings: settings,
+      ),
+      AppRoutes.error => MaterialPageRoute(
+        builder: (_) =>
+            ErrorScreen.fromArguments(_errorArgumentsFrom(settings)),
         settings: settings,
       ),
       _ => MaterialPageRoute(
-        builder: (_) => const OnboardingScreen(),
+        builder: (_) => const SignInScreen(),
         settings: settings,
       ),
     };
+  }
+
+  ErrorScreenArguments _errorArgumentsFrom(RouteSettings settings) {
+    final arguments = settings.arguments;
+    if (arguments is ErrorScreenArguments) {
+      return arguments;
+    }
+
+    throw ArgumentError.value(
+      arguments,
+      'settings.arguments',
+      'The error route requires ErrorScreenArguments.',
+    );
   }
 }

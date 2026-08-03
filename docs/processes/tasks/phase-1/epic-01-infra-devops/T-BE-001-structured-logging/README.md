@@ -16,7 +16,7 @@ Thay Nest `Logger` mặc định bằng structured JSON logger (`nestjs-pino` ho
 - [ ] 2 log entry cùng 1 HTTP request (VD: log lúc bắt đầu xử lý + log lúc trả response) có cùng giá trị `request_id`
 - [ ] 2 request khác nhau (gọi song song) có `request_id` khác nhau — verify bằng cách gọi 2 request đồng thời và kiểm tra log
 - [ ] Log level (`error`/`warn`/`info`/`debug`) cấu hình được qua biến môi trường, mặc định `info` ở production
-- [ ] Không log thông tin nhạy cảm (password, token) — kiểm tra bằng cách log request body của `POST /api/auth/login` (khi đã implement) và xác nhận field password bị redact
+- [ ] Không log thông tin nhạy cảm — kiểm tra request có `Authorization: Bearer <token>` và xác nhận token bị redact; nếu tương lai có endpoint nhận secret/password thì field đó cũng phải bị redact
 
 ## Dependencies
 

@@ -3,7 +3,7 @@
 **Module (chủ đạo):** `BE`
 **Phase:** 1
 **Epic:** Epic 2 — Authentication & Authorization
-**Status:** Backlog
+**Status:** Not Required
 **Prototype:** — (task backend/DB, không phải màn hình)
 
 ## Mô tả
@@ -17,9 +17,13 @@ Nếu T-BE-004 chọn JWT tự xây: migration tạo bảng `refresh_tokens` (`i
 - [ ] Xoá user → toàn bộ `refresh_tokens` liên quan tự động bị xoá (CASCADE), verify bằng test xoá user và query lại bảng
 - [ ] Nếu T-BE-004 chọn Supabase Auth thay vì JWT tự xây → task này **không cần thực hiện**, đóng lại với ghi chú lý do
 
+Supabase Auth has been selected and `supabase_flutter` owns refresh-token
+storage/rotation. CardPilot must not add a parallel custom refresh-token table
+unless the architecture decision is reversed.
+
 ## Dependencies
 
-- **Depends On (Task):** [T-BE-004](../T-BE-004-consider-auth-provider/README.md) (điều kiện: chỉ áp dụng nếu chọn JWT tự xây)
+- **Depends On (Task):** [T-BE-004](../T-BE-004-quyet-dinh-auth-provider/README.md) (điều kiện: chỉ áp dụng nếu chọn JWT tự xây)
 - **Depends On (Phase Gate):** —
 
 ## Ref Docs
@@ -35,6 +39,7 @@ Nếu T-BE-004 chọn JWT tự xây: migration tạo bảng `refresh_tokens` (`i
 | Status | Created By | Created Date | Updated By | Updated Date | Reviewed/Approved By | Review Date | Ghi chú |
 |--------|-----------|---------------|-----------|---------------|------------------------|--------------|---------|
 | Backlog | TBD | 2026-07-25 | — | — | — | — | Chờ quyết định T-BE-004 (chỉ cần nếu JWT tự xây) |
+| Not Required | CardPilot Team | 2026-07-25 | CardPilot Team | 2026-08-02 | — | — | Supabase Auth quản lý refresh-token lifecycle |
 
 ---
 Index toàn backlog: [`../../../../tasks.md`](../../../../tasks.md)

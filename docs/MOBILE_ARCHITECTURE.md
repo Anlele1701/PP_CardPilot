@@ -1,17 +1,62 @@
 # CardPilot Mobile Architecture
 
-CardPilot Mobile uses a Flutter workspace with a production app, a shared UI package, and a Widgetbook preview app. The architecture keeps product screens and feature logic in the app while keeping the shared UI package focused on reusable visual components.
+CardPilot Mobile is a Flutter workspace containing a production app, a shared
+UI package, and a Widgetbook preview app. Product workflows stay in the app;
+only reusable visual primitives belong to `cardpilot_ui`.
 
-## Architecture Goals
+## Current implementation status
 
-- Keep app screens separate from shared UI primitives.
-- Keep UI components reusable without depending on app state, routing, or data access.
-- Group product code by feature so customer-facing areas remain discoverable.
-- Keep business rules and data access outside widgets.
-- Use Riverpod for feature state and dependency wiring.
-- Make API, cache, and AI integrations replaceable without rewriting screens.
+The current app starts at Sign in and supports:
 
-## Workspace Structure
+- email/password sign-in and sign-up through Supabase Auth;
+- Google and Facebook OAuth through Supabase Auth;
+- persisted Supabase sessions and deep-link return through
+  `io.cardpilot.app://login-callback/`;
+- local guest entry from Sign in or the access-choice screen;
+- a shared initial setup flow for guest and authenticated users: display name,
+  first card, then Home;
+- a Home shell with Dashboard, Cards, Transactions, quick Add, and Profile;
+- Supabase sign-out from Profile;
+- reusable validation copy under `core/constants` and app notifications through
+  `toastification` under `core/notifications`.
+
+Initial setup data is still stored by an in-memory adapter. It does not survive
+an app-process restart. SQLite, backend profile persistence, user-data sync,
+forgot-password, and real Cards/Transactions/Dashboard APIs remain planned.
+
+## Workspace responsibilities
+
+### `cardpilot_app`
+
+Owns product composition and behavior:
+
+- `MaterialApp`, routes, lifecycle, and environment configuration;
+- Riverpod providers/controllers;
+- feature views, use cases, repositories, and data sources;
+- Supabase Auth integration;
+- future backend API, SQLite, and sync adapters;
+- full product screens and feature-specific widgets.
+
+### `cardpilot_ui`
+
+Owns reusable visual primitives:
+
+- `CardPilotLogo`;
+- `AppPrimaryButton`;
+- `SocialAuthButton`;
+- colors, spacing, and light/dark themes.
+
+Public APIs are exported by `lib/cardpilot_ui.dart`. The package must not own
+routing, Riverpod, repositories, Supabase, Toastification, product workflows,
+or preview-only mock data.
+
+### `cardpilot_widgetbook`
+
+Owns isolated previews for public `cardpilot_ui` components. Current use cases
+cover enabled/disabled/loading states for `AppPrimaryButton` and
+enabled/loading states for `SocialAuthButton`.
+
+## Current folder structure
 
 ```text
 apps/cardpilot-mobile/
@@ -20,313 +65,229 @@ apps/cardpilot-mobile/
       lib/
         main.dart
         app/
+          cardpilot_app.dart
         core/
+          config/
+          constants/
+          errors/
+          notifications/
+          result/
+          routing/
         features/
+          access/
+            presentation/
+          auth/
+            data/
+            domain/
+            presentation/
+          initial_setup/
+            data/
+            domain/
+            presentation/
+          home/
+            presentation/
     cardpilot_widgetbook/
       lib/
         main.dart
-        mocks/
+        use_cases/
   packages/
     cardpilot_ui/
+      assets/
+        brandings/
       lib/
         cardpilot_ui.dart
         src/
+          brand/
           components/
           theme/
 ```
 
-## Project Responsibilities
+## Layer responsibilities
 
-### `cardpilot_app`
-
-The production Flutter application.
-
-- Owns `MaterialApp`, routing, feature screens, providers, and app lifecycle.
-- Owns feature state, use cases, repositories, and data sources.
-- Composes shared `cardpilot_ui` components into full screens.
-- Maps domain entities into UI package data objects when needed.
-
-### `cardpilot_ui`
-
-The shared design system and component package.
-
-- Owns design tokens such as colors, spacing, and themes.
-- Owns reusable components such as buttons, pagination, illustrations, and page sections.
-- Exports public UI APIs from `lib/cardpilot_ui.dart`.
-- Must not own product screens, routes, Riverpod providers, repositories, backend clients, or feature workflows.
-
-### `cardpilot_widgetbook`
-
-The isolated preview application for shared UI work.
-
-- Shows `cardpilot_ui` components in controlled states.
-- Uses mock data from `lib/mocks/`.
-- Can compose local screen-like previews, but those previews stay in Widgetbook and are not exported by `cardpilot_ui`.
-
-## App Folder Structure
-
-```text
-apps/cardpilot-mobile/apps/cardpilot_app/lib/
-  main.dart
-  app/
-    cardpilot_app.dart
-  core/
-    config/
-    errors/
-    result/
-    routing/
-  features/
-    onboarding/
-      onboarding_providers.dart
-      data/
-        datasources/
-        models/
-        repositories/
-      domain/
-        entities/
-        repositories/
-        usecases/
-      presentation/
-        views/
-        widgets/
-```
-
-## Shared UI Folder Structure
-
-```text
-apps/cardpilot-mobile/packages/cardpilot_ui/lib/
-  cardpilot_ui.dart
-  src/
-    components/
-      app_primary_button.dart
-      onboarding/
-        onboarding_hero_illustrations.dart
-        onboarding_page_view.dart
-        onboarding_pagination.dart
-        onboarding_slide_data.dart
-    theme/
-      app_colors.dart
-      app_spacing.dart
-      app_theme.dart
-```
-
-## Layer Responsibilities
-
-### `main.dart`
-
-The smallest possible entry point. It wraps the app in `ProviderScope` and starts `CardPilotApp`.
-
-### `app/`
-
-Owns application-level composition.
-
-- `cardpilot_app.dart` configures `MaterialApp`, theme, routing, and app-level behavior.
-- App-level wiring should stay here unless it belongs to a specific feature.
-
-### `core/`
-
-Shared app infrastructure used across features.
-
-- `config/`: app name, environment constants, backend URLs, feature flags.
-- `errors/`: app-level failure objects.
-- `result/`: success/failure wrappers for predictable error handling.
-- `routing/`: route names and route generation.
-
-Theme and design tokens live in `cardpilot_ui`, not in app `core`, when they are reusable UI primitives.
-
-### `features/`
-
-Each product area gets its own folder. Most future CardPilot work should go here.
-
-Examples:
-
-```text
-features/
-  auth/
-  onboarding/
-  cards/
-  transactions/
-  cashback/
-  ai_assistant/
-  profile/
-```
-
-Each feature can use `data`, `domain`, and `presentation` layers.
-
-## Feature Layer Details
-
-### `presentation/`
-
-Contains feature UI and presentation state.
-
-- `views/`: full app screens or pages.
-- `widgets/`: feature-specific widgets that are not broadly reusable.
-- Feature providers/controllers: Riverpod `Notifier`, `AsyncNotifier`, or providers that expose screen state and user actions.
-
-Views should be mostly declarative. A view observes Riverpod state, renders the current state, and delegates actions to a controller/provider.
-
-### `domain/`
-
-Contains business concepts and rules.
-
-- `entities/`: pure business objects.
-- `repositories/`: abstract contracts that describe what data the feature needs.
-- `usecases/`: specific business actions, such as `GetOnboardingSlides`.
-
-The domain layer should not import Flutter UI, HTTP clients, local database packages, Riverpod, or platform-specific code.
-
-### `data/`
-
-Contains implementation details for retrieving and saving data.
-
-- `datasources/`: remote APIs, local storage, secure storage, cache, or static data.
-- `models/`: API/database DTOs and mapping into domain entities.
-- `repositories/`: concrete implementations of domain repository contracts.
-
-The data layer can know about APIs and persistence, but views should not call data sources directly.
-
-## Dependency Direction
-
-Dependencies should flow inward:
+Feature dependencies flow inward:
 
 ```text
 presentation -> domain <- data
 ```
 
-In practice:
+### Presentation
 
-- App screens depend on Riverpod providers/controllers and shared UI components.
-- Providers/controllers depend on use cases.
-- Use cases depend on repository interfaces.
-- Repository implementations depend on data sources.
-- Data models convert into domain entities.
-- App screens map domain entities into `cardpilot_ui` data objects when shared components need UI-specific input.
+- Views render Riverpod state and delegate user actions.
+- Feature widgets may compose `cardpilot_ui` primitives.
+- Views may navigate and display `AppToast`, but must not call a data source
+  directly.
 
-This keeps business logic independent from Flutter layout and keeps shared UI independent from app workflows.
+### Domain
 
-## Riverpod Rules
+- Entities contain business concepts without Flutter dependencies.
+- Repository interfaces describe feature needs.
+- Use cases represent actions such as email sign-in, sign-up, sign-out, and
+  completing initial setup.
+- Domain code must not import Flutter UI, Riverpod, Supabase, HTTP clients, or
+  persistence packages.
 
-- Use providers to wire dependencies and expose feature state.
-- Prefer immutable state objects for screen state.
-- Keep provider/controller logic free of widget layout concerns.
-- Avoid `BuildContext` in controllers unless there is a deliberate app-level reason.
-- Do not put Riverpod dependencies in `cardpilot_ui`.
+### Data
 
-The current onboarding flow uses `NotifierProvider.autoDispose` in `features/onboarding/onboarding_providers.dart`.
+- Data sources own external SDK or persistence calls.
+- Repository implementations map SDK/API failures into `Result` and
+  `AppFailure`.
+- Supabase-specific classes stay in `features/auth/data`.
+- Future Drift/SQLite classes stay in app data/infrastructure code, not in
+  widgets or `cardpilot_ui`.
 
-## UI Package Rules
+## Core responsibilities
 
-- Shared UI components should accept plain values and callbacks.
-- Shared UI components may depend on Flutter and `cardpilot_ui` theme tokens.
-- Shared UI components should not fetch data, navigate, read providers, or know feature routes.
-- Full product screens belong in `cardpilot_app`, even when most of their children come from `cardpilot_ui`.
-- Screen-like previews belong in `cardpilot_widgetbook`, not in `cardpilot_ui`.
+| Folder | Current responsibility |
+|--------|------------------------|
+| `config/` | `AppConfig`, Supabase dart-defines, OAuth redirect URL |
+| `constants/` | Shared validation messages |
+| `errors/` | App-level failure representation |
+| `notifications/` | `AppToast`, a thin app adapter over `toastification` |
+| `result/` | Typed success/failure result wrapper |
+| `routing/` | Named routes and route generation |
 
-This is why onboarding has an app-owned `OnboardingScreen` and shared UI-owned `OnboardingPageView`, `OnboardingPagination`, and `AppPrimaryButton`.
-
-## API And Backend Integration
-
-When CardPilot starts calling the NestJS backend, add shared API infrastructure under app `core/network/`, then connect it through feature data sources.
-
-Suggested future structure:
-
-```text
-core/
-  network/
-    api_client.dart
-    api_exception.dart
-    auth_interceptor.dart
-
-features/
-  cards/
-    data/
-      datasources/
-        cards_remote_data_source.dart
-      models/
-        card_model.dart
-      repositories/
-        cards_repository_impl.dart
-```
-
-The backend should return JSON over REST. The mobile app should map API models into domain entities before data reaches providers/controllers.
-
-## AI Feature Guidance
-
-AI-related code should not be placed directly inside random screens. Treat AI as a feature or shared app capability depending on how it is used.
-
-If AI is a user-facing area:
+The current named routes are:
 
 ```text
-features/
-  ai_assistant/
-    data/
-    domain/
-    presentation/
+/access
+/login
+/sign-up
+/setup/profile
+/setup/card
+/home
+/error
 ```
 
-If AI becomes shared infrastructure for many app features:
+The initial route is `/login`. The removed onboarding carousel is no longer in
+the application route graph.
+
+## Authentication flow
 
 ```text
-core/
-  ai/
-    ai_client.dart
-    ai_prompt_builder.dart
-    ai_response_parser.dart
+SignInScreen / SignUpScreen
+  -> LoginController
+  -> auth use case
+  -> AuthRepository
+  -> SupabaseAuthDataSource
+  -> Supabase Auth
 ```
 
-Prefer starting with `features/ai_assistant/`. Move only truly shared app infrastructure into `core/ai/` later. Do not put AI workflow code in `cardpilot_ui`.
+Supported credential flows:
 
-## Testing Strategy
+- Email/password sign-in uses `signInWithPassword`.
+- Email/password sign-up uses `signUp`; when email confirmation is required,
+  the app shows a success toast and waits for the confirmation link.
+- Google/Facebook use Supabase OAuth. On native platforms the provider opens an
+  external browser and returns through the CardPilot deep link.
+- `AuthSessionRedirector` observes Supabase auth-state changes and moves a
+  valid session into authenticated initial setup.
+- Profile sign-out calls Supabase `signOut()` through a dedicated use case and
+  clears the navigation stack back to Sign in.
 
-Recommended app test placement:
+`supabase_flutter` persists the authentication session on device. This is
+separate from CardPilot profile/business persistence, which is not yet backed
+by SQLite or the NestJS API.
+
+The mobile app currently authenticates directly with Supabase. The NestJS
+backend still needs token verification/authorization and a bootstrap endpoint
+to create or load the CardPilot `users` profile before user-owned cloud data is
+enabled.
+
+## Guest and shared initial setup
+
+Guest and authenticated users share one setup workflow:
 
 ```text
-apps/cardpilot-mobile/apps/cardpilot_app/test/
-  features/
-    onboarding/
-      presentation/
-      domain/
-      data/
+Guest
+  Sign in -> Continue as guest -> AccessMode.guest
+
+Authenticated
+  Supabase session -> AccessMode.authenticated
+
+Both
+  Profile setup -> First-card setup -> Home shell
 ```
 
-Recommended UI package test placement:
+`InitialSetupController` is intentionally not auto-disposed so its workspace
+survives navigation into Home. `InitialSetupMemoryDataSource` is a temporary
+adapter. Replacing it with Drift must not move persistence concerns into the
+controller or screens.
+
+## Notifications and validation
+
+- Reusable validation text lives in
+  `core/constants/validation_messages.dart`.
+- Feature validators return those shared messages.
+- Runtime success/error/info notifications use `AppToast`, backed by
+  `toastification` with a consistent top-center, flat-colored presentation.
+- Toastification is an app dependency, not a design-system component, so it is
+  not exported from `cardpilot_ui` or previewed in Widgetbook.
+
+## Local persistence and sync direction
+
+SQLite is planned but not installed. The reviewed implementation proposal uses
+Drift, one installation database, strict workspace scoping, reference-data
+snapshots, and a transactional outbox:
 
 ```text
-apps/cardpilot-mobile/packages/cardpilot_ui/test/
+UI -> repository -> SQLite
+                  ^
+                  |
+             sync service <-> NestJS API
 ```
 
-Testing priorities:
+The UI should read local repositories whether online or offline. A future sync
+service will refresh reference data and upload guest/user mutations. PostgreSQL
+and SQLite have separate migration lifecycles; the device schema maps shared
+business identifiers while also owning workspaces, cache metadata, tombstones,
+and outbox state that do not belong in PostgreSQL.
 
-- Use case tests for business behavior.
-- Provider/controller tests for loading, error, and action states.
-- Widget tests for important customer flows in `cardpilot_app`.
-- Component tests for reusable widgets in `cardpilot_ui`.
-- Repository tests for API mapping and failure handling.
+The implementation source of truth for this planned area is
+[`docs/architecture/mobile-sqlite.md`](./architecture/mobile-sqlite.md). It
+defines schema v1/v2, folder ownership, startup routing, ETag refresh, guest
+claim, conflict handling, migration workflow, tests, and delivery slices.
 
-## Naming Conventions
+## Shared UI rules
 
-- App screens end with `_screen.dart`.
-- Riverpod state/controller files can be grouped in `<feature>_providers.dart` while features are small.
-- Use cases use verb-first names, for example `get_cards.dart`.
-- Repository contracts live in `domain/repositories`.
-- Repository implementations live in `data/repositories` and end with `_impl.dart`.
-- API or database DTOs live in `data/models` and end with `_model.dart`.
-- Shared UI components should use product-neutral component names unless the concept is intentionally reusable across app surfaces.
+- Components accept plain values and callbacks.
+- Components may depend on Flutter and `cardpilot_ui` tokens.
+- Components must not fetch data, navigate, read providers, or know app routes.
+- Full screens and feature-specific form widgets stay in `cardpilot_app`.
+- Preview-only compositions and mocks stay in `cardpilot_widgetbook`.
+- Add/update Widgetbook use cases whenever a public UI component gains an
+  important state.
 
-## When Adding A New Feature
+## Testing
 
-1. Create a folder under `cardpilot_app/lib/features/<feature_name>/`.
-2. Add `domain/entities` for core objects.
-3. Add `domain/repositories` for required data contracts.
-4. Add `domain/usecases` for business actions.
-5. Add `data/models`, `data/datasources`, and `data/repositories`.
-6. Add `presentation/views` for app screens.
-7. Add Riverpod providers/controllers for state and dependency wiring.
-8. Register routes in `core/routing`.
-9. Move only broadly reusable visual pieces into `cardpilot_ui`.
-10. Add Widgetbook previews for reusable UI components.
-11. Add tests for use cases and providers/controllers first.
+Current coverage includes:
 
-## Practical Recommendation
+- auth use-case and widget tests;
+- sign-in/sign-up form and guest-transition tests;
+- shared initial-setup flow tests;
+- Home/Profile logout tests;
+- Toastification adapter tests;
+- shared UI component tests;
+- Widgetbook startup tests.
 
-Keep the boundaries simple and explicit: app screens own product flows; domain owns business concepts; data owns infrastructure; `cardpilot_ui` owns reusable visuals; Widgetbook owns previews. Add abstractions only when a feature needs them.
+Run checks from the repository root:
+
+```bash
+pnpm nx run cardpilot-app:analyze
+pnpm nx run cardpilot-app:test
+pnpm nx run cardpilot-ui:analyze
+pnpm nx run cardpilot-ui:test
+pnpm nx run cardpilot-widgetbook:analyze
+pnpm nx run cardpilot-widgetbook:test
+```
+
+## Adding a mobile feature
+
+1. Create `features/<feature_name>` in `cardpilot_app`.
+2. Define domain entities, repository contracts, and use cases.
+3. Implement data sources/repositories for Supabase, backend API, or SQLite.
+4. Wire dependencies with Riverpod.
+5. Keep views declarative and delegate actions to controllers/use cases.
+6. Register routes if the feature owns a full screen.
+7. Move only broadly reusable visuals into `cardpilot_ui`.
+8. Add Widgetbook use cases for public shared components.
+9. Add narrow tests, then run the affected Nx analyze/test targets.

@@ -15,8 +15,8 @@
 | Mobile | Flutter (Riverpod `^3.0.0`, Clean Architecture theo feature) |
 | Backend | NestJS `11.x` + Fastify adapter + TypeORM, modular monolith với bounded contexts |
 | Database | PostgreSQL 17 (Supabase-hosted production, `postgres:17-alpine` local dev qua Docker Compose) |
-| Auth | **Chưa quyết định**: JWT tự xây trong NestJS hay Supabase Auth — xem `ARCH-SYS` #7.1. Quyết định này ảnh hưởng trực tiếp tới Epic 2 bên dưới |
-| Local storage | Chưa chọn package SQLite (`sqflite`/`drift`) — cần chọn trước khi build local-only mode thật |
+| Auth | Supabase Auth trên mobile; backend Auth Guard và bootstrap `auth.users` → `public.users` còn pending |
+| Local storage | Drift/SQLite proposed; schema v1 and implementation slices await review (`ARCH-SQLITE`) |
 | Infra | Docker Compose (Postgres local), Render (backend hosting), Docker Hub (image registry) |
 | CI/CD | GitHub Actions — build & deploy trên `develop` (chưa có CI trên PR) |
 
@@ -26,10 +26,10 @@
 
 | # | Screen | Mô tả | Depends On |
 |---|--------|--------|-----------|
-| S01 | Splash | Logo, kiểm tra trạng thái đăng nhập/local data → điều hướng tới Onboarding hoặc Dashboard | — |
-| S02 | Onboarding | Carousel 3 slide giới thiệu giá trị app (đã build — xem ghi chú mâu thuẫn với yêu cầu "No onboard screen" ở `PRD` #2.1) | S01 |
-| S03 | Login | Email/password, nút "Dùng thử" (Skip → local-only mode), link "Quên mật khẩu" | S02 |
-| S04 | Register | Form tạo tài khoản mới | S03 |
+| S01 | Splash | Planned; hiện app vào thẳng Sign in và dùng session redirector | — |
+| S02 | Onboarding carousel | Đã xoá theo quyết định sản phẩm; không nằm trong flow hiện tại | — |
+| S03 | Login | Supabase email/password + Google/Facebook OAuth, Continue as guest, forgot-password placeholder | — |
+| S04 | Register | Supabase email/password + Google/Facebook OAuth | S03 |
 | S05 | Forgot Password | Nhập email → gửi link/OTP reset | S03 |
 | S06 | Dashboard (Home) | Danh sách Cashback Jar theo từng thẻ, biểu đồ tròn Category, empty state mời "Thêm thẻ đầu tiên" nếu chưa có thẻ | S03 hoặc S04 (hoặc Skip) |
 | S07 | Add/Edit Card | Chọn ngân hàng → chọn sản phẩm thẻ → nhập nickname, billing cycle day, is_default | S06 |
@@ -51,8 +51,9 @@
 | **ARCH-DB** | #2.1, #2.2 | ERD Overview + Table Definitions đầy đủ (toàn bộ 14 bảng đã tồn tại qua 1 migration) |
 | **SRS** | FR-AUTH-01→09, FR-MEMBER-01→02, FR-CARD-01→04, FR-RULE-01→05, FR-MCC-01→05, FR-TXN-01→04, FR-DASH-01→02 | Phase 1 functional requirements |
 | **BRD** | #6.1→6.7 | Core Features driving data model |
+| **ARCH-SQLITE** | `architecture/mobile-sqlite.md` | Mobile schema v1/v2, cache, sync, migrations, and tests |
 
-> Toàn bộ schema Postgres của Phase 1 **đã tồn tại** qua migration `1784410000000-create-initial-schema.ts` — không cần migration mới cho Phase 1, ngoại trừ khả năng cần bảng phụ trợ cho auth (VD: `refresh_tokens`) tuỳ theo quyết định JWT tự xây vs Supabase Auth (xem Epic 2).
+> Toàn bộ schema Postgres của Phase 1 **đã tồn tại** qua migration `1784410000000-create-initial-schema.ts`. Supabase Auth đã được chọn nên CardPilot không tạo bảng `refresh_tokens` riêng; vẫn cần chốt migration/mapping cho `auth.users.id` ↔ `public.users.id` nếu schema hiện tại chưa đáp ứng flow bootstrap.
 
 ### 3.2. ERD Diagram
 
@@ -63,7 +64,7 @@ Xem đầy đủ tại `ARCH-DB` #2.1. Subset các bảng dùng trong Phase 1 = 
 | # | Table / Entity | Change Type | Mô tả | Ref |
 |---|----------------|-------------|--------|-----|
 | T01-T14 | Toàn bộ 14 bảng (`users`, `memberships`, `user_memberships`, `banks`, `credit_cards`, `user_cards`, `merchant_category_codes`, `merchants`, `merchant_mcc_candidates`, `transactions`, `merchant_mcc_feedbacks`, `reward_rules`, `reward_rule_mccs`, `cashback_calculations`) | Existing (đã tạo qua migration, chưa có application code) | Xem field đầy đủ tại `ARCH-DB` #2.2 | ARCH-DB #2.2 |
-| T15 | `refresh_tokens` (đề xuất, chỉ cần nếu chọn JWT tự xây thay vì Supabase Auth) | New (có điều kiện) | Lưu refresh token đã cấp, phục vụ revoke/logout | id (PK, uuid), user_id (FK → users), token_hash, expires_at, created_at | → users (FK, CASCADE) |
+| T15 | Custom `refresh_tokens` | Not required | Supabase Auth quản lý refresh-token lifecycle | — | — |
 
 ### 3.4. Indexes & Constraints
 
@@ -85,9 +86,13 @@ Xem đầy đủ tại `ARCH-DB` #2.2 — migration hiện tại đã có index 
   - `reward_rules` + `reward_rule_mccs`: thu thập thủ công chính sách hoàn tiền tương ứng các thẻ đã seed.
 - **Breaking changes**: N/A (schema Phase 1 là schema khởi tạo).
 
-### 3.6. Local Cache Strategy (Mobile SQLite)
+### 3.6. Local Database Strategy (Mobile SQLite)
 
-Chưa implement trong Phase 1 — xem `ARCH-DB` #3. Nếu Phase 1 launch trước khi có sync, local-only mode có thể tạm dùng lưu trữ đơn giản hơn (VD: chỉ SQLite thuần không cần đồng bộ 2 chiều), miễn là kiến trúc dữ liệu tương thích để nâng cấp lên sync ở Phase 2 mà không mất dữ liệu user.
+Drift/SQLite schema v1 is proposed for Phase 1 because guest profile and card
+data must survive restart. Implement the workspace/profile/card/reference-cache
+foundation from `ARCH-SQLITE` first. Network sync may land later, but outbox and
+identity decisions must be reviewed before distributing the first schema so the
+upgrade path does not lose guest data.
 
 ### 3.7. Cache Strategy (Backend)
 
@@ -97,31 +102,31 @@ Chưa cần — traffic thấp ở Phase 1, chưa có Redis/cache layer nào tro
 
 ## 4. API Endpoints
 
-> Toàn bộ endpoint dưới đây là **Planned** — chưa có implementation ngoại trừ `GET /api`, `GET /api/health`, `GET /api/cards` (demo scaffold, xem `ARCH-API` #2-3).
+> Phần lớn endpoint dưới đây là **Planned**. Hiện backend đã có `GET /api/v1`, `GET /api/health` và `GET /api/v1/banks`; mobile auth gọi Supabase trực tiếp.
 
-### Auth (5)
+### Auth / Sync
 
 | Method | Endpoint | Auth | Related Tables | Mô tả |
 |--------|----------|------|-----------------|--------|
-| POST | `/api/auth/register` | — | `users` (W) | Đăng ký tài khoản email |
-| POST | `/api/auth/login` | — | `users` (R) | Đăng nhập, trả access/refresh token |
-| POST | `/api/auth/logout` | Bearer | — | Đăng xuất, revoke refresh token |
-| POST | `/api/auth/forgot-password` | — | `users` (R) | Gửi link/OTP reset password |
-| POST | `/api/auth/sync` | Bearer | `transactions` (W), `user_cards` (W) | Đồng bộ dữ liệu local → cloud lần đầu đăng nhập |
+| POST | `/api/v1/auth/bootstrap` | Supabase Bearer | `users` (RW) | Planned: verify token, tạo/tải backend user idempotently |
+| POST | `/api/v1/auth/sync` | Supabase Bearer | `transactions` (W), `user_cards` (W) | Planned: đồng bộ dữ liệu local → cloud lần đầu đăng nhập |
+
+Register, login, OAuth, refresh, forgot-password và logout thuộc Supabase Auth,
+không phải password/session endpoint do CardPilot backend phát hành.
 
 ### User & Membership (3)
 
 | Method | Endpoint | Auth | Related Tables | Mô tả |
 |--------|----------|------|-----------------|--------|
-| GET | `/api/users/me` | Bearer | `users` (R), `user_memberships` (R), `memberships` (R) | Thông tin user + membership tier hiện tại |
-| PATCH | `/api/users/me` | Bearer | `users` (RW) | Sửa `full_name`/`born_date` |
-| GET | `/api/memberships` | Bearer | `memberships` (R) | Danh sách tier + giới hạn (hiển thị lộ trình lên hạng) |
+| GET | `/api/v1/users/me` | Supabase Bearer | `users` (R), `user_memberships` (R), `memberships` (R) | Thông tin user + membership tier hiện tại |
+| PATCH | `/api/v1/users/me` | Supabase Bearer | `users` (RW) | Sửa `full_name`/`born_date` |
+| GET | `/api/v1/memberships` | Supabase Bearer | `memberships` (R) | Danh sách tier + giới hạn (hiển thị lộ trình lên hạng) |
 
 ### Card Management (6)
 
 | Method | Endpoint | Auth | Related Tables | Mô tả |
 |--------|----------|------|-----------------|--------|
-| GET | `/api/banks` | Bearer | `banks` (R) | Danh sách ngân hàng |
+| GET | `/api/v1/banks` | Public (current) | `banks` (R) | Danh sách ngân hàng; đã implement |
 | GET | `/api/credit-cards` | Bearer | `credit_cards` (R) | Danh sách sản phẩm thẻ, filter theo bank |
 | GET | `/api/user-cards` | Bearer | `user_cards` (R) | Danh sách thẻ user đã thêm |
 | POST | `/api/user-cards` | Bearer | `user_cards` (W) | Thêm thẻ |
@@ -184,13 +189,13 @@ Chưa cần — traffic thấp ở Phase 1, chưa có Redis/cache layer nào tro
 
 | ID | Task | Mô tả | Deps | DB Migration | Ref Docs |
 |----|------|--------|------|--------------|----------|
-| T-005 | Quyết định auth provider | Chốt JWT tự xây (NestJS + `@nestjs/jwt`) vs Supabase Auth — ảnh hưởng toàn bộ epic này | — | — | ARCH-SYS #7.1, SRS FR-AUTH |
-| T-006 | Register API | POST /api/auth/register — validate email format/unique, tạo `users` record. Nếu JWT tự xây: hash password (cần thêm cột `password_hash` vào `users` qua migration mới, hiện schema chưa có cột này) | T-005 | Có điều kiện — thêm `password_hash` nếu không dùng Supabase Auth | SRS FR-AUTH-01 |
-| T-007 | Login API | POST /api/auth/login — verify credential, issue access/refresh token | T-006 | — (hoặc T-015 nếu cần bảng `refresh_tokens`) | SRS FR-AUTH-02 |
-| T-008 | Logout API | POST /api/auth/logout — revoke refresh token | T-007 | — | SRS FR-AUTH-03 |
-| T-009 | Forgot Password API | POST /api/auth/forgot-password — gửi email reset (cần chọn email provider) | T-006 | — | SRS FR-AUTH-04 |
-| T-010 | Auth Guard + RBAC | Middleware xác thực Bearer token cho mọi route cần login; `RolesGuard` phân biệt User/Admin | T-007 | — | SRS FR-AUTH-09, NFR-SEC-04/05 |
-| T-011 | Refresh token storage | Nếu JWT tự xây: tạo bảng `refresh_tokens` (user_id FK, token_hash, expires_at) | T-005 (nếu chọn JWT tự xây) | `xxxx-create-refresh-tokens.ts` | ARCH-DB (bổ sung) |
+| T-005 | Auth provider decision | Supabase Auth đã được chọn trên mobile; còn chốt backend identity mapping | — | Có thể cần migration mapping identity | ARCH-SYS #7.1, SRS FR-AUTH |
+| T-006 | User bootstrap API | Verify Supabase Bearer token, tạo/tải `public.users` idempotently | T-005 | Tuỳ kết quả identity mapping | SRS FR-AUTH-01 |
+| T-007 | Mobile login | Đã gọi Supabase Auth trực tiếp; backend không nhận password/phát token | T-005 | — | SRS FR-AUTH-02 |
+| T-008 | Mobile logout | Đã dùng Supabase `signOut()`; custom backend endpoint không cần ở kiến trúc hiện tại | T-005 | — | SRS FR-AUTH-03 |
+| T-009 | Forgot Password | Mobile/Supabase Auth integration còn pending; UI hiện là placeholder | T-005 | — | SRS FR-AUTH-04 |
+| T-010 | Auth Guard + RBAC | Verify Supabase Bearer token cho route cần login; `RolesGuard` phân biệt User/Admin | T-005 | — | SRS FR-AUTH-09, NFR-SEC-04/05 |
+| T-011 | Custom refresh token storage | Not required; Supabase Auth quản lý refresh token | T-005 | — | ARCH-DB |
 
 ### Epic 3: Membership
 
