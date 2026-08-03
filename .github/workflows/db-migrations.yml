@@ -1,14 +1,7 @@
 name: Run DB Migrations
 
 on:
-  push:
-    branches: [ "develop" ]
-    paths:
-      - "apps/cardpilot-backend/src/database/migrations/**"
-      - "apps/cardpilot-backend/src/database/data-source.ts"
-      - "package.json"
-      - "pnpm-lock.yaml"
-
+  workflow_call:
   workflow_dispatch:
 
 concurrency:

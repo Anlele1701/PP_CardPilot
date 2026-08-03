@@ -1,12 +1,7 @@
 name: Deploy Widgetbook Cloud
 
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - "apps/cardpilot-mobile/**"
-      - ".github/workflows/widgetbook-cloud.yml"
+  workflow_call:
   workflow_dispatch:
 
 concurrency:

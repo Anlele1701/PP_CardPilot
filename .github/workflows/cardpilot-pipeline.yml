@@ -1,0 +1,183 @@
+name: CardPilot Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: cardpilot-pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detect affected projects
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      migrations: ${{ steps.filter.outputs.migrations }}
+      backend_deploy: ${{ steps.filter.outputs.backend_deploy }}
+      widgetbook: ${{ steps.filter.outputs.widgetbook }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_sha="$BASE_SHA"
+          if [ -z "$base_sha" ] || [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
+            base_sha="$(git rev-list --max-parents=0 "$GITHUB_SHA")"
+          fi
+
+          backend=false
+          mobile=false
+          migrations=false
+          backend_deploy=false
+          widgetbook=false
+
+          while IFS= read -r changed_file; do
+            case "$changed_file" in
+              apps/cardpilot-backend/*|apps/cardpilot-backend-e2e/*|package.json|pnpm-lock.yaml|nx.json|tsconfig.base.json|eslint.config.mjs|jest.preset.js|webpack.config.js|.github/workflows/backend-check.yml)
+                backend=true
+                ;;
+            esac
+
+            case "$changed_file" in
+              apps/cardpilot-mobile/*|package.json|pnpm-lock.yaml|nx.json|.github/workflows/flutter-analyze.yml)
+                mobile=true
+                ;;
+            esac
+
+            case "$changed_file" in
+              apps/cardpilot-backend/src/database/migrations/*|apps/cardpilot-backend/src/database/data-source.ts|package.json|pnpm-lock.yaml|.github/workflows/db-migrations.yml)
+                migrations=true
+                ;;
+            esac
+
+            case "$changed_file" in
+              apps/cardpilot-backend/*|Dockerfile|package.json|pnpm-lock.yaml|nx.json|tsconfig.base.json|.github/workflows/backend-deploy.yml)
+                backend_deploy=true
+                ;;
+            esac
+
+            case "$changed_file" in
+              apps/cardpilot-mobile/*|.github/workflows/widgetbook-cloud.yml)
+                widgetbook=true
+                ;;
+            esac
+
+            if [ "$changed_file" = ".github/workflows/cardpilot-pipeline.yml" ]; then
+              backend=true
+              mobile=true
+              migrations=true
+              backend_deploy=true
+              widgetbook=true
+            fi
+          done < <(git diff --name-only "$base_sha" "$GITHUB_SHA")
+
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+          echo "mobile=$mobile" >> "$GITHUB_OUTPUT"
+          echo "migrations=$migrations" >> "$GITHUB_OUTPUT"
+          echo "backend_deploy=$backend_deploy" >> "$GITHUB_OUTPUT"
+          echo "widgetbook=$widgetbook" >> "$GITHUB_OUTPUT"
+
+  backend_check:
+    name: Backend check
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    uses: ./.github/workflows/backend-check.yml
+
+  flutter_analyze:
+    name: Flutter analyze
+    needs:
+      - changes
+      - backend_check
+    if: >-
+      ${{ always() &&
+          needs.changes.outputs.mobile == 'true' &&
+          (needs.backend_check.result == 'success' || needs.backend_check.result == 'skipped') }}
+    uses: ./.github/workflows/flutter-analyze.yml
+
+  quality_gate:
+    name: Quality gate
+    needs:
+      - changes
+      - backend_check
+      - flutter_analyze
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required checks
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          BACKEND_RESULT: ${{ needs.backend_check.result }}
+          FLUTTER_RESULT: ${{ needs.flutter_analyze.result }}
+        run: |
+          if [ "$CHANGES_RESULT" != "success" ] ||
+             { [ "$BACKEND_RESULT" != "success" ] && [ "$BACKEND_RESULT" != "skipped" ]; } ||
+             { [ "$FLUTTER_RESULT" != "success" ] && [ "$FLUTTER_RESULT" != "skipped" ]; }; then
+            echo "One or more required checks failed or were cancelled."
+            exit 1
+          fi
+
+  db_migrations:
+    name: Database migrations
+    needs:
+      - changes
+      - quality_gate
+    if: >-
+      ${{ always() &&
+          github.event_name == 'push' &&
+          needs.changes.outputs.migrations == 'true' &&
+          needs.quality_gate.result == 'success' }}
+    uses: ./.github/workflows/db-migrations.yml
+    secrets: inherit
+
+  backend_deploy:
+    name: Backend deploy
+    needs:
+      - changes
+      - quality_gate
+      - db_migrations
+    if: >-
+      ${{ always() &&
+          github.event_name == 'push' &&
+          needs.changes.outputs.backend_deploy == 'true' &&
+          needs.quality_gate.result == 'success' &&
+          (needs.db_migrations.result == 'success' || needs.db_migrations.result == 'skipped') }}
+    uses: ./.github/workflows/backend-deploy.yml
+    secrets: inherit
+
+  widgetbook_cloud:
+    name: Widgetbook Cloud
+    needs:
+      - changes
+      - quality_gate
+      - db_migrations
+      - backend_deploy
+    if: >-
+      ${{ always() &&
+          github.event_name == 'push' &&
+          needs.changes.outputs.widgetbook == 'true' &&
+          needs.quality_gate.result == 'success' &&
+          (needs.db_migrations.result == 'success' || needs.db_migrations.result == 'skipped') &&
+          (needs.backend_deploy.result == 'success' || needs.backend_deploy.result == 'skipped') }}
+    uses: ./.github/workflows/widgetbook-cloud.yml
+    secrets: inherit

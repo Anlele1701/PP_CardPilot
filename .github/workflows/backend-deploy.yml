@@ -1,16 +1,7 @@
 name: Build & Push Backend Image
 
 on:
-  push:
-    branches: [ "develop" ]
-    paths:
-      - "apps/cardpilot-backend/**"
-      - "Dockerfile"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "nx.json"
-      - "tsconfig.base.json"
-      - ".github/workflows/dockerhub-backend.yml"
+  workflow_call:
   workflow_dispatch: {}
 
 jobs:
@@ -46,4 +37,3 @@ jobs:
             --silent \
             --request POST \
             "$RENDER_DEPLOY_HOOK_URL"
-
