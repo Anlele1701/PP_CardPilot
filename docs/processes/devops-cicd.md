@@ -41,27 +41,45 @@ Multi-stage build, chỉ build `cardpilot-backend`:
 
 ## 3. CI/CD Pipelines
 
-Chỉ có **2 workflow** trong `.github/workflows/` — cả hai đều là **deploy pipeline trên nhánh `develop`**, không có workflow lint/test chạy trên Pull Request.
+`.github/workflows/cardpilot-pipeline.yml` là entry point tự động duy nhất. Workflow
+này chạy cho Pull Request nhắm tới `develop`/`main` và cho `push` tới `develop`,
+sau đó phát hiện path thay đổi để chỉ gọi các reusable workflow liên quan.
 
-### 3.1 `backend-deploy.yml` ("Build & Push Backend Image")
+### 3.1 Thứ tự và fail-fast
 
-| Trigger | Job | Mô tả |
-|---------|-----|--------|
-| `push` to `develop` (path-filtered: `apps/cardpilot-backend/**`, `Dockerfile`, `package.json`, `pnpm-lock.yaml`, `nx.json`, `tsconfig.base.json`) + `workflow_dispatch` | `docker` | 1) Checkout → 2) Setup Buildx → 3) Login Docker Hub (`DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN`) → 4) Build & push image, tag **`:latest`** duy nhất (không có tag theo commit SHA/semver) → 5) POST tới `RENDER_DEPLOY_HOOK_URL` để trigger deploy trên Render |
+```text
+detect changes
+  -> backend check (nếu backend bị ảnh hưởng)
+  -> Flutter analyze (nếu mobile bị ảnh hưởng)
+  -> quality gate
+  -> database migrations (push develop, nếu migration bị ảnh hưởng)
+  -> backend deploy (push develop, nếu backend image bị ảnh hưởng)
+  -> Widgetbook Cloud (push develop, nếu mobile bị ảnh hưởng)
+```
 
-> **Lưu ý phát hiện được**: path filter của workflow này tham chiếu tới `.github/workflows/dockerhub-backend.yml` — file này **không tồn tại** trong repo (workflow thật tên là `backend-deploy.yml`). Đây là dấu vết còn sót lại từ lần đổi tên file trước đó — không ảnh hưởng chức năng (path filter đó chỉ là 1 điều kiện trigger dư, không gây lỗi) nhưng nên dọn lại cho rõ ràng.
+Các job được nối bằng `needs` và điều kiện kết quả. Khi một job bắt buộc bị
+failed/cancelled, toàn bộ job phía sau bị skipped; ví dụ backend check thất bại
+thì Flutter analyze, migration, backend deploy và Widgetbook Cloud đều không
+khởi chạy. Job không liên quan tới path thay đổi được phép `skipped` và không
+chặn job liên quan tiếp theo.
 
-### 3.2 `widgetbook-cloud.yml` ("Deploy Widgetbook Cloud")
+Trên Pull Request, pipeline chỉ chạy quality checks; migration và deploy chỉ
+được phép chạy trên event `push` tới `develop`. Branch protection cần require
+check `Quality gate` để chặn merge khi lint/test/build thất bại.
 
-| Trigger | Job | Mô tả |
-|---------|-----|--------|
-| `push` to `develop` (path-filtered: `apps/cardpilot-mobile/**`) + `workflow_dispatch` | `build-and-deploy` (timeout 20 phút, concurrency group huỷ run cũ) | 1) Checkout (`fetch-depth: 0`) → 2) Setup Flutter `3.41.9` (stable, cache) → 3) `flutter pub get` → 4) `dart run build_runner build` → 5) `flutter analyze` → 6) `flutter test` → 7) `flutter build web --release` → 8) Activate `widgetbook_cli 3.15.0` → 9) Push build lên Widgetbook Cloud (`WIDGETBOOK_CLOUD_API_KEY`, guard fail-fast nếu thiếu secret) |
+### 3.2 Reusable workflows
 
-**Nhận xét**: đây là workflow duy nhất hiện tại có chạy `analyze`/`test` — nhưng chỉ cho mục đích build Widgetbook, không phải một CI gate riêng cho chất lượng code trước khi merge PR.
+| Workflow               | Nội dung                                                          | Trigger trực tiếp   |
+| ---------------------- | ----------------------------------------------------------------- | ------------------- |
+| `backend-check.yml`    | Backend lint → test → build trong một job tuần tự                 | `workflow_dispatch` |
+| `flutter-analyze.yml`  | Pub get, generate Widgetbook metadata, analyze ba Flutter project | `workflow_dispatch` |
+| `db-migrations.yml`    | Build backend và chạy TypeORM migrations                          | `workflow_dispatch` |
+| `backend-deploy.yml`   | Build/push Docker image `:latest`, sau đó trigger Render          | `workflow_dispatch` |
+| `widgetbook-cloud.yml` | Generate, analyze, test, build web và upload Widgetbook Cloud     | `workflow_dispatch` |
 
-### Known Gap — chưa có CI trên Pull Request
-
-Không có workflow nào chạy khi mở PR (`pull_request` trigger) — nghĩa là `pnpm lint`/`pnpm test`/`pnpm build` không tự động chạy trước khi merge. Việc đảm bảo chất lượng code trước merge hiện phụ thuộc hoàn toàn vào review thủ công + git hook `commit-msg` (xem mục 4). Đây là backlog rõ ràng nên cân nhắc sớm — xem `SRS` NFR-MAINT-04.
+Mỗi workflow trên cũng khai báo `workflow_call` để pipeline điều phối. Các lần
+chạy thủ công qua `workflow_dispatch` là thao tác operator độc lập và không đi
+qua quality gate tự động.
 
 ## 4. Git Hooks (Husky)
 
