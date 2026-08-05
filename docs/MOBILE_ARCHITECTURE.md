@@ -226,7 +226,7 @@ controller or screens.
 ## Local persistence and sync direction
 
 SQLite is planned but not installed. The reviewed implementation proposal uses
-Drift, one installation database, strict workspace scoping, reference-data
+Drift, one installation database, strict `profile_id` scoping, reference-data
 snapshots, and a transactional outbox:
 
 ```text
@@ -239,7 +239,7 @@ UI -> repository -> SQLite
 The UI should read local repositories whether online or offline. A future sync
 service will refresh reference data and upload guest/user mutations. PostgreSQL
 and SQLite have separate migration lifecycles; the device schema maps shared
-business identifiers while also owning workspaces, cache metadata, tombstones,
+business identifiers while also owning active-profile state, cache metadata, tombstones,
 and outbox state that do not belong in PostgreSQL.
 
 The implementation source of truth for this planned area is

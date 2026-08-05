@@ -8,6 +8,7 @@ import '../../../../core/config/app_config.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../initial_setup/domain/entities/access_mode.dart';
 import '../../../initial_setup/initial_setup_providers.dart';
+import '../../auth_providers.dart';
 
 class AuthSessionRedirector extends ConsumerStatefulWidget {
   const AuthSessionRedirector({required this.child, super.key});
@@ -34,13 +35,13 @@ class _AuthSessionRedirectorState extends ConsumerState<AuthSessionRedirector> {
     final auth = Supabase.instance.client.auth;
     _authSubscription = auth.onAuthStateChange.listen((authState) {
       if (authState.session != null) {
-        _continueToSetup();
+        _continueAfterAuthentication();
       }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (auth.currentSession != null) {
-        _continueToSetup();
+        _continueAfterAuthentication();
       }
     });
   }
@@ -51,12 +52,32 @@ class _AuthSessionRedirectorState extends ConsumerState<AuthSessionRedirector> {
     super.dispose();
   }
 
-  void _continueToSetup() {
+  Future<void> _continueAfterAuthentication() async {
     if (!mounted || _hasContinuedToSetup) {
       return;
     }
 
     _hasContinuedToSetup = true;
+    ref.invalidate(currentAuthUserProvider);
+    final authUser = ref.read(currentAuthUserProvider);
+    final workspace = authUser == null
+        ? null
+        : await ref
+              .read(initialSetupRepositoryProvider)
+              .loadForAuthUser(authUser.id);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (workspace != null) {
+      ref.read(initialSetupControllerProvider.notifier).restore(workspace);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
+      return;
+    }
+
     ref
         .read(initialSetupControllerProvider.notifier)
         .selectAccessMode(AccessMode.authenticated);

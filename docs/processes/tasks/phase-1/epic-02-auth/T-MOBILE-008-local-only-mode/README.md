@@ -10,7 +10,7 @@
 
 Cho phép user bấm `Continue as guest` ở S03 Login mà không cần tài khoản. UI
 hiện chọn `AccessMode.guest`, chạy shared profile/card setup rồi vào Home và
-không gọi Supabase Auth. Workspace hiện chỉ nằm trong memory; Drift/SQLite,
+không gọi Supabase Auth. Profile/card aggregate hiện chỉ nằm trong memory; Drift/SQLite,
 restart persistence và sync vẫn chưa implement.
 
 ## Acceptance Criteria

@@ -40,7 +40,7 @@ After reading the documentation:
 - Nx 22.7.x; prefer Nx targets from the repository root.
 - Flutter 3.41.9 stable.
 - PostgreSQL for the backend; SQLite, if added, belongs to the mobile application and has its own schema/migration lifecycle.
-- Follow `docs/architecture/mobile-sqlite.md` for workspace scoping, Drift
+- Follow `docs/architecture/mobile-sqlite.md` for local-profile scoping, Drift
   migrations, reference-cache versioning, outbox writes, and sync contracts;
   do not copy PostgreSQL tables into Flutter without the documented mapping.
 

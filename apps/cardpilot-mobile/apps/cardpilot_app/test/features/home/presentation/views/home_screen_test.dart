@@ -91,6 +91,8 @@ class _SignedInInitialSetupController extends InitialSetupController {
         profile: LocalProfile(displayName: 'Card Pilot'),
         cards: [
           LocalUserCard(
+            id: 'local-card',
+            bankId: 'bank-acb',
             bankName: 'ACB',
             nickname: 'Everyday card',
             billingCycleDay: 15,

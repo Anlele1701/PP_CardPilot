@@ -24,7 +24,7 @@ not describe behavior that is already implemented.
 - Make SQLite the read source for mobile product screens, online or offline.
 - Cache shared reference data such as banks, credit-card products, MCCs, and
   reward rules so screens do not fetch the same dataset repeatedly.
-- Allow a guest workspace to be linked to a Supabase-authenticated account
+- Allow a guest profile to be linked to a Supabase-authenticated account
   without changing client-generated business IDs.
 - Queue local mutations and retry them safely when backend sync is available.
 - Keep Flutter screens, Riverpod controllers, and domain entities independent
@@ -46,7 +46,7 @@ not describe behavior that is already implemented.
 | Decision | Proposal | Reason |
 |----------|----------|--------|
 | Database library | `drift` + `drift_flutter` | Typed queries, transactions, reactive streams, migration tooling, and in-memory tests |
-| Database topology | One `cardpilot.sqlite` database per app installation | Reference caches are shared; workspace scoping prevents account data leakage |
+| Database topology | One `cardpilot.sqlite` database per app installation | Reference caches are shared; `profile_id` scopes account data |
 | Local primary keys | UUID v4 strings generated before insert | The same ID can be retried and uploaded idempotently |
 | Time storage | UTC Unix epoch milliseconds in SQLite | Stable comparison and no local-time ambiguity; convert only at UI/API boundaries |
 | Money storage | Integer minor units plus ISO currency | Avoid floating-point rounding; VND currently has exponent 0 |
@@ -61,7 +61,7 @@ not describe behavior that is already implemented.
 ### Why the SQLite schema is not an exact PostgreSQL copy
 
 PostgreSQL is the cloud source of truth. Mobile has additional concerns that do
-not belong in the server schema: workspaces, pending mutations, retry state,
+not belong in the server schema: active-profile state, pending mutations, retry state,
 dataset ETags, cached snapshots, tombstones, and local display snapshots.
 Conversely, admin/audit tables do not all need to be stored on a phone.
 
@@ -113,12 +113,12 @@ apps/cardpilot-mobile/apps/cardpilot_app/
           date_time_converter.dart
           sync_status_converter.dart
         tables/
-          workspace_tables.dart
+          profile_tables.dart
           reference_tables.dart
           user_data_tables.dart
           sync_tables.dart
         daos/
-          workspace_dao.dart
+          profile_dao.dart
           reference_data_dao.dart
           user_card_dao.dart
           sync_dao.dart
@@ -128,7 +128,7 @@ apps/cardpilot-mobile/apps/cardpilot_app/
           datasources/
             initial_setup_local_data_source.dart
           mappers/
-            local_workspace_mapper.dart
+            local_profile_mapper.dart
       banks/
         data/
           datasources/
@@ -173,40 +173,23 @@ tested step-by-step migration.
 SQLite booleans are represented by integer-backed Drift boolean columns. All
 timestamps ending in `_at_ms` are UTC epoch milliseconds. UUIDs are `TEXT`.
 
-### 6.1 Schema v1 — foundation, setup, cards, and reference cache
+### 6.1 Schema v1 — profiles, setup, cards, common cache, and sync state
 
-#### `local_workspaces`
+#### `local_profiles`
 
-Represents a local data boundary. A guest workspace can later be linked to a
-Supabase user without changing the workspace ID or child record IDs.
+Each row is one locally retained account boundary. Authenticated profiles A and
+B can coexist, while a partial unique index allows only one live guest profile.
+A guest can later attach Supabase/backend IDs without changing its local ID or
+the `profile_id` stored by cards and transactions.
 
 | Column | Type | Constraints / meaning |
 |--------|------|-----------------------|
 | `id` | TEXT | PK, client UUID |
 | `access_mode` | TEXT | `guest` or `authenticated` |
 | `auth_user_id` | TEXT nullable | Supabase `auth.users.id`; unique when present |
-| `is_active` | INTEGER | Boolean; only one active workspace per installation |
-| `created_at_ms` | INTEGER | Required |
-| `updated_at_ms` | INTEGER | Required |
-| `last_opened_at_ms` | INTEGER | Required |
-
-Indexes and constraints:
-
-- unique partial index on `auth_user_id WHERE auth_user_id IS NOT NULL`;
-- unique partial index on `is_active WHERE is_active = 1`;
-- check `access_mode IN ('guest', 'authenticated')`.
-
-#### `local_profiles`
-
-Maps the current `LocalProfile` to a durable row and leaves room for backend
-identity after bootstrap.
-
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `workspace_id` | TEXT | PK, FK → `local_workspaces.id` ON DELETE CASCADE |
-| `server_user_id` | TEXT nullable | `public.users.id`, unique when present |
+| `server_user_id` | TEXT nullable | `public.users.id`; unique when present |
 | `email` | TEXT nullable | Snapshot for authenticated account display |
-| `display_name` | TEXT | Required, max 40 enforced in domain/UI |
+| `display_name` | TEXT | Required, max 40 |
 | `born_date_at_ms` | INTEGER nullable | Date normalized at mapper boundary |
 | `setup_completed_at_ms` | INTEGER nullable | Null means setup is incomplete |
 | `created_at_ms` | INTEGER | Required |
@@ -215,6 +198,25 @@ identity after bootstrap.
 | `sync_status` | TEXT | `local_only`, `pending`, `synced`, `failed`, `conflict` |
 | `server_version` | INTEGER nullable | Optimistic concurrency version |
 | `last_synced_at_ms` | INTEGER nullable | Diagnostics/UI only |
+
+Indexes and constraints:
+
+- unique partial indexes for non-null `auth_user_id` and `server_user_id`;
+- unique partial index permitting one non-deleted `guest` profile;
+- check `access_mode IN ('guest', 'authenticated')`.
+
+#### `app_settings`
+
+Singleton installation state. It selects the only profile visible to product
+queries without racing `is_active` flags across multiple rows.
+
+| Column | Type | Constraints / meaning |
+|--------|------|-----------------------|
+| `id` | INTEGER | PK, always `1` |
+| `installation_id` | TEXT | Unique client installation UUID |
+| `active_profile_id` | TEXT nullable | FK → `local_profiles.id` ON DELETE SET NULL |
+| `created_at_ms` | INTEGER | Required |
+| `updated_at_ms` | INTEGER | Required |
 
 #### `banks_cache`
 
@@ -227,7 +229,7 @@ Read-only snapshot from `GET /api/v1/banks`.
 | `name` | TEXT | Required |
 | `short_name` | TEXT nullable | Display/search alias |
 | `server_updated_at_ms` | INTEGER nullable | Server audit value if exposed |
-| `dataset_version` | TEXT | Manifest version that produced this row |
+| `dataset_version` | INTEGER | Cloud registry version that produced this row |
 
 Indexes: `name`, `short_name`, and unique partial `swift_code`.
 
@@ -239,7 +241,7 @@ the backend endpoint lands after the initial SQLite foundation.
 | Column | Type | Constraints / meaning |
 |--------|------|-----------------------|
 | `id` | TEXT | PK, PostgreSQL credit-card UUID |
-| `bank_id` | TEXT | FK → `banks_cache.id` |
+| `bank_id` | TEXT | PostgreSQL bank UUID; intentionally no local FK |
 | `name` | TEXT | Required |
 | `network` | TEXT nullable | Visa, Mastercard, etc. |
 | `card_type` | TEXT | Defaults to `credit` |
@@ -248,7 +250,7 @@ the backend endpoint lands after the initial SQLite foundation.
 | `last_verified_at_ms` | INTEGER nullable | Server verification time |
 | `is_active` | INTEGER | Boolean |
 | `server_updated_at_ms` | INTEGER nullable | Server audit value if exposed |
-| `dataset_version` | TEXT | Manifest version |
+| `dataset_version` | INTEGER | Cloud registry version |
 
 Indexes: `(bank_id, is_active)` and normalized `name` search when required.
 
@@ -256,14 +258,22 @@ Indexes: `(bank_id, is_active)` and normalized `name` search when required.
 assume VND in a mapper. Confirm the server contract before using this value for
 calculation; until then store the exact decimal string for display only.
 
+Schema v1 also includes `memberships_cache`,
+`merchant_category_codes_cache`, `reward_rules_cache`, and
+`reward_rule_mccs_cache`. All common cache rows store the integer version from
+cloud `reference_dataset_versions`. Cross-dataset foreign keys are deliberately
+not enforced locally because datasets can be refreshed independently; the
+refresh service validates references before committing a replacement snapshot.
+
 #### `local_user_cards`
 
-Durable replacement for the card portion of `LocalWorkspace`.
+Durable replacement for the card portion of `LocalWorkspace`, partitioned by
+the owning local profile.
 
 | Column | Type | Constraints / meaning |
 |--------|------|-----------------------|
 | `id` | TEXT | PK, client UUID |
-| `workspace_id` | TEXT | FK → `local_workspaces.id` ON DELETE CASCADE |
+| `profile_id` | TEXT | FK → `local_profiles.id` ON DELETE CASCADE |
 | `credit_card_id` | TEXT nullable | Catalog product ID when selected |
 | `bank_id` | TEXT nullable | Catalog bank ID when known |
 | `bank_name_snapshot` | TEXT | Required for offline display and custom `Other` bank |
@@ -284,10 +294,10 @@ user's card unreadable. IDs plus display snapshots provide a stable bridge.
 
 Indexes:
 
-- `(workspace_id, deleted_at_ms)` for active card lists;
-- `(workspace_id, is_default)`;
+- `(profile_id, deleted_at_ms)` for active card lists;
+- `(profile_id, is_default)`;
 - partial unique index allowing at most one non-deleted default card per
-  workspace.
+  profile.
 
 #### `sync_outbox`
 
@@ -296,7 +306,7 @@ Stores user-generated mutations that have not been acknowledged by backend.
 | Column | Type | Constraints / meaning |
 |--------|------|-----------------------|
 | `id` | TEXT | PK, mutation UUID |
-| `workspace_id` | TEXT | FK → workspace ON DELETE CASCADE |
+| `profile_id` | TEXT | FK → local profile ON DELETE CASCADE |
 | `entity_type` | TEXT | `profile`, `user_card`, later `transaction` |
 | `entity_id` | TEXT | Client business ID |
 | `operation` | TEXT | `create`, `update`, or `delete` |
@@ -310,7 +320,7 @@ Stores user-generated mutations that have not been acknowledged by backend.
 | `created_at_ms` | INTEGER | FIFO ordering |
 
 Indexes: unique `idempotency_key` and
-`(workspace_id, next_attempt_at_ms, created_at_ms)`.
+`(profile_id, next_attempt_at_ms, created_at_ms)`.
 
 For repeated unsent updates to the same entity, the repository may compact
 operations in the same transaction, but it must preserve these semantics:
@@ -326,13 +336,13 @@ One row per sync scope or reference dataset.
 
 | Column | Type | Constraints / meaning |
 |--------|------|-----------------------|
-| `scope` | TEXT | PK, e.g. `reference:banks`, `user:<workspace>:cards` |
+| `scope` | TEXT | PK, e.g. `reference:banks`, `profile:<id>:user_data` |
 | `cursor` | TEXT nullable | Opaque server pull cursor |
-| `dataset_version` | TEXT nullable | Reference snapshot version |
+| `dataset_version` | INTEGER nullable | Cloud reference snapshot version |
 | `etag` | TEXT nullable | HTTP ETag |
 | `last_attempt_at_ms` | INTEGER nullable | Diagnostics |
-| `last_success_at_ms` | INTEGER nullable | TTL calculation |
-| `next_check_at_ms` | INTEGER nullable | Avoid request on every rebuild/resume |
+| `last_success_at_ms` | INTEGER nullable | Diagnostics shown for manual sync |
+| `next_check_at_ms` | INTEGER nullable | Optional retry/backoff boundary; does not schedule automatic sync |
 | `last_error_code` | TEXT nullable | Safe diagnostic code |
 
 ### 6.2 Schema v2 — transactions and reward intelligence
@@ -342,20 +352,16 @@ It adds:
 
 | Table | Important fields | Notes |
 |-------|------------------|-------|
-| `merchant_category_codes_cache` | `code`, `description`, `category`, `valid_payment`, `is_active`, dataset metadata | Full reference snapshot |
-| `reward_rules_cache` | server ID, card ID, rates/caps as exact strings or documented scaled integers, effective dates, active flag | Server-owned |
-| `reward_rule_mccs_cache` | rule ID, MCC code, match type | Composite uniqueness matching server |
 | `local_merchants` | client ID, optional server ID, raw/normalized name, location, country, sync columns | User-generated/local lookup |
-| `local_transactions` | client ID, workspace/card/merchant IDs, timestamp, `amount_minor`, currency, MCC/category, estimate, source, note, sync columns | User-owned; FK to local card |
+| `local_transactions` | client ID, profile/card/merchant IDs, timestamp, `amount_minor`, currency, MCC/category, estimate, source, note, sync columns | User-owned; FK to local card |
 | `local_cashback_calculations` | transaction ID, optional server rule ID, amount minor, scaled rate/confidence, explanation, status | Local estimate, server may replace |
 | `sync_conflicts` | mutation ID, entity identity, local/server JSON, server version, detected/resolved timestamps | Never silently discard a conflict |
 
 Transaction indexes must at minimum cover:
 
-- `(workspace_id, transaction_at_ms DESC)`;
+- `(profile_id, transaction_at_ms DESC)`;
 - `(user_card_id, transaction_at_ms DESC)`;
-- `(workspace_id, sync_status)`;
-- unique `(workspace_id, id)`.
+- `(profile_id, sync_status)`.
 
 ## 7. Domain-to-storage mapping
 
@@ -363,17 +369,17 @@ The current domain model needs small changes during implementation:
 
 | Current domain value | SQLite mapping | Required code change |
 |----------------------|----------------|----------------------|
-| `LocalWorkspace.localId` | `local_workspaces.id` | Generate UUID v4 instead of timestamp-prefixed ID |
-| `LocalWorkspace.accessMode` | `local_workspaces.access_mode` | Enum ↔ stable lowercase string converter |
-| `LocalProfile.displayName` | `local_profiles.display_name` | No UI change |
+| `LocalWorkspace.localId` | `local_profiles.id` | Treat current aggregate ID as local profile ID; generate UUID v4 |
+| `LocalWorkspace.accessMode` | `local_profiles.access_mode` | Enum ↔ stable lowercase string converter |
+| `LocalProfile.displayName` | `local_profiles.display_name` | Flatten current nested value into the profile row |
 | `LocalUserCard.bankName` | `bank_name_snapshot` | Add optional `bankId` and `creditCardId` later |
 | `LocalUserCard.nickname` | `nickname` | Add a client `id` before persistence |
 | `LocalUserCard.billingCycleDay` | `billing_cycle_day` | Preserve 1–31 validation in domain and DB |
 
 `InitialSetupRepository` can keep its `save/load` contract for the first slice,
-but the implementation changes from memory to Drift. `save(workspace)` must
-write workspace, profile, first card, and any required outbox records in one
-database transaction.
+but the implementation changes from memory to Drift. `save(workspace)` maps the
+current aggregate into one profile row plus its first card and any required
+outbox records in one database transaction.
 
 After card management grows beyond initial setup, introduce card-specific
 repository methods instead of growing `InitialSetupRepository` into a generic
@@ -386,13 +392,13 @@ Proposed startup decision sequence:
 ```text
 open SQLite
   -> read Supabase current session
-  -> find workspace linked to auth_user_id, if session exists
-       -> found + setup complete: activate workspace -> Home
+  -> find local profile linked to auth_user_id, if session exists
+       -> found + setup complete: set active_profile_id -> Home
        -> found + setup incomplete: activate -> Setup
-       -> not found: create/link authenticated workspace -> bootstrap/pull -> Setup or Home
+       -> not found: create authenticated local profile -> Setup or Home
   -> no Supabase session
-       -> active guest workspace + setup complete: Home as guest
-       -> active guest workspace + setup incomplete: Setup
+       -> selected guest profile + setup complete: Home as guest
+       -> selected guest profile + setup incomplete: Setup
        -> otherwise: Sign in / Continue as guest
 ```
 
@@ -401,11 +407,11 @@ send a previously configured user through profile setup again.
 
 Account isolation requirements:
 
-- Every user-data query requires `workspace_id` explicitly.
-- Switching Supabase accounts switches the active workspace; it never rewrites
-  another workspace's rows.
+- Every user-data query requires `profile_id` explicitly.
+- Switching Supabase accounts changes `app_settings.active_profile_id`; it never
+  rewrites another profile's rows.
 - Logout clears the Supabase session and deactivates/locks the authenticated
-  workspace from UI access. It does not silently delete financial data.
+  profile from UI access. It does not silently delete financial data.
 - Provide an explicit “Remove local data from this device” action before
   production release.
 
@@ -417,7 +423,11 @@ deleted a row”. `updated_at` polling alone also misses deletions.
 
 ### Required backend contract
 
-Proposed manifest endpoint:
+Cloud migration
+`1785715200000-create-reference-dataset-versions.ts` creates the
+`reference_dataset_versions` registry and statement-level triggers for
+memberships, banks, credit cards, MCCs, and reward rules. The API exposing that
+registry is still proposed:
 
 ```http
 GET /api/v1/reference-data/manifest
@@ -429,13 +439,13 @@ GET /api/v1/reference-data/manifest
   "responseData": {
     "datasets": {
       "banks": {
-        "version": "sha256:...",
-        "etag": "\"banks-sha256-...\"",
+        "version": 4,
+        "etag": "\"banks-v4\"",
         "updatedAt": "2026-08-03T00:00:00.000Z"
       },
       "creditCards": {
-        "version": "sha256:...",
-        "etag": "\"credit-cards-sha256-...\"",
+        "version": 2,
+        "etag": "\"credit-cards-v2\"",
         "updatedAt": "2026-08-03T00:00:00.000Z"
       }
     }
@@ -447,26 +457,33 @@ Dataset endpoints should accept `If-None-Match` and return `304 Not Modified`
 when possible. A version must represent the complete active snapshot, including
 deletions.
 
-### Mobile refresh algorithm
+### Manual `Sync Now` refresh algorithm
 
 1. Read cached rows immediately.
-2. If cache is empty, fetch the full dataset before the selection screen needs
-   it; show retry/error if no stale cache exists.
-3. If cache exists and `next_check_at_ms` is in the future, use it without a
-   network call.
-4. When TTL expires (initial recommendation: 24 hours), fetch the manifest or
-   revalidate with ETag.
-5. If unchanged/304, only update `sync_state` timestamps.
-6. If changed, fetch the complete snapshot and in one SQLite transaction:
+2. Do not refresh common data automatically on screen rebuild, app resume, or
+   account switch in the initial implementation.
+3. When the user taps `Sync Now`, fetch the manifest and compare every cloud
+   integer version with `sync_state.dataset_version`.
+4. If unchanged/304, only update `sync_state` timestamps.
+5. If changed, fetch the complete snapshot and in one SQLite transaction:
    delete/replace cached rows in FK-safe order, insert the new rows, and update
    `dataset_version`/ETag.
-7. If refresh fails, retain stale cache, record a safe error code, and retry
-   with exponential backoff plus jitter.
+6. If refresh fails, retain stale cache and record a safe error code. A retry
+   may run inside the current user-initiated sync or on the next `Sync Now`.
+
+For an empty cache, the UI may offer `Sync Now` as its primary action. If the
+product later chooses an automatic first fetch, document that as a separate
+behavior change rather than hiding it inside repository construction.
 
 Do not clear a usable cache before a replacement response has been fully parsed
 and validated.
 
 ## 10. User-data sync and guest claim
+
+`Sync Now` is one explicit orchestration command. It first refreshes changed
+common datasets, then (for an authenticated active profile) pushes pending
+outbox operations and pulls cloud changes. A guest can refresh public common
+data, but user-owned data stays local until that guest is linked to an account.
 
 ### Local write rule
 
@@ -484,7 +501,7 @@ committed; it does not mean cloud sync already succeeded.
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /api/v1/auth/bootstrap` | Verify Supabase token and create/load backend user |
-| `POST /api/v1/sync/claim-guest` | Associate a guest workspace and upload its initial snapshot idempotently |
+| `POST /api/v1/sync/claim-guest` | Associate a guest local profile and upload its initial snapshot idempotently |
 | `POST /api/v1/sync/push` | Accept ordered mutation batches |
 | `GET /api/v1/sync/pull?cursor=...` | Return server changes and next opaque cursor |
 
@@ -493,7 +510,7 @@ Example push operation:
 ```json
 {
   "deviceId": "uuid",
-  "workspaceId": "uuid",
+  "localProfileId": "uuid",
   "operations": [
     {
       "idempotencyKey": "uuid",
@@ -518,12 +535,13 @@ result instead of creating duplicates.
 ### Sync order
 
 1. Bootstrap authenticated backend user.
-2. Claim/link guest workspace if applicable.
-3. Push profile.
-4. Push cards.
-5. Push merchants and transactions when schema v2 exists.
-6. Pull server changes using the last cursor.
-7. Apply the response and remove acknowledged outbox records in one local
+2. Refresh only common datasets whose registry version changed.
+3. Claim/link guest profile if applicable.
+4. Push profile.
+5. Push cards.
+6. Push merchants and transactions when schema v2 exists.
+7. Pull server changes using the last cursor.
+8. Apply the response and remove acknowledged outbox records in one local
    transaction.
 
 ### Retry policy
@@ -535,8 +553,9 @@ result instead of creating duplicates.
   cause changes.
 - Refresh Supabase session on `401` through the auth layer, then retry at most
   once to avoid loops.
-- Trigger foreground sync after local writes, app resume, sign-in, and network
-  reconnection. Background scheduling is a later optimization.
+- The initial product triggers sync only from `Sync Now`. Local writes merely
+  update SQLite/outbox state. Automatic resume/network/background triggers are
+  a later product decision.
 
 ## 11. Conflict policy
 
@@ -570,12 +589,24 @@ documented server-wins decision.
 - Redact profile, payload JSON, tokens, and transaction notes from logs.
 - Database files, WAL/SHM files, exported debug copies, and local `.env` files
   must not be committed.
-- Logout hides/deactivates authenticated workspace data. Destructive removal is
+- Logout hides/deactivates authenticated profile data. Destructive removal is
   an explicit user action with confirmation.
 - Database corruption recovery must first preserve/export diagnostic metadata
   when safe; never default to deleting unsynced guest data.
 
 ## 13. Drift setup and migration workflow
+
+The reviewable physical SQL drafts are checked in at:
+
+```text
+database/sqlite/migrations/001_initial_local_schema.sql
+database/sqlite/migrations/002_transactions_and_conflicts.sql
+```
+
+They have been executed together against SQLite for syntax and foreign-key
+validation. When Drift is implemented, its Dart table definitions and generated
+migration steps must reproduce these constraints; the app should not run both
+raw SQL creation scripts and Drift `createAll()` for the same schema version.
 
 Packages proposed for the implementation PR:
 
@@ -621,11 +652,12 @@ Migration rules:
 ### Database and DAO tests
 
 - Create v1 schema in memory and enable foreign keys.
-- Save/load a guest workspace across database reopen.
+- Save/load a guest profile across database reopen.
 - Save profile + first card atomically.
 - Reject billing-cycle days outside 1–31 at database/domain boundaries.
-- Enforce one active workspace and one default card per workspace.
-- Verify every user query is scoped by workspace.
+- Enforce one live guest profile, one selected `active_profile_id`, and one
+  default card per profile.
+- Verify every user query is scoped by profile.
 - Replace a reference snapshot atomically and remove server-deleted cache rows.
 - Preserve `bank_name_snapshot` when a bank disappears from cache.
 - Commit entity mutation and outbox item together; roll both back on error.
@@ -640,20 +672,20 @@ Migration rules:
 
 ### Repository/controller/widget tests
 
-- Restored guest workspace routes to Home instead of Sign in/setup.
+- Restored guest profile routes to Home instead of Sign in/setup.
 - Restored authenticated session plus completed local profile routes to Home.
-- Different Supabase accounts never read each other's workspace data.
+- Different Supabase accounts never read each other's profile data.
 - Empty cache + offline shows retry; stale cache + offline remains usable.
-- Logout hides authenticated workspace and does not delete it.
+- Logout hides the authenticated profile and does not delete it.
 
 ## 15. Implementation slices
 
 ### Slice 1 — SQLite foundation and initial setup persistence
 
 - Add Drift dependencies, database connection, schema v1, and migration tests.
-- Generate UUIDs for workspace/card IDs.
+- Generate UUIDs for profile/card IDs.
 - Replace `InitialSetupMemoryDataSource` with a Drift local data source.
-- Restore workspace during startup and route correctly.
+- Restore `active_profile_id` during startup and route correctly.
 - Keep sync fields/outbox schema present, but no network sync yet.
 
 **Done when:** guest profile and first card survive a full app restart and all
@@ -664,11 +696,12 @@ existing initial-setup tests pass against SQLite.
 - Add mobile backend API client if not already available.
 - Add bank local/remote data sources and repository.
 - Replace hard-coded bank list in `CardSetupScreen` with cached data.
-- Initially fetch when empty; implement stale-cache behavior.
+- Implement empty/stale-cache UI and the manual `Sync Now` action.
 - Add backend manifest/ETag support before claiming change detection is done.
 
 **Done when:** bank selection loads immediately from SQLite after the first
-successful fetch and refreshes only when dataset version changes or TTL expires.
+successful sync and `Sync Now` downloads it again only when the cloud dataset
+version changes.
 
 ### Slice 3 — User-card local repository
 
@@ -692,16 +725,16 @@ successful fetch and refreshes only when dataset version changes or TTL expires.
 ### Slice 6 — Transactions and reward caches
 
 - Ship schema v2 through a tested migration.
-- Add MCC/reward snapshots, local transactions, cashback estimates, and their
-  sync operations.
+- Add local merchants, transactions, cashback estimates, conflicts, and their
+  sync operations. Common MCC/reward snapshots already belong to schema v1.
 
 ## 16. Review checklist and blockers
 
 Approve or change these before Slice 1:
 
 - [ ] Confirm Drift as the mobile SQLite abstraction.
-- [ ] Confirm one database with strict `workspace_id` scoping instead of one
-      database file per account.
+- [x] Confirm one database with multiple `local_profiles`, strict `profile_id`
+      scoping, and one `app_settings.active_profile_id`.
 - [ ] Confirm client UUID v4 IDs.
 - [ ] Confirm UTC epoch-millisecond timestamps.
 - [ ] Confirm integer minor units for transaction money.
@@ -711,7 +744,8 @@ Approve or change these before Slice 1:
 
 Backend blockers before reliable cache/sync:
 
-- [ ] Add dataset version or ETag contract for banks and later reference data.
+- [x] Add the cloud dataset-version registry and triggers; manifest/ETag API is
+      still pending.
 - [ ] Expose server `updatedAt` consistently in DTOs where needed.
 - [ ] Decide annual-fee currency representation.
 - [ ] Finalize Supabase identity mapping.

@@ -465,8 +465,8 @@ Thiết kế chi tiết đã được tách sang
 [`mobile-sqlite.md`](./mobile-sqlite.md). Tài liệu đó là nguồn review cho:
 
 - lựa chọn Drift và package/folder ownership;
-- schema v1 cho workspace, profile, bank/card cache, user card, outbox và sync state;
-- schema v2 cho transaction, MCC, reward rule và conflict records;
+- schema v1 cho multiple local profiles, active-profile state, common cache, user card, outbox và sync state;
+- schema v2 cho merchant, transaction, cashback và conflict records;
 - startup routing, account isolation và guest-to-account claim;
 - dataset version/ETag refresh, push/pull sync và optimistic concurrency;
 - migration workflow, required tests và implementation slices.
@@ -475,8 +475,8 @@ Thiết kế chi tiết đã được tách sang
 
 | Local table | Purpose | Sync behavior |
 |-------------|---------|---------------|
-| `local_workspaces` | Ranh giới guest/authenticated trên thiết bị | Link tới Supabase identity khi có account |
-| `local_profiles` | Profile của workspace | Push khi guest liên kết account |
+| `local_profiles` | Ranh giới dữ liệu guest/authenticated; nhiều account có thể tồn tại local | Link profile guest tới Supabase identity khi có account |
+| `app_settings` | Installation ID và `active_profile_id` singleton | Local only |
 | `local_user_cards` | Thẻ user tạo trên thiết bị | Push/upsert theo client-generated UUID |
 | `local_transactions` | Giao dịch manual/OCR | Outbox push theo client-generated UUID |
 | `local_cashback_calculations` | Kết quả dự tính để dashboard offline | Server có quyền tính lại và overwrite |
@@ -496,7 +496,7 @@ money dùng integer minor units. Chi tiết column/constraint/index nằm trong
 
 1. Review/approve `mobile-sqlite.md`; thêm Drift foundation và migration v1.
 2. Thay `InitialSetupMemoryDataSource` bằng Drift adapter cho
-   workspace/profile/first card và restore startup routing.
+   profile/first card và restore `active_profile_id` khi startup.
 3. Chuyển card management và transaction management sang local repositories;
    UI luôn đọc SQLite dù online hay offline.
 4. Dùng `sync_outbox`; mỗi local mutation và outbox item được ghi trong cùng
@@ -504,15 +504,15 @@ money dùng integer minor units. Chi tiết column/constraint/index nằm trong
 5. Sau Supabase sign-in, gọi backend bootstrap rồi upload guest profile/cards
    theo batch idempotent.
 6. Thêm transaction upload, pull cursor, tombstone delete và conflict handling.
-7. Bật retry khi app resume/network reconnect; foreground UI luôn
-   hiển thị sync status nhưng không chặn local writes.
+7. MVP chỉ chạy orchestration khi user bấm `Sync Now`; automatic
+   resume/network/background sync là quyết định sản phẩm về sau.
 
-Reference-data cache (`banks`, `credit_cards`, MCC, reward rules) should use a
-server-owned dataset version or HTTP ETag. Mobile stores the received version
-in `sync_metadata`, checks it on app start/resume after a TTL, and replaces the
-small local snapshot inside one SQLite transaction only when the version
-changes. This also handles server-side deletion without relying only on
-`updated_at` timestamps.
+Reference-data cache (`memberships`, `banks`, `credit_cards`, MCC, reward rules)
+uses the server-owned integer version in `reference_dataset_versions`; an API
+may additionally expose an ETag derived from that version. Mobile stores the
+received value in `sync_state`. When the user taps `Sync Now`, it fetches and
+replaces only changed snapshots inside SQLite transactions. This detects
+server-side deletion without relying only on `updated_at` timestamps.
 
 ### 3.3 Conflict policy
 
@@ -534,6 +534,7 @@ changes. This also handles server-side deletion without relying only on
 |-----------------|--------|
 | `1784410000000-create-initial-schema.ts` | Tạo toàn bộ 14 bảng PostgreSQL theo thứ tự dependency FK và các indexes/constraints ban đầu. |
 | `1784783921000-seed-reference-data.ts` | Seed banks và MCC reference data đúng một lần; có `down()` chỉ xoá các reference row thuộc migration. |
+| `1785715200000-create-reference-dataset-versions.ts` | Tạo registry version cho common datasets và statement-level triggers tự tăng version khi memberships, banks, credit cards, MCC hoặc reward rules thay đổi. |
 
 Chạy migration qua:
 ```bash

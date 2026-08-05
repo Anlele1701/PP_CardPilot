@@ -5,16 +5,31 @@ import '../../features/auth/presentation/views/sign_up_screen.dart';
 import '../../features/home/presentation/views/home_screen.dart';
 import '../../features/initial_setup/presentation/views/card_setup_screen.dart';
 import '../../features/initial_setup/presentation/views/profile_setup_screen.dart';
+import '../../features/startup/presentation/views/startup_screen.dart';
 import '../presentation/views/error_screen.dart';
 import 'app_routes.dart';
 
 class AppRouter {
-  static const initialRoute = AppRoutes.signIn;
+  static const initialRoute = AppRoutes.startup;
+  static const _notFoundArguments = ErrorScreenArguments(
+    title: 'No Route was found',
+    description: 'Sorry, no route was found!',
+    actionLabel: 'Back to sign in',
+    actionRoute: AppRoutes.signIn,
+  );
 
   const AppRouter();
 
   Route<void> onGenerateRoute(RouteSettings settings) {
     return switch (settings.name) {
+      AppRoutes.startup => MaterialPageRoute(
+        builder: (_) => const StartupScreen(),
+        settings: settings,
+      ),
+      '/' => MaterialPageRoute(
+        builder: (_) => const SignInScreen(),
+        settings: settings,
+      ),
       AppRoutes.signIn => MaterialPageRoute(
         builder: (_) => const SignInScreen(),
         settings: settings,
@@ -41,7 +56,7 @@ class AppRouter {
         settings: settings,
       ),
       _ => MaterialPageRoute(
-        builder: (_) => const SignInScreen(),
+        builder: (_) => ErrorScreen.fromArguments(_notFoundArguments),
         settings: settings,
       ),
     };

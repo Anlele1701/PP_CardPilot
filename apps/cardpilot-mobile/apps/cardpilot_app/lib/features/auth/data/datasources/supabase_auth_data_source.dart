@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/social_auth_provider.dart';
+import '../../domain/entities/auth_user_identity.dart';
 
 class SupabaseAuthDataSource {
   const SupabaseAuthDataSource({
@@ -11,6 +12,20 @@ class SupabaseAuthDataSource {
 
   final SupabaseClient? client;
   final String redirectUrl;
+
+  AuthUserIdentity? get currentUserIdentity {
+    final user = client?.auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+
+    final displayName = user.userMetadata?['full_name'];
+    return AuthUserIdentity(
+      id: user.id,
+      email: user.email,
+      displayName: displayName is String ? displayName : null,
+    );
+  }
 
   Future<AuthResponse> signInWithEmail({
     required String email,

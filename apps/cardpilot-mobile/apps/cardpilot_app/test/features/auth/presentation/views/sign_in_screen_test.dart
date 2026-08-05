@@ -4,6 +4,9 @@ import 'package:cardpilot_app/features/auth/domain/entities/social_auth_provider
 import 'package:cardpilot_app/features/auth/presentation/views/sign_in_screen.dart';
 import 'package:cardpilot_app/features/auth/presentation/views/sign_up_screen.dart';
 import 'package:cardpilot_app/features/initial_setup/presentation/views/profile_setup_screen.dart';
+import 'package:cardpilot_app/features/initial_setup/domain/entities/local_workspace.dart';
+import 'package:cardpilot_app/features/initial_setup/domain/repositories/initial_setup_repository.dart';
+import 'package:cardpilot_app/features/initial_setup/initial_setup_providers.dart';
 import 'package:cardpilot_ui/cardpilot_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,7 +94,7 @@ void main() {
     await tester.tap(find.byKey(const Key('continue-as-guest-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Set up your profile'), findsOneWidget);
+    expect(find.text('What should we call you?'), findsOneWidget);
     expect(
       find.text('We will save this profile on your device.'),
       findsOneWidget,
@@ -102,7 +105,12 @@ void main() {
 Future<void> _pumpAuthFlow(WidgetTester tester, FakeAuthRepository repository) {
   return tester.pumpWidget(
     ProviderScope(
-      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        initialSetupRepositoryProvider.overrideWithValue(
+          _EmptyInitialSetupRepository(),
+        ),
+      ],
       child: MaterialApp(
         theme: AppTheme.light,
         initialRoute: AppRoutes.signIn,
@@ -114,6 +122,17 @@ Future<void> _pumpAuthFlow(WidgetTester tester, FakeAuthRepository repository) {
       ),
     ),
   );
+}
+
+class _EmptyInitialSetupRepository implements InitialSetupRepository {
+  @override
+  Future<LocalWorkspace?> loadActiveGuest() async => null;
+
+  @override
+  Future<LocalWorkspace?> loadForAuthUser(String authUserId) async => null;
+
+  @override
+  Future<void> save(LocalWorkspace workspace) async {}
 }
 
 String _fieldText(WidgetTester tester, Key key) {

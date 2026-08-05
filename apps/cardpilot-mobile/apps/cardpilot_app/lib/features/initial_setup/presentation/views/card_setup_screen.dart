@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/notifications/app_toast.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/constants/validation_messages.dart';
+import '../../../banks/bank_providers.dart';
+import '../../../banks/domain/entities/bank.dart';
 import '../../initial_setup_providers.dart';
 
 class CardSetupScreen extends ConsumerStatefulWidget {
@@ -16,12 +18,10 @@ class CardSetupScreen extends ConsumerStatefulWidget {
 }
 
 class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
-  static const _banks = ['ACB', 'Techcombank', 'VPBank', 'MB', 'Other'];
-
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
   final _billingDayController = TextEditingController(text: '15');
-  String _selectedBank = _banks.first;
+  Bank? _selectedBank;
 
   @override
   void dispose() {
@@ -35,10 +35,16 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
       return;
     }
 
+    final selectedBank = _selectedBank;
+    if (selectedBank == null) {
+      return;
+    }
+
     final completed = await ref
         .read(initialSetupControllerProvider.notifier)
         .complete(
-          bankName: _selectedBank,
+          bankId: selectedBank.id,
+          bankName: selectedBank.displayName,
           cardNickname: _nicknameController.text,
           billingCycleDay: int.parse(_billingDayController.text),
         );
@@ -60,13 +66,95 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
     AppToast.showError(context, message);
   }
 
+  Future<void> _chooseBank(FormFieldState<Bank> field) async {
+    final cachedBanks = ref
+        .read(banksProvider)
+        .when(
+          data: (banks) => banks,
+          error: (_, _) => const <Bank>[],
+          loading: () => const <Bank>[],
+        );
+    final banks = cachedBanks.isNotEmpty
+        ? cachedBanks
+        : await ref.read(bankLoadControllerProvider.notifier).ensureLoaded();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (banks == null || banks.isEmpty) {
+      final message =
+          ref.read(bankLoadControllerProvider).errorMessage ??
+          'Could not load banks. Please try again.';
+      AppToast.showError(context, message);
+      return;
+    }
+
+    final selectedBank = await showModalBottomSheet<Bank>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: FractionallySizedBox(
+            heightFactor: 0.72,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    ui.AppSpacing.lg,
+                    0,
+                    ui.AppSpacing.lg,
+                    ui.AppSpacing.md,
+                  ),
+                  child: Text(
+                    'Choose your bank',
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: banks.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final bank = banks[index];
+                      final showsFullName = bank.displayName != bank.name;
+                      return ListTile(
+                        key: Key('bank-option-${bank.id}'),
+                        title: Text(bank.displayName),
+                        subtitle: showsFullName ? Text(bank.name) : null,
+                        trailing: bank.id == _selectedBank?.id
+                            ? const Icon(Icons.check_rounded)
+                            : null,
+                        onTap: () => Navigator.pop(context, bank),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selectedBank != null && mounted) {
+      setState(() => _selectedBank = selectedBank);
+      field.didChange(selectedBank);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(initialSetupControllerProvider);
+    ref.watch(banksProvider);
+    final bankLoadState = ref.watch(bankLoadControllerProvider);
     final isSaving = state.status == InitialSetupStatus.saving;
+    final isLoadingBanks = bankLoadState.status == BankLoadStatus.loading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add your first card')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -88,27 +176,46 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     const SizedBox(height: ui.AppSpacing.xl),
-                    DropdownButtonFormField<String>(
+                    FormField<Bank>(
                       initialValue: _selectedBank,
-                      decoration: const InputDecoration(
-                        labelText: 'Bank',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _banks
-                          .map(
-                            (bank) => DropdownMenuItem(
-                              value: bank,
-                              child: Text(bank),
+                      validator: (bank) =>
+                          bank == null ? ValidationMessages.bankRequired : null,
+                      builder: (field) {
+                        final enabled = !isSaving && !isLoadingBanks;
+                        return Semantics(
+                          button: true,
+                          child: InkWell(
+                            key: const Key('bank-picker-field'),
+                            borderRadius: BorderRadius.circular(4),
+                            onTap: enabled ? () => _chooseBank(field) : null,
+                            child: InputDecorator(
+                              // The placeholder below is visible content, so the
+                              // decorator must keep its label floated.
+                              isEmpty: false,
+                              decoration: InputDecoration(
+                                labelText: 'Bank',
+                                errorText: field.errorText,
+                                enabled: enabled,
+                                border: const OutlineInputBorder(),
+                                suffixIcon: isLoadingBanks
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(14),
+                                        child: SizedBox.square(
+                                          dimension: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      )
+                                    : const Icon(Icons.arrow_drop_down),
+                              ),
+                              child: Text(
+                                _selectedBank?.displayName ?? 'Select a bank',
+                              ),
                             ),
-                          )
-                          .toList(),
-                      onChanged: isSaving
-                          ? null
-                          : (value) {
-                              if (value != null) {
-                                setState(() => _selectedBank = value);
-                              }
-                            },
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: ui.AppSpacing.md),
                     TextFormField(

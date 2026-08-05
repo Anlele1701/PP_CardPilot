@@ -48,7 +48,7 @@
 
 | Component | Phase 1 | Phase 2 |
 |-----------|---------|---------|
-| Mobile | Flutter + Riverpod; proposed Drift schema v1 for workspace/setup/cards/reference cache | + Drift schema v2 transaction/reward tables, + OCR SDK, + push notification SDK (Android) |
+| Mobile | Flutter + Riverpod; proposed Drift schema v1 for profiles/setup/cards/common cache | + Drift schema v2 transaction/conflict tables, + OCR SDK, + push notification SDK (Android) |
 | Backend | NestJS + Fastify + TypeORM + PostgreSQL (modular monolith, bounded contexts) | — (giữ nguyên kiến trúc, thêm bounded context mới) |
 | Auth | Supabase Auth trên mobile; backend token verification/profile bootstrap còn pending | — |
 | Database | PostgreSQL 17 + proposed SQLite v1 local-first foundation | + SQLite v2 transaction/reward cache migration |
@@ -77,7 +77,7 @@
 | reward_rules | New | — | 15 |
 | reward_rule_mccs | New | — | 3 |
 | cashback_calculations | New | — | 8 |
-| **SQLite: workspace/profile/cards/reference/outbox** | Proposed v1 | Evolve through tested migrations | See `mobile-sqlite.md` |
+| **SQLite: profiles/app settings/cards/common cache/outbox** | Proposed v1 | Evolve through tested migrations | See `mobile-sqlite.md` |
 | **SQLite: transactions/MCC/rewards/conflicts** | — | Proposed v2 | See `mobile-sqlite.md` |
 
 **Tổng tables tích lũy:**

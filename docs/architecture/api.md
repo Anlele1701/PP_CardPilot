@@ -116,7 +116,9 @@ detection remains pending.
 Returns server-owned versions and ETags for complete reference snapshots such
 as banks, credit cards, MCCs, and reward rules. Dataset endpoints should accept
 `If-None-Match` and may return `304 Not Modified`. This contract is required for
-SQLite cache invalidation; see `mobile-sqlite.md`.
+SQLite cache invalidation. The database registry/triggers exist through
+`1785715200000-create-reference-dataset-versions.ts`; this HTTP endpoint and
+ETag handling are not implemented yet. See `mobile-sqlite.md`.
 
 ---
 
@@ -144,7 +146,7 @@ Authentication endpoints do not own business-data synchronization.
 
 ### POST /api/v1/sync/claim-guest (Proposed)
 
-Links an authenticated backend user to a client guest workspace and accepts an
+Links an authenticated backend user to a client guest profile and accepts an
 idempotent initial profile/card snapshot.
 
 ### POST /api/v1/sync/push (Proposed)
