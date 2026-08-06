@@ -15,13 +15,20 @@ The current app starts at Sign in and supports:
 - local guest entry from Sign in or the access-choice screen;
 - a shared initial setup flow for guest and authenticated users: display name,
   first card, then Home;
-- a Home shell with Dashboard, Cards, Transactions, quick Add, and Profile;
+- a Home shell with Dashboard, Cards, a centered quick Add action,
+  Transactions, and Profile on a floating glass navigation bar;
 - Supabase sign-out from Profile;
 - reusable validation copy under `core/constants` and app notifications through
   `toastification` under `core/notifications`.
+- Drift-backed SQLite schema v1 for local profiles, installation settings,
+  reference caches, user cards, outbox, and sync state;
+- durable guest/authenticated initial setup and startup restoration based on
+  the active guest or the current Supabase auth user ID;
+- lazy bank bootstrap from `GET /api/v1/banks`: Card Setup reads SQLite first
+  and only downloads the catalog when `banks_cache` is empty.
 
-Initial setup data is still stored by an in-memory adapter. It does not survive
-an app-process restart. SQLite, backend profile persistence, user-data sync,
+Initial setup profile/card data now survives app-process restarts in
+`cardpilot.sqlite`. Backend profile persistence, user-data sync,
 forgot-password, and real Cards/Transactions/Dashboard APIs remain planned.
 
 ## Workspace responsibilities
@@ -43,6 +50,7 @@ Owns reusable visual primitives:
 
 - `CardPilotLogo`;
 - `AppPrimaryButton`;
+- `AppFloatingNavigationBar` and `AppNavigationItem`;
 - `SocialAuthButton`;
 - colors, spacing, and light/dark themes.
 
@@ -53,8 +61,9 @@ or preview-only mock data.
 ### `cardpilot_widgetbook`
 
 Owns isolated previews for public `cardpilot_ui` components. Current use cases
-cover enabled/disabled/loading states for `AppPrimaryButton` and
-enabled/loading states for `SocialAuthButton`.
+cover enabled/disabled/loading states for `AppPrimaryButton`, enabled/loading
+states for `SocialAuthButton`, and Home/Transactions selections for the
+floating navigation bar.
 
 ## Current folder structure
 
@@ -69,7 +78,10 @@ apps/cardpilot-mobile/
         core/
           config/
           constants/
+          database/
+            tables/
           errors/
+          network/
           notifications/
           result/
           routing/
@@ -80,8 +92,14 @@ apps/cardpilot-mobile/
             data/
             domain/
             presentation/
+          banks/
+            data/
+            domain/
           initial_setup/
             data/
+            domain/
+            presentation/
+          startup/
             domain/
             presentation/
           home/
@@ -139,8 +157,9 @@ presentation -> domain <- data
 
 | Folder | Current responsibility |
 |--------|------------------------|
-| `config/` | `AppConfig`, Supabase dart-defines, OAuth redirect URL |
+| `config/` | `AppConfig`, API/Supabase dart-defines, OAuth redirect URL |
 | `constants/` | Shared validation messages |
+| `network/` | Reusable Dio client, API envelope decoding, request metadata, and typed API errors |
 | `errors/` | App-level failure representation |
 | `notifications/` | `AppToast`, a thin app adapter over `toastification` |
 | `result/` | Typed success/failure result wrapper |
@@ -149,7 +168,7 @@ presentation -> domain <- data
 The current named routes are:
 
 ```text
-/access
+/startup
 /login
 /sign-up
 /setup/profile
@@ -158,8 +177,9 @@ The current named routes are:
 /error
 ```
 
-The initial route is `/login`. The removed onboarding carousel is no longer in
-the application route graph.
+The initial route is `/startup`. It resolves the current Supabase session and
+local profile before replacing itself with Home, setup, or Sign in. The removed
+onboarding carousel is no longer in the application route graph.
 
 ## Authentication flow
 
@@ -209,9 +229,8 @@ Both
 ```
 
 `InitialSetupController` is intentionally not auto-disposed so its workspace
-survives navigation into Home. `InitialSetupMemoryDataSource` is a temporary
-adapter. Replacing it with Drift must not move persistence concerns into the
-controller or screens.
+survives navigation into Home. Initial setup persistence stays in the Drift
+local datasource; persistence concerns do not move into controllers or screens.
 
 ## Notifications and validation
 
@@ -225,9 +244,9 @@ controller or screens.
 
 ## Local persistence and sync direction
 
-SQLite is planned but not installed. The reviewed implementation proposal uses
-Drift, one installation database, strict `profile_id` scoping, reference-data
-snapshots, and a transactional outbox:
+SQLite schema v1 is implemented with Drift. It uses one installation database,
+strict `profile_id` scoping, reference-data cache tables, and a transactional
+outbox schema:
 
 ```text
 UI -> repository -> SQLite
@@ -236,16 +255,27 @@ UI -> repository -> SQLite
              sync service <-> NestJS API
 ```
 
-The UI should read local repositories whether online or offline. A future sync
-service will refresh reference data and upload guest/user mutations. PostgreSQL
-and SQLite have separate migration lifecycles; the device schema maps shared
-business identifiers while also owning active-profile state, cache metadata, tombstones,
-and outbox state that do not belong in PostgreSQL.
+Initial setup now reads and writes through its Drift local datasource. Other
+product features must progressively move to local repositories so the UI reads
+SQLite whether online or offline. A future sync service will refresh reference
+data and upload guest/user mutations. PostgreSQL and SQLite have separate
+migration lifecycles; the device schema maps shared business identifiers while
+also owning active-profile state, cache metadata, tombstones, and outbox state
+that do not belong in PostgreSQL.
+
+Card Setup is the first cache-backed reference-data consumer. Its bank picker
+watches `banks_cache`; a populated cache opens immediately without a network
+request. An empty cache triggers one shared in-flight request to
+`GET /api/v1/banks`, validates the complete response, replaces the cache in one
+transaction, and then opens the picker. The bootstrap stores
+`dataset_version = 1` on bank rows but deliberately does not create a
+`sync_state` version. Dataset comparison and refresh of an existing cache are
+reserved for the future user-triggered `Sync Now` flow.
 
 The implementation source of truth for this planned area is
 [`docs/architecture/mobile-sqlite.md`](./architecture/mobile-sqlite.md). It
-defines schema v1/v2, folder ownership, startup routing, ETag refresh, guest
-claim, conflict handling, migration workflow, tests, and delivery slices.
+documents the implemented schema v1 and startup routing plus the planned schema
+v2, ETag refresh, guest claim, conflict handling, and delivery slices.
 
 ## Shared UI rules
 

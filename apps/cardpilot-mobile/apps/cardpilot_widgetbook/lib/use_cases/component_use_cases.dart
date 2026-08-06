@@ -70,6 +70,96 @@ Widget loadingSocialAuthButton(BuildContext context) {
   );
 }
 
+@widgetbook.UseCase(
+  name: 'Home selected',
+  type: ui.AppFloatingNavigationBar,
+  path: '[Components]',
+)
+Widget homeSelectedNavigationBar(BuildContext context) {
+  return const _NavigationBarPreview(initialIndex: 0);
+}
+
+@widgetbook.UseCase(
+  name: 'Transactions selected',
+  type: ui.AppFloatingNavigationBar,
+  path: '[Components]',
+)
+Widget transactionsSelectedNavigationBar(BuildContext context) {
+  return const _NavigationBarPreview(initialIndex: 3);
+}
+
+class _NavigationBarPreview extends StatefulWidget {
+  const _NavigationBarPreview({required this.initialIndex});
+
+  final int initialIndex;
+
+  @override
+  State<_NavigationBarPreview> createState() => _NavigationBarPreviewState();
+}
+
+class _NavigationBarPreviewState extends State<_NavigationBarPreview> {
+  late int _selectedIndex = widget.initialIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBody: true,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [ui.AppColors.skyTop, Colors.white],
+          ),
+        ),
+        child: Center(
+          child: Text(
+            'Selected: ${_items[_selectedIndex].label}',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+        ),
+      ),
+      bottomNavigationBar: ui.AppFloatingNavigationBar(
+        items: _items,
+        selectedIndex: _selectedIndex,
+        onSelected: (index) {
+          if (index != 2) {
+            setState(() => _selectedIndex = index);
+          }
+        },
+      ),
+    );
+  }
+}
+
+const _items = [
+  ui.AppNavigationItem(
+    icon: Icons.home_outlined,
+    selectedIcon: Icons.home_rounded,
+    label: 'Home',
+  ),
+  ui.AppNavigationItem(
+    icon: Icons.credit_card_outlined,
+    selectedIcon: Icons.credit_card_rounded,
+    label: 'Cards',
+  ),
+  ui.AppNavigationItem(
+    icon: Icons.add_rounded,
+    label: 'Add',
+    isPrimaryAction: true,
+  ),
+  ui.AppNavigationItem(
+    icon: Icons.receipt_long_outlined,
+    selectedIcon: Icons.receipt_long_rounded,
+    label: 'Transactions',
+  ),
+  ui.AppNavigationItem(
+    icon: Icons.person_outline_rounded,
+    selectedIcon: Icons.person_rounded,
+    label: 'Profile',
+  ),
+];
+
 Widget _componentCanvas(Widget child) {
   return Scaffold(
     body: Center(

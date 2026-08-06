@@ -1,20 +1,18 @@
 # Mobile SQLite Architecture Proposal
 
-**Status:** Proposed — review before implementation
+**Status:** Schema v1 implemented; sync and schema v2 remain planned
 
 **Owner:** Mobile, with backend API support
 
 **Target:** CardPilot native Flutter app (iOS and Android)
 
-**Date:** 2026-08-03
+**Last updated:** 2026-08-05
 
-This document defines the proposed local persistence and sync architecture for
-`apps/cardpilot-mobile/apps/cardpilot_app`. It is intentionally more detailed
-than the database overview so implementation can be split into reviewable
-changes without inventing schema or sync rules along the way.
-
-No SQLite dependency or generated database code exists yet. This proposal does
-not describe behavior that is already implemented.
+This document defines the local persistence and sync architecture for
+`apps/cardpilot-mobile/apps/cardpilot_app`. Drift schema v1, database lifecycle,
+durable initial setup, startup restoration, and the empty-cache bank bootstrap
+are implemented. Version-aware reference refresh, outbox processing, backend
+synchronization, conflicts, and schema v2 remain planned.
 
 ## 1. Goals and non-goals
 
@@ -41,7 +39,7 @@ not describe behavior that is already implemented.
   persistence; CardPilot SQLite owns profile and business data only.
 - Storing authoritative membership or cashback decisions on the device.
 
-## 2. Decisions proposed for approval
+## 2. Architecture decisions
 
 | Decision | Proposal | Reason |
 |----------|----------|--------|
@@ -95,21 +93,22 @@ Rules:
 - A remote response is never written directly into Riverpod screen state; it is
   normalized into SQLite first.
 
-## 4. Proposed location in the mobile app
+## 4. Mobile app location
 
 ```text
 apps/cardpilot-mobile/apps/cardpilot_app/
   build.yaml
   drift_schemas/
-    drift_schema_v1.json
+    app_database/
+      drift_schema_v1.json
   lib/
     core/
       database/
         app_database.dart
         app_database.g.dart              # generated and committed
-        app_database.steps.dart          # generated migration helper
+        app_database.steps.dart          # generated when schema v2 is added
         database_connection.dart
-        converters/
+        converters/                      # planned
           date_time_converter.dart
           sync_status_converter.dart
         tables/
@@ -117,7 +116,7 @@ apps/cardpilot-mobile/apps/cardpilot_app/
           reference_tables.dart
           user_data_tables.dart
           sync_tables.dart
-        daos/
+        daos/                            # planned as feature queries grow
           profile_dao.dart
           reference_data_dao.dart
           user_card_dao.dart
@@ -126,7 +125,7 @@ apps/cardpilot-mobile/apps/cardpilot_app/
       initial_setup/
         data/
           datasources/
-            initial_setup_local_data_source.dart
+          initial_setup_local_data_source.dart
           mappers/
             local_profile_mapper.dart
       banks/
@@ -145,9 +144,10 @@ apps/cardpilot-mobile/apps/cardpilot_app/
       migrations/
 ```
 
-`core/database` owns the physical database and reusable DAOs. Feature data
-layers own business mapping. The sync coordinator belongs to the production app,
-not `cardpilot_ui` and not Widgetbook.
+`core/database` owns the physical database. The initial-setup data layer owns
+the current row/domain mapping; reusable DAOs are added when more features query
+the same tables. The sync coordinator belongs to the production app, not
+`cardpilot_ui` and not Widgetbook.
 
 ## 5. Database lifecycle
 
@@ -372,7 +372,8 @@ The current domain model needs small changes during implementation:
 | `LocalWorkspace.localId` | `local_profiles.id` | Treat current aggregate ID as local profile ID; generate UUID v4 |
 | `LocalWorkspace.accessMode` | `local_profiles.access_mode` | Enum ↔ stable lowercase string converter |
 | `LocalProfile.displayName` | `local_profiles.display_name` | Flatten current nested value into the profile row |
-| `LocalUserCard.bankName` | `bank_name_snapshot` | Add optional `bankId` and `creditCardId` later |
+| `LocalUserCard.bankId` | `bank_id` | Persist the selected backend bank ID; `creditCardId` remains future work |
+| `LocalUserCard.bankName` | `bank_name_snapshot` | Preserve the selected display name for offline rendering |
 | `LocalUserCard.nickname` | `nickname` | Add a client `id` before persistence |
 | `LocalUserCard.billingCycleDay` | `billing_cycle_day` | Preserve 1–31 validation in domain and DB |
 
@@ -387,7 +388,7 @@ database service.
 
 ## 8. Startup and routing behavior
 
-Proposed startup decision sequence:
+Implemented startup decision sequence:
 
 ```text
 open SQLite
@@ -460,8 +461,10 @@ deletions.
 ### Manual `Sync Now` refresh algorithm
 
 1. Read cached rows immediately.
-2. Do not refresh common data automatically on screen rebuild, app resume, or
-   account switch in the initial implementation.
+2. Do not refresh an existing common-data cache automatically on screen
+   rebuild, app resume, or account switch. Card Setup has one explicit
+   exception: tapping the bank picker bootstraps banks when `banks_cache` is
+   empty.
 3. When the user taps `Sync Now`, fetch the manifest and compare every cloud
    integer version with `sync_state.dataset_version`.
 4. If unchanged/304, only update `sync_state` timestamps.
@@ -471,9 +474,12 @@ deletions.
 6. If refresh fails, retain stale cache and record a safe error code. A retry
    may run inside the current user-initiated sync or on the next `Sync Now`.
 
-For an empty cache, the UI may offer `Sync Now` as its primary action. If the
-product later chooses an automatic first fetch, document that as a separate
-behavior change rather than hiding it inside repository construction.
+For banks, the first fetch is user-triggered by tapping the Card Setup picker,
+not hidden in repository construction. The response is fully parsed before a
+transaction replaces the cache. Bootstrap rows temporarily use
+`dataset_version = 1`, but no authoritative `sync_state` row for
+`reference:banks` is created. Future `Sync Now` therefore treats a missing sync
+state as an unknown version and refreshes from the manifest.
 
 Do not clear a usable cache before a replacement response has been fully parsed
 and validated.
@@ -608,17 +614,17 @@ validation. When Drift is implemented, its Dart table definitions and generated
 migration steps must reproduce these constraints; the app should not run both
 raw SQL creation scripts and Drift `createAll()` for the same schema version.
 
-Packages proposed for the implementation PR:
+Implemented packages:
 
 ```yaml
 dependencies:
-  drift: <compatible version>
-  drift_flutter: <compatible version>
-  uuid: <compatible version>
+  drift: 2.34.0
+  drift_flutter: ^0.3.1
+  uuid: ^4.6.0
 
 dev_dependencies:
-  build_runner: <compatible version>
-  drift_dev: <compatible version>
+  build_runner: ^2.15.1
+  drift_dev: 2.34.0
 ```
 
 Resolve compatible current versions with Flutter's package solver in the
@@ -637,8 +643,9 @@ flutter test test/core/database
 Migration rules:
 
 1. Define v1 tables and set `schemaVersion = 1`.
-2. Run `dart run drift_dev make-migrations` and commit the v1 schema snapshot,
-   generated helper, generated tests, and `.g.dart` output.
+2. Run `dart run drift_dev make-migrations` and commit the v1 schema snapshot
+   and `.g.dart` output. The step helper is generated when a second schema
+   version exists; focused v1 lifecycle tests live under `test/core/database`.
 3. For every later physical schema change, increment `schemaVersion` exactly
    once and rerun `make-migrations`.
 4. Fill the generated step function; do not reference only current-schema table
@@ -682,26 +689,32 @@ Migration rules:
 
 ### Slice 1 — SQLite foundation and initial setup persistence
 
-- Add Drift dependencies, database connection, schema v1, and migration tests.
-- Generate UUIDs for profile/card IDs.
-- Replace `InitialSetupMemoryDataSource` with a Drift local data source.
-- Restore `active_profile_id` during startup and route correctly.
-- Keep sync fields/outbox schema present, but no network sync yet.
+- [x] Add Drift dependencies, database connection, schema v1, and lifecycle
+      tests.
+- [x] Generate UUIDs for profile/card IDs.
+- [x] Replace `InitialSetupMemoryDataSource` with a Drift local data source.
+- [x] Restore the active guest/current authenticated profile during startup and
+      route correctly.
+- [x] Keep sync fields/outbox schema present, but no network sync yet.
 
-**Done when:** guest profile and first card survive a full app restart and all
-existing initial-setup tests pass against SQLite.
+**Completed:** guest profile and first card survive a full database close/reopen,
+authenticated accounts are restored by Supabase auth user ID, and the mobile
+test suite passes against SQLite.
 
 ### Slice 2 — Bank reference cache
 
-- Add mobile backend API client if not already available.
-- Add bank local/remote data sources and repository.
-- Replace hard-coded bank list in `CardSetupScreen` with cached data.
-- Implement empty/stale-cache UI and the manual `Sync Now` action.
-- Add backend manifest/ETag support before claiming change detection is done.
+- [x] Add reusable Dio API client with 30-second timeouts and request metadata.
+- [x] Add bank local/remote data sources and cache-first repository.
+- [x] Replace the hard-coded bank list in `CardSetupScreen` with lazy cached
+      data and retryable error handling.
+- [x] Persist both `bank_id` and `bank_name_snapshot` on the first local card.
+- [ ] Implement refresh of a populated/stale cache and manual `Sync Now`.
+- [ ] Add backend manifest/ETag support before claiming change detection is
+      done.
 
-**Done when:** bank selection loads immediately from SQLite after the first
-successful sync and `Sync Now` downloads it again only when the cloud dataset
-version changes.
+**Current behavior:** bank selection loads immediately from SQLite after the
+first successful picker bootstrap. Refreshing it when the cloud dataset version
+changes remains part of `Sync Now`.
 
 ### Slice 3 — User-card local repository
 
@@ -730,16 +743,16 @@ version changes.
 
 ## 16. Review checklist and blockers
 
-Approve or change these before Slice 1:
+Foundation decisions:
 
-- [ ] Confirm Drift as the mobile SQLite abstraction.
+- [x] Confirm Drift as the mobile SQLite abstraction.
 - [x] Confirm one database with multiple `local_profiles`, strict `profile_id`
       scoping, and one `app_settings.active_profile_id`.
-- [ ] Confirm client UUID v4 IDs.
-- [ ] Confirm UTC epoch-millisecond timestamps.
-- [ ] Confirm integer minor units for transaction money.
-- [ ] Confirm generated Drift files and schema snapshots are committed.
-- [ ] Decide whether v1 ships `sync_outbox` immediately or adds it in v2.
+- [x] Confirm client UUID v4 IDs.
+- [x] Confirm UTC epoch-millisecond timestamps.
+- [x] Confirm integer minor units for future transaction money.
+- [x] Confirm generated Drift files and schema snapshots are committed.
+- [x] Ship `sync_outbox` in schema v1; processing remains planned.
 - [ ] Decide production encryption/backup requirements.
 
 Backend blockers before reliable cache/sync:

@@ -55,27 +55,28 @@ void main() {
     await tester.tap(find.text('Create my card'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome, An'), findsOneWidget);
-    expect(find.byType(CalendarDatePicker), findsOneWidget);
+    expect(find.text('Hi, An'), findsOneWidget);
+    expect(find.text('Available Balance'), findsOneWidget);
+    expect(find.text('Everyday Visa'), findsOneWidget);
 
     await tester.drag(find.byType(ListView).first, const Offset(0, -700));
     await tester.pumpAndSettle();
-    expect(find.text('Everyday Visa'), findsOneWidget);
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Cards'), findsOneWidget);
-    expect(find.text('Transactions'), findsOneWidget);
-    expect(find.text('Add'), findsOneWidget);
-    expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('Spending Overview'), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-0')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-1')), findsOneWidget);
+    expect(find.byKey(const Key('primary-navigation-item')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-3')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-4')), findsOneWidget);
 
-    await tester.tap(find.text('Cards'));
+    await tester.tap(find.byKey(const Key('navigation-item-1')));
     await tester.pumpAndSettle();
     expect(find.text('Your cards'), findsOneWidget);
 
-    await tester.tap(find.text('Transactions'));
+    await tester.tap(find.byKey(const Key('navigation-item-3')));
     await tester.pumpAndSettle();
     expect(find.text('No transactions yet'), findsOneWidget);
 
-    await tester.tap(find.text('Add'));
+    await tester.tap(find.byKey(const Key('primary-navigation-item')));
     await tester.pumpAndSettle();
     expect(find.text('Scan a receipt'), findsOneWidget);
     expect(find.text('Add manually'), findsOneWidget);
@@ -90,11 +91,13 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.byKey(const Key('navigation-item-4')));
     await tester.pumpAndSettle();
     expect(find.text('Guest · local-only'), findsOneWidget);
 
-    final savedCard = await database.select(database.localUserCards).getSingle();
+    final savedCard = await database
+        .select(database.localUserCards)
+        .getSingle();
     expect(savedCard.bankId, 'bank-acb');
     expect(savedCard.bankNameSnapshot, 'ACB');
 

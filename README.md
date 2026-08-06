@@ -88,6 +88,7 @@ The Flutter app currently authenticates directly with Supabase Auth. Create the
 ignored file `apps/cardpilot-mobile/apps/cardpilot_app/.env` locally:
 
 ```dotenv
+API_BASE_URL=https://cardpilot-backend.onrender.com
 SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 ```
@@ -96,7 +97,8 @@ The `cardpilot-app:run` Nx target passes this file through
 `--dart-define-from-file=.env`. Do not commit real environment files or keys.
 Native OAuth returns to the app through
 `io.cardpilot.app://login-callback/`; configure the same redirect URL in
-Supabase Auth.
+Supabase Auth. `API_BASE_URL` is the backend origin without the `/api` suffix;
+the reusable mobile API client adds versioned paths such as `/api/v1/banks`.
 
 ## Useful Nx commands
 
@@ -122,7 +124,7 @@ pnpm nx run cardpilot-app:run
 | `docs/architecture/system.md`                                                        | System architecture (bird-eye view)                        |
 | `docs/architecture/api.md`                                                           | API design (implemented + planned endpoints)                |
 | `docs/architecture/database.md`                                                      | Full ERD + table definitions (grounded in the real migration) |
-| `docs/architecture/mobile-sqlite.md`                                                 | Proposed Drift/SQLite schema, cache, sync, migration, and implementation plan |
+| `docs/architecture/mobile-sqlite.md`                                                 | Implemented Drift schema v1 plus planned cache/sync and schema v2 evolution |
 | `docs/architecture/design-system.md`                                                 | `cardpilot_ui` design tokens + component inventory          |
 | `docs/architecture/ai.md`                                                            | AI/ML roadmap (OCR, forecasting, recommendation)             |
 | `docs/processes/deployment-phases.md`                                               | Phase 1/2 roadmap overview                                  |

@@ -54,6 +54,7 @@ xxl = 48.0
 |-----------|--------------|------------|-------|
 | `CardPilotLogo` | `width`, `height`, `fit` | No dedicated case | Loads `assets/brandings/cardpilot_logo.svg` from the UI package with an accessibility label |
 | `AppPrimaryButton` | `label`, `onPressed`, `isLoading` | Enabled, Disabled, Loading | Full-width primary action; disables interaction while loading |
+| `AppFloatingNavigationBar` | `items`, `selectedIndex`, `onSelected` | Home selected, Transactions selected | Floating glass surface with logo-colored selection treatments and one optional raised primary action |
 | `SocialAuthButton` | `label`, `leading`, `onPressed`, `isLoading` | Enabled, Loading | Full-width outlined provider action with a caller-supplied provider icon |
 
 The previous onboarding illustrations, page view, pagination, and slide-data
@@ -73,6 +74,7 @@ Do not import files from `cardpilot_ui/lib/src` directly. The public barrel
 currently exports:
 
 - `CardPilotLogo`;
+- `AppFloatingNavigationBar` and `AppNavigationItem`;
 - `AppPrimaryButton`;
 - `SocialAuthButton`;
 - `AppColors`;
@@ -126,7 +128,7 @@ apps/cardpilot-mobile/packages/cardpilot_ui/
 
 - Dark theme does not yet mirror the custom light-theme typography.
 - `CardPilotLogo` does not yet have a dedicated Widgetbook use case.
-- The package has no shared input, card, badge, chart, or navigation primitives;
+- The package has no shared input, card, badge, or chart primitives;
   current feature screens use app-owned Material widgets until reusable APIs
   stabilize.
 

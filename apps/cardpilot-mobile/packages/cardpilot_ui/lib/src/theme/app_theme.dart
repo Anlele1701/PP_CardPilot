@@ -6,15 +6,26 @@ class AppTheme {
   const AppTheme._();
 
   static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brandBlue,
-      brightness: Brightness.light,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.brandBlue,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: AppColors.brandBlue,
+          secondary: AppColors.brandTeal,
+          tertiary: AppColors.brandGreen,
+        );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.surface,
+      scaffoldBackgroundColor: AppColors.appBackground,
+      cardTheme: CardThemeData(
+        color: AppColors.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      ),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
           color: AppColors.ink,
@@ -32,10 +43,15 @@ class AppTheme {
   }
 
   static ThemeData get dark {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brandBlue,
-      brightness: Brightness.dark,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.brandBlue,
+          brightness: Brightness.dark,
+        ).copyWith(
+          primary: AppColors.brandBlue,
+          secondary: AppColors.brandTeal,
+          tertiary: AppColors.brandGreen,
+        );
 
     return ThemeData(
       useMaterial3: true,
