@@ -535,6 +535,7 @@ server-side deletion without relying only on `updated_at` timestamps.
 | `1784410000000-create-initial-schema.ts` | Tạo toàn bộ 14 bảng PostgreSQL theo thứ tự dependency FK và các indexes/constraints ban đầu. |
 | `1784783921000-seed-reference-data.ts` | Seed banks và MCC reference data đúng một lần; có `down()` chỉ xoá các reference row thuộc migration. |
 | `1785715200000-create-reference-dataset-versions.ts` | Tạo registry version cho common datasets và statement-level triggers tự tăng version khi memberships, banks, credit cards, MCC hoặc reward rules thay đổi. |
+| `1786072168025-seed-msb-bank-data.ts` | Seed các sản phẩm thẻ MSB, reward rules, MCC 5262 còn thiếu và mapping MCC cho từng rule. |
 
 Chạy migration qua:
 ```bash
@@ -543,6 +544,9 @@ pnpm migration:run
 pnpm migration:revert
 ```
 (dùng `apps/cardpilot-backend/src/database/data-source.ts` làm DataSource — ưu tiên `DIRECT_DATABASE_URL`, fallback `DATABASE_URL`.)
+
+Khi thêm MCC master hoặc mapping MCC vào reward rule, làm theo
+[`MCC_MIGRATION_GUIDE.md`](../MCC_MIGRATION_GUIDE.md).
 
 ### Backup Strategy
 

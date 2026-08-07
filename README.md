@@ -117,6 +117,7 @@ pnpm nx run cardpilot-app:run
 | `docs/GIT_BRANCHING_STRATEGY.md`                                                    | Branch naming + PR + release flow                         |
 | `docs/MOBILE_ARCHITECTURE.md`                                                       | Mobile architecture notes                                 |
 | `docs/BACKEND_ARCHITECTURE.md`                                                      | Backend architecture notes                                |
+| `docs/MCC_MIGRATION_GUIDE.md`                                                       | MCC master data and reward-rule mapping workflow         |
 | [CardPilot_ERD](https://dbdocs.io/lethanhduyan/Card-Pilot_ERD?view=table_structure) | Database Schema                                           |
 | `docs/BRD.md`                                                                        | Business Requirements Document                             |
 | `docs/PRD.md`                                                                        | Product Requirements Document                              |

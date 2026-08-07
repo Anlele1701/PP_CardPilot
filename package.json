@@ -21,6 +21,7 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:show": "pnpm typeorm migration:show -d apps/cardpilot-backend/src/database/data-source.ts",
     "migration:run": "pnpm typeorm migration:run -d apps/cardpilot-backend/src/database/data-source.ts",
+    "migration:create": "sh -c 'typeorm migration:create apps/cardpilot-backend/src/database/migrations/$1' --",
     "migration:revert": "pnpm typeorm migration:revert -d apps/cardpilot-backend/src/database/data-source.ts",
     "run:mobile": "nx run cardpilot-app:run",
     "commitlint": "commitlint",
