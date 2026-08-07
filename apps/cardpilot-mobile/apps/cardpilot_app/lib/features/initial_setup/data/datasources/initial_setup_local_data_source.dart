@@ -47,6 +47,7 @@ class InitialSetupLocalDataSource {
               LocalUserCardsCompanion.insert(
                 id: card.id,
                 profileId: workspace.localId,
+                creditCardId: Value(card.creditCardId),
                 bankId: Value(card.bankId),
                 bankNameSnapshot: card.bankName,
                 nickname: card.nickname,
@@ -163,6 +164,7 @@ class InitialSetupLocalDataSource {
           .map(
             (card) => LocalUserCard(
               id: card.id,
+              creditCardId: card.creditCardId,
               bankId: card.bankId,
               bankName: card.bankNameSnapshot,
               nickname: card.nickname,

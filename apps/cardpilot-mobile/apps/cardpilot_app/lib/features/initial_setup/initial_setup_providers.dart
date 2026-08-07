@@ -6,6 +6,7 @@ import '../auth/auth_providers.dart';
 import 'data/datasources/initial_setup_local_data_source.dart';
 import 'data/repositories/initial_setup_repository_impl.dart';
 import 'domain/entities/access_mode.dart';
+import 'domain/entities/local_user_card.dart';
 import 'domain/entities/local_workspace.dart';
 import 'domain/repositories/initial_setup_repository.dart';
 import 'domain/usecases/complete_initial_setup.dart';
@@ -80,9 +81,27 @@ class InitialSetupController extends Notifier<InitialSetupState> {
     );
   }
 
+  void replaceCards(List<LocalUserCard> cards) {
+    final workspace = state.workspace;
+    if (workspace == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      workspace: LocalWorkspace(
+        localId: workspace.localId,
+        accessMode: workspace.accessMode,
+        profile: workspace.profile,
+        cards: List.unmodifiable(cards),
+      ),
+      errorMessage: null,
+    );
+  }
+
   Future<bool> complete({
     required String bankId,
     required String bankName,
+    required String creditCardId,
     required String cardNickname,
     required int billingCycleDay,
   }) async {
@@ -115,6 +134,7 @@ class InitialSetupController extends Notifier<InitialSetupState> {
       displayName: state.displayName,
       bankId: bankId,
       bankName: bankName,
+      creditCardId: creditCardId,
       cardNickname: cardNickname,
       billingCycleDay: billingCycleDay,
       authUserId: accessMode == AccessMode.authenticated ? authUser?.id : null,

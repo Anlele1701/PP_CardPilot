@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/validation_messages.dart';
 import '../../../../core/notifications/app_toast.dart';
 import '../../../../core/routing/app_routes.dart';
-import '../../../../core/constants/validation_messages.dart';
 import '../../../banks/bank_providers.dart';
 import '../../../banks/domain/entities/bank.dart';
+import '../../../credit_cards/credit_card_providers.dart';
+import '../../../credit_cards/domain/entities/credit_card.dart';
 import '../../initial_setup_providers.dart';
 
 class CardSetupScreen extends ConsumerStatefulWidget {
@@ -19,9 +21,11 @@ class CardSetupScreen extends ConsumerStatefulWidget {
 
 class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _creditCardFieldKey = GlobalKey<FormFieldState<CreditCard>>();
   final _nicknameController = TextEditingController();
   final _billingDayController = TextEditingController(text: '15');
   Bank? _selectedBank;
+  CreditCard? _selectedCreditCard;
 
   @override
   void dispose() {
@@ -36,7 +40,8 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
     }
 
     final selectedBank = _selectedBank;
-    if (selectedBank == null) {
+    final selectedCreditCard = _selectedCreditCard;
+    if (selectedBank == null || selectedCreditCard == null) {
       return;
     }
 
@@ -45,6 +50,7 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
         .complete(
           bankId: selectedBank.id,
           bankName: selectedBank.displayName,
+          creditCardId: selectedCreditCard.id,
           cardNickname: _nicknameController.text,
           billingCycleDay: int.parse(_billingDayController.text),
         );
@@ -141,8 +147,116 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
     );
 
     if (selectedBank != null && mounted) {
-      setState(() => _selectedBank = selectedBank);
+      final changedBank = selectedBank.id != _selectedBank?.id;
+      setState(() {
+        _selectedBank = selectedBank;
+        if (changedBank) {
+          _selectedCreditCard = null;
+        }
+      });
       field.didChange(selectedBank);
+      if (changedBank) {
+        _creditCardFieldKey.currentState?.didChange(null);
+      }
+    }
+  }
+
+  Future<void> _chooseCreditCard(FormFieldState<CreditCard> field) async {
+    final selectedBank = _selectedBank;
+    if (selectedBank == null) {
+      AppToast.showInfo(context, 'Choose a bank first.');
+      return;
+    }
+
+    final cachedCreditCards = ref
+        .read(creditCardsProvider(selectedBank.id))
+        .when(
+          data: (creditCards) => creditCards,
+          error: (_, _) => const <CreditCard>[],
+          loading: () => const <CreditCard>[],
+        );
+    final creditCards = cachedCreditCards.isNotEmpty
+        ? cachedCreditCards
+        : await ref
+              .read(creditCardLoadControllerProvider.notifier)
+              .ensureLoaded(selectedBank.id);
+
+    if (!mounted) {
+      return;
+    }
+    if (_selectedBank?.id != selectedBank.id) {
+      return;
+    }
+
+    if (creditCards == null) {
+      final message =
+          ref.read(creditCardLoadControllerProvider).errorMessage ??
+          'Could not load cards. Please try again.';
+      AppToast.showError(context, message);
+      return;
+    }
+    if (creditCards.isEmpty) {
+      AppToast.showInfo(
+        context,
+        'No supported cards are available for ${selectedBank.displayName}.',
+      );
+      return;
+    }
+
+    final selectedCreditCard = await showModalBottomSheet<CreditCard>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: FractionallySizedBox(
+            heightFactor: 0.72,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    ui.AppSpacing.lg,
+                    0,
+                    ui.AppSpacing.lg,
+                    ui.AppSpacing.md,
+                  ),
+                  child: Text(
+                    'Choose your card',
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: creditCards.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final creditCard = creditCards[index];
+                      return ListTile(
+                        key: Key('credit-card-option-${creditCard.id}'),
+                        title: Text(creditCard.name),
+                        subtitle: creditCard.network == null
+                            ? null
+                            : Text(creditCard.network!),
+                        trailing: creditCard.id == _selectedCreditCard?.id
+                            ? const Icon(Icons.check_rounded)
+                            : null,
+                        onTap: () => Navigator.pop(context, creditCard),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selectedCreditCard != null && mounted) {
+      setState(() => _selectedCreditCard = selectedCreditCard);
+      field.didChange(selectedCreditCard);
     }
   }
 
@@ -151,8 +265,15 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
     final state = ref.watch(initialSetupControllerProvider);
     ref.watch(banksProvider);
     final bankLoadState = ref.watch(bankLoadControllerProvider);
+    final creditCardLoadState = ref.watch(creditCardLoadControllerProvider);
+    final selectedBankId = _selectedBank?.id;
+    if (selectedBankId != null) {
+      ref.watch(creditCardsProvider(selectedBankId));
+    }
     final isSaving = state.status == InitialSetupStatus.saving;
     final isLoadingBanks = bankLoadState.status == BankLoadStatus.loading;
+    final isLoadingCreditCards =
+        creditCardLoadState.status == CreditCardLoadStatus.loading;
 
     return Scaffold(
       body: SafeArea(
@@ -181,7 +302,10 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
                       validator: (bank) =>
                           bank == null ? ValidationMessages.bankRequired : null,
                       builder: (field) {
-                        final enabled = !isSaving && !isLoadingBanks;
+                        final enabled =
+                            !isSaving &&
+                            !isLoadingBanks &&
+                            !isLoadingCreditCards;
                         return Semantics(
                           button: true,
                           child: InkWell(
@@ -211,6 +335,56 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
                               ),
                               child: Text(
                                 _selectedBank?.displayName ?? 'Select a bank',
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: ui.AppSpacing.md),
+                    FormField<CreditCard>(
+                      key: _creditCardFieldKey,
+                      initialValue: _selectedCreditCard,
+                      validator: (creditCard) => creditCard == null
+                          ? ValidationMessages.creditCardRequired
+                          : null,
+                      builder: (field) {
+                        final enabled =
+                            _selectedBank != null &&
+                            !isSaving &&
+                            !isLoadingCreditCards;
+                        return Semantics(
+                          button: true,
+                          child: InkWell(
+                            key: const Key('credit-card-picker-field'),
+                            borderRadius: BorderRadius.circular(4),
+                            onTap: enabled
+                                ? () => _chooseCreditCard(field)
+                                : null,
+                            child: InputDecorator(
+                              isEmpty: false,
+                              decoration: InputDecoration(
+                                labelText: 'Card',
+                                errorText: field.errorText,
+                                enabled: enabled,
+                                border: const OutlineInputBorder(),
+                                suffixIcon: isLoadingCreditCards
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(14),
+                                        child: SizedBox.square(
+                                          dimension: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      )
+                                    : const Icon(Icons.arrow_drop_down),
+                              ),
+                              child: Text(
+                                _selectedCreditCard?.displayName ??
+                                    (_selectedBank == null
+                                        ? 'Choose a bank first'
+                                        : 'Select a card'),
                               ),
                             ),
                           ),

@@ -19,6 +19,7 @@ void main() {
         displayName: '  An  ',
         bankId: 'bank-acb',
         bankName: 'ACB',
+        creditCardId: 'card-acb-visa-platinum',
         cardNickname: '  Everyday Visa  ',
         billingCycleDay: 15,
       );
@@ -32,6 +33,7 @@ void main() {
       expect(workspace.accessMode, accessMode);
       expect(workspace.profile.displayName, 'An');
       expect(workspace.cards.single.bankId, 'bank-acb');
+      expect(workspace.cards.single.creditCardId, 'card-acb-visa-platinum');
       expect(workspace.cards.single.bankName, 'ACB');
       expect(workspace.cards.single.id, 'generated-1');
       expect(workspace.cards.single.nickname, 'Everyday Visa');

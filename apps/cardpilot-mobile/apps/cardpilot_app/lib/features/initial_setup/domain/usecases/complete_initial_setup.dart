@@ -17,6 +17,7 @@ class CompleteInitialSetup {
     required String displayName,
     required String bankId,
     required String bankName,
+    required String creditCardId,
     required String cardNickname,
     required int billingCycleDay,
     String? authUserId,
@@ -35,6 +36,7 @@ class CompleteInitialSetup {
           LocalUserCard(
             id: generateId(),
             bankId: bankId,
+            creditCardId: creditCardId,
             bankName: bankName,
             nickname: cardNickname.trim(),
             billingCycleDay: billingCycleDay,

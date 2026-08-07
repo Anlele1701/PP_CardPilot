@@ -718,9 +718,19 @@ changes remains part of `Sync Now`.
 
 ### Slice 3 — User-card local repository
 
-- Split card operations out of `InitialSetupRepository`.
-- Support list/add/edit/tombstone/default-card operations as reactive queries.
-- Add transactional outbox writes.
+- [x] Split ongoing card mutations out of `InitialSetupRepository`.
+- [x] Support local list/add/edit/tombstone operations and automatically
+      reassign the default card when its predecessor is deleted.
+- [x] Commit card mutations and `sync_outbox` operations in the same Drift
+      transaction.
+- [ ] Expose an explicit “make default” action and reactive DAO query when the
+      Cards experience requires them.
+
+**Current behavior:** Cards CRUD is local-first. Create, update, and delete
+operations immediately update the active workspace and enqueue a versioned
+`user_card` operation for the future `Sync Now` processor. Deletion is a soft
+delete, and the final active card cannot be removed because Home currently
+requires one default card.
 
 ### Slice 4 — Backend bootstrap and guest claim
 

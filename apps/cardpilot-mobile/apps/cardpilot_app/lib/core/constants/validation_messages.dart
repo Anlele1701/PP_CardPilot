@@ -10,6 +10,7 @@ abstract final class ValidationMessages {
   static const displayNameTooLong =
       'Keep your display name under 40 characters.';
   static const bankRequired = 'Please choose a bank.';
+  static const creditCardRequired = 'Please choose a card.';
   static const cardNicknameRequired = 'Please add a card nickname.';
   static const billingDayOutOfRange = 'Billing day must be between 1 and 31.';
 }
