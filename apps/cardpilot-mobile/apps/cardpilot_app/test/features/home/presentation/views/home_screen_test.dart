@@ -63,8 +63,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.byKey(const Key('navigation-item-4')));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Log out'), 180);
     expect(find.text('Log out'), findsOneWidget);
 
     await tester.tap(find.text('Log out'));
@@ -76,6 +77,58 @@ void main() {
 
     expect(repository.signOutCallCount, 1);
     expect(find.text('Signed out screen'), findsOneWidget);
+  });
+
+  testWidgets('uses the five-part shell and opens quick transaction actions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          initialSetupControllerProvider.overrideWith(
+            _SignedInInitialSetupController.new,
+          ),
+        ],
+        child: MaterialApp(theme: AppTheme.light, home: const HomeScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Available Balance'), findsOneWidget);
+    expect(find.byKey(const Key('premium-card')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('spending-overview-card')),
+      220,
+    );
+    expect(find.byKey(const Key('spending-overview-card')), findsOneWidget);
+    expect(find.byKey(const Key('home-navigation-bar')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-0')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-1')), findsOneWidget);
+    expect(find.byKey(const Key('primary-navigation-item')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-3')), findsOneWidget);
+    expect(find.byKey(const Key('navigation-item-4')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('primary-navigation-item')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add a transaction'), findsOneWidget);
+    expect(find.byKey(const Key('scan-receipt-action')), findsOneWidget);
+    expect(find.byKey(const Key('add-manually-action')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('scan-receipt-action')));
+    await tester.pumpAndSettle();
+    expect(find.text('Receipt scanning is coming next.'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('navigation-item-3')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('transaction-filter-button')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('navigation-item-4')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sync-now-button')), findsOneWidget);
   });
 }
 
@@ -91,6 +144,8 @@ class _SignedInInitialSetupController extends InitialSetupController {
         profile: LocalProfile(displayName: 'Card Pilot'),
         cards: [
           LocalUserCard(
+            id: 'local-card',
+            bankId: 'bank-acb',
             bankName: 'ACB',
             nickname: 'Everyday card',
             billingCycleDay: 15,

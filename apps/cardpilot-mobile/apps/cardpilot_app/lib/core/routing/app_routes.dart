@@ -1,6 +1,7 @@
 class AppRoutes {
   const AppRoutes._();
 
+  static const startup = '/startup';
   static const signIn = '/login';
   static const signUp = '/sign-up';
   static const setupProfile = '/setup/profile';

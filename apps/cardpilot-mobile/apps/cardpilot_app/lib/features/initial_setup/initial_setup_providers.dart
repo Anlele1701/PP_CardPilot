@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
-import 'data/datasources/initial_setup_memory_data_source.dart';
+import '../../core/database/database_providers.dart';
+import '../auth/auth_providers.dart';
+import 'data/datasources/initial_setup_local_data_source.dart';
 import 'data/repositories/initial_setup_repository_impl.dart';
 import 'domain/entities/access_mode.dart';
 import 'domain/entities/local_workspace.dart';
@@ -68,7 +71,17 @@ class InitialSetupController extends Notifier<InitialSetupState> {
     );
   }
 
+  void restore(LocalWorkspace workspace) {
+    state = InitialSetupState(
+      status: InitialSetupStatus.completed,
+      accessMode: workspace.accessMode,
+      displayName: workspace.profile.displayName,
+      workspace: workspace,
+    );
+  }
+
   Future<bool> complete({
+    required String bankId,
     required String bankName,
     required String cardNickname,
     required int billingCycleDay,
@@ -96,12 +109,16 @@ class InitialSetupController extends Notifier<InitialSetupState> {
       errorMessage: null,
     );
 
+    final authUser = ref.read(currentAuthUserProvider);
     final result = await ref.read(completeInitialSetupProvider)(
       accessMode: accessMode,
       displayName: state.displayName,
+      bankId: bankId,
       bankName: bankName,
       cardNickname: cardNickname,
       billingCycleDay: billingCycleDay,
+      authUserId: accessMode == AccessMode.authenticated ? authUser?.id : null,
+      email: accessMode == AccessMode.authenticated ? authUser?.email : null,
     );
 
     return result.when(
@@ -124,19 +141,23 @@ class InitialSetupController extends Notifier<InitialSetupState> {
   }
 }
 
-final initialSetupMemoryDataSourceProvider =
-    Provider<InitialSetupMemoryDataSource>(
-      (ref) => InitialSetupMemoryDataSource(),
+final initialSetupLocalDataSourceProvider =
+    Provider<InitialSetupLocalDataSource>(
+      (ref) =>
+          InitialSetupLocalDataSource(database: ref.watch(appDatabaseProvider)),
     );
 
 final initialSetupRepositoryProvider = Provider<InitialSetupRepository>((ref) {
   return InitialSetupRepositoryImpl(
-    localDataSource: ref.watch(initialSetupMemoryDataSourceProvider),
+    localDataSource: ref.watch(initialSetupLocalDataSourceProvider),
   );
 });
 
 final completeInitialSetupProvider = Provider<CompleteInitialSetup>((ref) {
-  return CompleteInitialSetup(ref.watch(initialSetupRepositoryProvider));
+  return CompleteInitialSetup(
+    ref.watch(initialSetupRepositoryProvider),
+    generateId: const Uuid().v4,
+  );
 });
 
 final initialSetupControllerProvider =

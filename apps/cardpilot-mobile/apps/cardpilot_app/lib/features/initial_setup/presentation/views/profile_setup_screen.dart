@@ -43,7 +43,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     final isGuest = accessMode == AccessMode.guest;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Set up your profile')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

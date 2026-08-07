@@ -198,7 +198,7 @@ Xác thực tài khoản → Hệ thống đối chiếu transactions local (SQL
 ```
 
 > Flow 4.4 đã có kiến trúc đề xuất nhưng chưa implement. Các quyết định còn cần
-> duyệt gồm workspace topology, encryption/backup, backend dataset version,
+> duyệt gồm local-profile isolation, encryption/backup, backend dataset version,
 > server version, idempotency retention và conflict UX; xem
 > `architecture/mobile-sqlite.md`.
 

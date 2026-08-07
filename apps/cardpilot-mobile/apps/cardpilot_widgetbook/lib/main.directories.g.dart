@@ -19,6 +19,21 @@ final directories = <_widgetbook.WidgetbookNode>[
     name: 'Components',
     children: [
       _widgetbook.WidgetbookComponent(
+        name: 'AppFloatingNavigationBar',
+        useCases: [
+          _widgetbook.WidgetbookUseCase(
+            name: 'Home selected',
+            builder: _cardpilot_widgetbook_use_cases_component_use_cases
+                .homeSelectedNavigationBar,
+          ),
+          _widgetbook.WidgetbookUseCase(
+            name: 'Transactions selected',
+            builder: _cardpilot_widgetbook_use_cases_component_use_cases
+                .transactionsSelectedNavigationBar,
+          ),
+        ],
+      ),
+      _widgetbook.WidgetbookComponent(
         name: 'AppPrimaryButton',
         useCases: [
           _widgetbook.WidgetbookUseCase(

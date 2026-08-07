@@ -51,9 +51,25 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     Navigator.of(context).pushReplacementNamed(AppRoutes.signUp);
   }
 
-  void _continueAsGuest() {
+  Future<void> _continueAsGuest() async {
     FocusScope.of(context).unfocus();
     ref.read(loginControllerProvider.notifier).reset();
+
+    final workspace = await ref
+        .read(initialSetupRepositoryProvider)
+        .loadActiveGuest();
+    if (!mounted) {
+      return;
+    }
+
+    if (workspace != null) {
+      ref.read(initialSetupControllerProvider.notifier).restore(workspace);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
+      return;
+    }
+
     ref
         .read(initialSetupControllerProvider.notifier)
         .selectAccessMode(AccessMode.guest);

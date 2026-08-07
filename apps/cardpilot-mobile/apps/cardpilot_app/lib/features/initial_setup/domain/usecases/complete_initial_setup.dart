@@ -7,24 +7,34 @@ import '../entities/local_workspace.dart';
 import '../repositories/initial_setup_repository.dart';
 
 class CompleteInitialSetup {
-  const CompleteInitialSetup(this.repository);
+  const CompleteInitialSetup(this.repository, {required this.generateId});
 
   final InitialSetupRepository repository;
+  final String Function() generateId;
 
   Future<Result<LocalWorkspace>> call({
     required AccessMode accessMode,
     required String displayName,
+    required String bankId,
     required String bankName,
     required String cardNickname,
     required int billingCycleDay,
+    String? authUserId,
+    String? email,
   }) async {
     try {
       final workspace = LocalWorkspace(
-        localId: 'local-${DateTime.now().microsecondsSinceEpoch}',
+        localId: generateId(),
         accessMode: accessMode,
-        profile: LocalProfile(displayName: displayName.trim()),
+        profile: LocalProfile(
+          displayName: displayName.trim(),
+          authUserId: authUserId,
+          email: email,
+        ),
         cards: [
           LocalUserCard(
+            id: generateId(),
+            bankId: bankId,
             bankName: bankName,
             nickname: cardNickname.trim(),
             billingCycleDay: billingCycleDay,

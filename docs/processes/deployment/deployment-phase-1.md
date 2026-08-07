@@ -89,7 +89,7 @@ Xem đầy đủ tại `ARCH-DB` #2.2 — migration hiện tại đã có index 
 ### 3.6. Local Database Strategy (Mobile SQLite)
 
 Drift/SQLite schema v1 is proposed for Phase 1 because guest profile and card
-data must survive restart. Implement the workspace/profile/card/reference-cache
+data must survive restart. Implement the profiles/app-settings/card/common-cache
 foundation from `ARCH-SQLITE` first. Network sync may land later, but outbox and
 identity decisions must be reviewed before distributing the first schema so the
 upgrade path does not lose guest data.

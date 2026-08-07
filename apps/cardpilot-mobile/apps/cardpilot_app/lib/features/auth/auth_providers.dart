@@ -6,6 +6,7 @@ import '../../core/result/result.dart';
 import 'data/datasources/supabase_auth_data_source.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'domain/entities/credential_auth_result.dart';
+import 'domain/entities/auth_user_identity.dart';
 import 'domain/entities/social_auth_provider.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/usecases/sign_in_with_email.dart';
@@ -189,6 +190,10 @@ final supabaseAuthDataSourceProvider = Provider<SupabaseAuthDataSource>((ref) {
     client: AppConfig.isSupabaseConfigured ? Supabase.instance.client : null,
     redirectUrl: AppConfig.oauthRedirectUrl,
   );
+});
+
+final currentAuthUserProvider = Provider<AuthUserIdentity?>((ref) {
+  return ref.watch(supabaseAuthDataSourceProvider).currentUserIdentity;
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

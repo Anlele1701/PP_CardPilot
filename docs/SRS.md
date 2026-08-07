@@ -166,7 +166,7 @@ Không có external payment/affiliate API nào trong scope (khác với các n�
 | NFR-SEC-04 | API xác thực bằng access token (JWT hoặc tương đương) cho mọi endpoint ghi dữ liệu user | **Chưa implement — chặn Phase 1 release** |
 | NFR-SEC-05 | Phân quyền Admin cho các API ghi dữ liệu master (`banks`, `credit_cards`, `reward_rules`, `merchant_category_codes`) | **Chưa implement** |
 | NFR-SEC-06 | Dữ liệu tài chính nhạy cảm (giao dịch, số tiền) không log ra plaintext trong log hệ thống | Chưa có logging chuẩn hoá — hiện dùng Nest `Logger` mặc định |
-| NFR-SEC-07 | Mọi local user-data query được scope bằng `workspace_id`; logout không để account khác đọc lại workspace | Proposed, chưa implement |
+| NFR-SEC-07 | Mọi local user-data query được scope bằng `profile_id`; `app_settings.active_profile_id` chọn account hiện hành và logout không để account khác đọc profile đó | Proposed, chưa implement |
 | NFR-SEC-08 | Không lưu Supabase token/service-role key trong CardPilot SQLite; quyết định encryption/backup trước production financial data | Review gate |
 
 ### 4.4 Scalability (NFR-SCALE)

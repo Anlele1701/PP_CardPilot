@@ -20,20 +20,23 @@ class ErrorScreen extends StatelessWidget {
     required this.title,
     required this.description,
     required this.actionLabel,
-    required this.actionRoute,
+    this.actionRoute,
+    this.onAction,
     super.key,
-  });
+  }) : assert(actionRoute != null || onAction != null);
 
   ErrorScreen.fromArguments(ErrorScreenArguments arguments, {super.key})
     : title = arguments.title,
       description = arguments.description,
       actionLabel = arguments.actionLabel,
-      actionRoute = arguments.actionRoute;
+      actionRoute = arguments.actionRoute,
+      onAction = null;
 
   final String title;
   final String description;
   final String actionLabel;
-  final String actionRoute;
+  final String? actionRoute;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +86,15 @@ class ErrorScreen extends StatelessWidget {
                   ui.AppPrimaryButton(
                     label: actionLabel,
                     onPressed: () {
+                      final action = onAction;
+                      if (action != null) {
+                        action();
+                        return;
+                      }
+
                       Navigator.of(
                         context,
-                      ).pushNamedAndRemoveUntil(actionRoute, (route) => false);
+                      ).pushNamedAndRemoveUntil(actionRoute!, (route) => false);
                     },
                   ),
                 ],
