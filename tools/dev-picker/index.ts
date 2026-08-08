@@ -27,11 +27,13 @@ function printBanner() {
 
 type Service =
   | 'cardpilot-backend:serve'
+  | 'cardpilot-ocr-service:serve'
   | 'cardpilot-app:run'
   | 'cardpilot-widgetbook:run';
 
 const projectByService: Record<Service, string> = {
   'cardpilot-backend:serve': 'cardpilot-backend',
+  'cardpilot-ocr-service:serve': 'cardpilot-ocr-service',
   'cardpilot-app:run': 'cardpilot-app',
   'cardpilot-widgetbook:run': 'cardpilot-widgetbook',
 };
@@ -56,6 +58,11 @@ async function main() {
       name: 'cardpilot-backend:serve',
       value: 'cardpilot-backend:serve',
       message: `${chalk.bold('backend')}  ${chalk.dim('(cardpilot-backend:serve)')}`,
+    },
+    {
+      name: 'cardpilot-ocr-service:serve',
+      value: 'cardpilot-ocr-service:serve',
+      message: `${chalk.bold('ocr')}      ${chalk.dim('(cardpilot-ocr-service:serve)')}`,
     },
     {
       name: 'cardpilot-app:run',

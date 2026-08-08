@@ -1,22 +1,26 @@
 # AI/ML Architecture Document
+
 # CardPilot - Credit Card Cashback & Rewards Intelligence Platform
 
 **Version:** 1.0
 **Date:** 2026-07-22
-**Trạng thái tổng thể:** Planned (Phase 2+) — chưa có code implementation nào tại thời điểm viết tài liệu này. Không có dependency AI/ML nào (TensorFlow, OpenCV, OCR SDK, v.v.) trong `pubspec.yaml` hay `package.json` hiện tại.
+**Trạng thái tổng thể:** Receipt OCR backend POC đã được implement tại
+`apps/cardpilot-ocr-service`; mobile/NestJS orchestration và benchmark bằng hóa
+đơn thật vẫn đang chờ triển khai. Python ML dependencies được cô lập trong
+Docker, không nằm trong `pubspec.yaml` hoặc Node dependency graph.
 
 ---
 
 ## 1. AI Capabilities Overview
 
-| Capability | Mục đích | Input | Output | Phase |
-|------------|----------|-------|--------|-------|
-| Receipt OCR | Tự động điền thông tin giao dịch từ ảnh hoá đơn | Ảnh hoá đơn (camera/gallery) | `amount`, `merchant` (raw text), `transaction_date` gợi ý | 2 |
-| Image Preprocessing (OpenCV) | Tăng chất lượng ảnh trước khi OCR (crop, deskew, contrast) | Ảnh gốc | Ảnh đã chuẩn hoá | 2 |
-| MCC Inference | Suy luận MCC từ tên merchant đã nhận diện | Merchant name (raw/normalized) | `mcc_code` gợi ý + `confidence_score` | 1 (rule/lookup-based) → 2 (model-based nếu cần) |
-| Spend Forecast | Dự đoán chi tiêu ngày/tháng/năm | Lịch sử `transactions` | Số tiền dự đoán theo mốc thời gian | 2 |
-| Card Recommendation | Gợi ý đổi/thêm thẻ khi hết hạn mức hoàn tiền | `user_cards`, `reward_rules`, chi tiêu hiện tại theo category | Danh sách thẻ đề xuất kèm lý do | 2 |
-| Recurring Bill Detection | Phát hiện giao dịch định kỳ (subscription) | Lịch sử `transactions` | Danh sách bill định kỳ nghi ngờ + chu kỳ dự đoán | 2 |
+| Capability                   | Mục đích                                        | Input                                                         | Output                                                    | Phase                                           |
+| ---------------------------- | ----------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| Receipt OCR                  | Tự động điền thông tin giao dịch từ ảnh hoá đơn | Ảnh hoá đơn (camera/gallery)                                  | `amount`, `merchant`, `address`, `transaction_date` gợi ý | POC implemented                                 |
+| Image Preprocessing (OpenCV) | Decode, chuẩn hóa ảnh, deskew và sửa rotation   | Ảnh gốc                                                       | Ảnh đã chuẩn hoá                                          | POC implemented                                 |
+| MCC Inference                | Suy luận MCC từ tên merchant đã nhận diện       | Merchant name (raw/normalized)                                | `mcc_code` gợi ý + `confidence_score`                     | 1 (rule/lookup-based) → 2 (model-based nếu cần) |
+| Spend Forecast               | Dự đoán chi tiêu ngày/tháng/năm                 | Lịch sử `transactions`                                        | Số tiền dự đoán theo mốc thời gian                        | 2                                               |
+| Card Recommendation          | Gợi ý đổi/thêm thẻ khi hết hạn mức hoàn tiền    | `user_cards`, `reward_rules`, chi tiêu hiện tại theo category | Danh sách thẻ đề xuất kèm lý do                           | 2                                               |
+| Recurring Bill Detection     | Phát hiện giao dịch định kỳ (subscription)      | Lịch sử `transactions`                                        | Danh sách bill định kỳ nghi ngờ + chu kỳ dự đoán          | 2                                               |
 
 ---
 
@@ -28,13 +32,13 @@
 Ảnh hoá đơn (camera/gallery)
     │
     ▼
-Preprocessing (OpenCV): crop, deskew, tăng contrast
+FastAPI validation + OpenCV decode + deskew/page rotation
     │
     ▼
-OCR Engine (nhà cung cấp: TBD — on-device ML Kit / Tesseract, hoặc cloud OCR API)
+PaddleOCR text detection + multi-scale VietOCR recognition
     │
     ▼
-Text Parsing: trích merchant name, amount, date từ raw text
+PICK key-information extraction + CardPilot output normalization
     │
     ▼
 MCC Inference: match merchant name (raw) → name_normalized → merchant_mcc_candidates
@@ -48,11 +52,11 @@ User xác nhận → tạo transactions + cashback_calculations (giống flow nh
 
 ### 2.2 Performance Targets (Draft)
 
-| Stage | Target (Draft — cần đo lại khi có prototype) |
-|-------|------------------------------------------------|
-| Preprocessing | < 500ms trên thiết bị tầm trung |
-| OCR + Parsing | < 3s |
-| MCC Inference (lookup) | < 100ms |
+| Stage                  | Target (Draft — cần đo lại khi có prototype)                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| Preprocessing          | Cần benchmark lại trên worker production                                                     |
+| OCR + Parsing          | Smoke test khoảng 14s trên Docker amd64 emulation; POC target p95 <= 8s trên worker mục tiêu |
+| MCC Inference (lookup) | < 100ms                                                                                      |
 
 ### 2.3 Fallback Strategy
 
@@ -107,9 +111,11 @@ Output: dự đoán tổng chi tiêu + dự đoán tiền hoàn, kèm cảnh bá
 ```
 
 ### 4.2 Performance Targets (Draft)
+
 Tính toán hoàn toàn có thể chạy bằng aggregation SQL đơn giản (không cần ML) cho Phase 2 — chỉ cân nhắc model dự đoán phức tạp hơn (time-series ML) nếu heuristic đơn giản không đủ chính xác sau khi có dữ liệu thật.
 
 ### 4.3 Fallback Strategy
+
 Không đủ lịch sử giao dịch (VD: user mới) → không hiển thị forecast, hiển thị thông báo "Cần thêm dữ liệu giao dịch để dự đoán chính xác hơn".
 
 ---
@@ -130,6 +136,7 @@ Nếu không có thẻ nào phù hợp → tra credit_cards catalog (thẻ chưa
 ```
 
 ### 5.2 Fallback Strategy
+
 Không có dữ liệu `reward_rules` đầy đủ cho category đó (do chưa thu thập chính sách ngân hàng) → không đưa ra gợi ý sai lệch, chỉ hiển thị cảnh báo hết hạn mức mà không kèm gợi ý thẻ cụ thể.
 
 ---
@@ -137,6 +144,7 @@ Không có dữ liệu `reward_rules` đầy đủ cho category đó (do chưa t
 ## 6. Recurring Bill Detection (Planned, Phase 2)
 
 ### 6.1 Architecture (đề xuất)
+
 ```
 Nhóm transactions theo merchant_id (hoặc name_normalized) + user_card_id
     │
@@ -154,7 +162,10 @@ User xác nhận → nhắc nhở trước chu kỳ tiếp theo
 
 ## 7. Cost Considerations (Draft)
 
-**TBD** — chưa chọn nhà cung cấp OCR (on-device vs cloud) nên chưa thể ước tính chi phí. Cần so sánh giữa:
+POC hiện self-host fork của `ndcuong91/MC_OCR`. Image self-contained khoảng
+4.3 GB và mỗi process xử lý một ảnh tại một thời điểm. Chi phí production phải
+được đo sau benchmark 30-50 hóa đơn và load test. Vẫn cần so sánh với:
+
 - On-device OCR (VD: Google ML Kit Text Recognition) — miễn phí, không cần backend xử lý ảnh, nhưng độ chính xác với hoá đơn Việt Nam cần kiểm chứng.
 - Cloud OCR API — chính xác hơn (có thể), nhưng phát sinh chi phí theo lượt gọi + cần upload ảnh (cân nhắc quyền riêng tư dữ liệu tài chính).
 

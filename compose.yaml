@@ -17,6 +17,22 @@ services:
       retries: 10
       start_period: 5s
 
+  ocr:
+    profiles: ['ocr']
+    platform: linux/amd64
+    image: cardpilot-ocr-service:local
+    build:
+      context: apps/cardpilot-ocr-service
+      args:
+        DOWNLOAD_MODELS: ${OCR_DOWNLOAD_MODELS:-1}
+    init: true
+    environment:
+      OCR_DEVICE: ${OCR_DEVICE:-cpu}
+      OCR_DEFAULT_CURRENCY: ${OCR_DEFAULT_CURRENCY:-VND}
+      OCR_MODEL_DIR: ${OCR_MODEL_DIR:-models}
+    ports:
+      - '${LOCAL_OCR_PORT:-8080}:8080'
+
 volumes:
   postgres_data:
     name: cardpilot_postgres_data

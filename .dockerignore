@@ -17,6 +17,7 @@ dockerignore
 dist
 coverage
 node_modules
+apps/cardpilot-ocr-service
 
 # Environment files (sensitive data)
 env

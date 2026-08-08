@@ -1,4 +1,5 @@
 # DevOps & CI/CD Document
+
 # CardPilot - Credit Card Cashback & Rewards Intelligence Platform
 
 **Version:** 1.0
@@ -10,34 +11,49 @@
 
 ## 1. Infrastructure Overview
 
-| Component | Hiện tại | Ghi chú |
-|-----------|---------|---------|
-| Local dev infra | Docker Compose — chỉ 1 service `postgres` | `compose.yaml`, khởi động bằng `pnpm infra` |
-| Backend hosting | Render | Deploy qua deploy hook, trigger từ CI |
-| Backend image registry | Docker Hub | `<DOCKERHUB_USERNAME>/cardpilot-backend:latest` |
-| Mobile UI preview hosting | Widgetbook Cloud | Deploy tự động từ nhánh `develop` |
-| Database | PostgreSQL — Supabase (production), `postgres:17-alpine` container (local dev) | `.env.example` |
+| Component                 | Hiện tại                                                                       | Ghi chú                                         |
+| ------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
+| Local dev infra           | Docker Compose — `postgres` và profile `ocr`                                   | `pnpm infra`, `pnpm dev:ocr`                    |
+| Backend hosting           | Render                                                                         | Deploy qua deploy hook, trigger từ CI           |
+| Backend image registry    | Docker Hub                                                                     | `<DOCKERHUB_USERNAME>/cardpilot-backend:latest` |
+| Mobile UI preview hosting | Widgetbook Cloud                                                               | Deploy tự động từ nhánh `develop`               |
+| Database                  | PostgreSQL — Supabase (production), `postgres:17-alpine` container (local dev) | `.env.example`                                  |
 
 ## 2. Local Development Setup
 
 ### 2.1 Docker Compose (`compose.yaml`)
 
-Chỉ có **1 service**: `postgres` (image `postgres:17-alpine`, `restart: unless-stopped`):
+Compose có hai service. `postgres` luôn khả dụng và dùng image
+`postgres:17-alpine`:
+
 - Env: `POSTGRES_DB=${LOCAL_POSTGRES_DB:-cardpilot}`, `POSTGRES_USER=${LOCAL_POSTGRES_USER:-cardpilot}`, `POSTGRES_PASSWORD=${LOCAL_POSTGRES_PASSWORD:-cardpilot}`
 - Port: `${LOCAL_POSTGRES_PORT:-5432}:5432`
 - Volume: named volume `cardpilot_postgres_data`
 - Healthcheck: `pg_isready -U $POSTGRES_USER -d $POSTGRES_DB` (interval 5s, timeout 5s, retries 10, start_period 5s)
 
-Không có service nào khác (không cache/queue/AI service) — đúng với thực trạng "chưa build gì ngoài schema" đã ghi ở `ARCH-SYS`/`ARCH-DB`.
+`ocr` nằm trong profile `ocr`, build từ `apps/cardpilot-ocr-service`, chạy
+`linux/amd64`, expose `${LOCAL_OCR_PORT:-8080}` và mặc định nhúng checkpoint
+model bằng `OCR_DOWNLOAD_MODELS=1`. Service không được khởi động bởi
+`pnpm infra`; dùng Nx target riêng.
 
 Lệnh: `pnpm infra` (= `docker compose up -d --wait --pull missing postgres`), `pnpm infra:down`, `pnpm infra:logs`.
 
-### 2.2 Dockerfile (backend only)
+OCR commands: `pnpm dev:ocr`, `pnpm ocr:build`, `pnpm ocr:stop`, và
+`pnpm ocr:logs`.
 
-Multi-stage build, chỉ build `cardpilot-backend`:
+### 2.2 Dockerfiles
+
+Root multi-stage Dockerfile chỉ build `cardpilot-backend`; `.dockerignore` loại
+`apps/cardpilot-ocr-service` khỏi backend build context:
+
 - **Stage `builder`**: `node:22-alpine`, bật Corepack + pin `pnpm@10.28.0`, copy `package.json`/`pnpm-lock.yaml`/`pnpm-workspace.yaml`/`nx.json`/`tsconfig.base.json`/`.prettierrc`/`.prettierignore` + `apps/` (tối ưu layer cache) → `pnpm install --frozen-lockfile` → `pnpm nx build cardpilot-backend` (output `dist/apps/cardpilot-backend`).
 - **Stage `runner`**: `node:22-alpine`, `NODE_ENV=production`, copy `package.json`/`pnpm-lock.yaml` đã được prune (qua Nx target `prune-lockfile`) → `pnpm install --prod --frozen-lockfile` → copy `main.js`/`main.js.map` → `EXPOSE 3000` → `CMD ["node", "main.js"]`.
 - Comment trong Dockerfile xác nhận: "Render sets $PORT, Nest uses process.env.PORT || 3000".
+
+OCR có multi-stage Python 3.8 image riêng tại
+`apps/cardpilot-ocr-service/Dockerfile`. Compiler chỉ nằm ở builder stage;
+runtime chứa FastAPI, legacy ML stack và tùy chọn checkpoint. Full local image
+khoảng 4.3 GB.
 
 ## 3. CI/CD Pipelines
 
@@ -81,28 +97,35 @@ Mỗi workflow trên cũng khai báo `workflow_call` để pipeline điều ph�
 chạy thủ công qua `workflow_dispatch` là thao tác operator độc lập và không đi
 qua quality gate tự động.
 
+OCR hiện chưa được nối vào GitHub Actions hoặc registry/deployment workflow.
+Trước production cần thêm path detection, Python lint/test, image build/push,
+license gate và deployment riêng; không ghép image OCR vào image NestJS.
+
 ## 4. Git Hooks (Husky)
 
-| Hook | Chạy gì |
-|------|---------|
-| `pre-commit` | Không làm gì (`# Intentionally light. Commit message is enforced in commit-msg.` + `true`) — không lint-staged, không test, không format check khi commit |
+| Hook         | Chạy gì                                                                                                                                                                      |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | Không làm gì (`# Intentionally light. Commit message is enforced in commit-msg.` + `true`) — không lint-staged, không test, không format check khi commit                    |
 | `commit-msg` | `pnpm commitlint --edit "$1"` — enforce Conventional Commits qua `commitlint.config.cjs` (extends `@commitlint/config-conventional`, thêm rule `scope-case` phải kebab-case) |
 
 Kích hoạt qua `"prepare": "husky"` trong `package.json` (chạy khi `pnpm install`). Xem thêm `docs/GIT_COMMIT_CONVENTIONS.md`.
 
 ## 5. Environment & Secrets Management
 
-| Biến | Dùng ở đâu | Bắt buộc | Ghi chú |
-|------|-----------|----------|---------|
-| `DATABASE_URL` | Runtime backend (`app.module.ts`, `getOrThrow`) | Có (throw nếu thiếu) | Khuyến nghị dùng Supabase session pooler URL trên Render |
-| `DIRECT_DATABASE_URL` | TypeORM CLI migration (`data-source.ts`) | Có (fallback về `DATABASE_URL` nếu thiếu) | Kết nối trực tiếp Supabase, chỉ dùng cho migration |
-| `PORT` | `main.ts` | Không (default `3000`) | Render tự set `$PORT` khi deploy |
-| `LOCAL_POSTGRES_DB/USER/PASSWORD/PORT` | `compose.yaml` (Postgres container local) | Không (có default `cardpilot`/`cardpilot`/`cardpilot`/`5432`) | Chỉ áp dụng cho dev local |
-| `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` | GitHub Actions secret (`backend-deploy.yml`) | Có (CI) | Đăng nhập Docker Hub để push image |
-| `RENDER_DEPLOY_HOOK_URL` | GitHub Actions secret (`backend-deploy.yml`) | Có (CI) | Trigger Render redeploy |
-| `WIDGETBOOK_CLOUD_API_KEY` | GitHub Actions secret (`widgetbook-cloud.yml`) | Có (CI, guard fail-fast) | Push build lên Widgetbook Cloud |
-| `SUPABASE_URL` | Flutter compile-time define (`--dart-define-from-file`) | Có (mobile auth) | Project URL; không hard-code trong source |
-| `SUPABASE_PUBLISHABLE_KEY` | Flutter compile-time define (`--dart-define-from-file`) | Có (mobile auth) | Publishable/anon key; không dùng service-role key trong app |
+| Biến                                     | Dùng ở đâu                                              | Bắt buộc                                                      | Ghi chú                                                     |
+| ---------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `DATABASE_URL`                           | Runtime backend (`app.module.ts`, `getOrThrow`)         | Có (throw nếu thiếu)                                          | Khuyến nghị dùng Supabase session pooler URL trên Render    |
+| `DIRECT_DATABASE_URL`                    | TypeORM CLI migration (`data-source.ts`)                | Có (fallback về `DATABASE_URL` nếu thiếu)                     | Kết nối trực tiếp Supabase, chỉ dùng cho migration          |
+| `PORT`                                   | `main.ts`                                               | Không (default `3000`)                                        | Render tự set `$PORT` khi deploy                            |
+| `LOCAL_POSTGRES_DB/USER/PASSWORD/PORT`   | `compose.yaml` (Postgres container local)               | Không (có default `cardpilot`/`cardpilot`/`cardpilot`/`5432`) | Chỉ áp dụng cho dev local                                   |
+| `LOCAL_OCR_PORT`                         | Local OCR Compose service                               | Không (default `8080`)                                        | Port FastAPI local                                          |
+| `OCR_DOWNLOAD_MODELS`                    | OCR image build                                         | Không (default `1`)                                           | Embed external checkpoints when building                    |
+| `OCR_DEVICE` / `OCR_DEFAULT_CURRENCY`    | OCR runtime                                             | Không (`cpu` / `VND`)                                         | Inference device and normalized currency                    |
+| `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` | GitHub Actions secret (`backend-deploy.yml`)            | Có (CI)                                                       | Đăng nhập Docker Hub để push image                          |
+| `RENDER_DEPLOY_HOOK_URL`                 | GitHub Actions secret (`backend-deploy.yml`)            | Có (CI)                                                       | Trigger Render redeploy                                     |
+| `WIDGETBOOK_CLOUD_API_KEY`               | GitHub Actions secret (`widgetbook-cloud.yml`)          | Có (CI, guard fail-fast)                                      | Push build lên Widgetbook Cloud                             |
+| `SUPABASE_URL`                           | Flutter compile-time define (`--dart-define-from-file`) | Có (mobile auth)                                              | Project URL; không hard-code trong source                   |
+| `SUPABASE_PUBLISHABLE_KEY`               | Flutter compile-time define (`--dart-define-from-file`) | Có (mobile auth)                                              | Publishable/anon key; không dùng service-role key trong app |
 
 ### Known Documentation Gaps
 

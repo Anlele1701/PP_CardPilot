@@ -8,6 +8,7 @@ CardPilot is an Nx monorepo containing:
 
 - `apps/cardpilot-backend`: NestJS + Fastify + TypeORM + PostgreSQL API.
 - `apps/cardpilot-backend-e2e`: backend end-to-end tests.
+- `apps/cardpilot-ocr-service`: FastAPI + PaddleOCR + VietOCR + PICK receipt OCR service.
 - `apps/cardpilot-mobile/apps/cardpilot_app`: production Flutter application.
 - `apps/cardpilot-mobile/apps/cardpilot_widgetbook`: Widgetbook preview application and preview-only mocks.
 - `apps/cardpilot-mobile/packages/cardpilot_ui`: reusable Flutter design system and components.
@@ -40,6 +41,7 @@ After reading the documentation:
 - Nx 22.7.x; prefer Nx targets from the repository root.
 - Flutter 3.41.9 stable.
 - PostgreSQL for the backend; SQLite, if added, belongs to the mobile application and has its own schema/migration lifecycle.
+- Python 3.10-3.12 for lightweight OCR lint/tests; the legacy ML runtime stays isolated in its Python 3.8 `linux/amd64` Docker image.
 - Follow `docs/architecture/mobile-sqlite.md` for local-profile scoping, Drift
   migrations, reference-cache versioning, outbox writes, and sync contracts;
   do not copy PostgreSQL tables into Flutter without the documented mapping.
@@ -54,12 +56,17 @@ Run these from the repository root unless noted otherwise.
 pnpm dev
 pnpm dev:backend
 pnpm dev:mobile
+pnpm dev:ocr
 pnpm infra
 pnpm infra:down
 
 pnpm nx run cardpilot-backend:lint
 pnpm nx run cardpilot-backend:test
 pnpm nx run cardpilot-backend:build
+
+pnpm nx run cardpilot-ocr-service:lint
+pnpm nx run cardpilot-ocr-service:test
+pnpm nx run cardpilot-ocr-service:build
 
 pnpm nx run cardpilot-app:analyze
 pnpm nx run cardpilot-app:test

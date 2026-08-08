@@ -1,0 +1,70 @@
+{
+  "name": "cardpilot-ocr-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/cardpilot-ocr-service/cardpilot_service",
+  "projectType": "application",
+  "tags": ["type:service", "domain:ocr", "language:python"],
+  "targets": {
+    "setup": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "apps/cardpilot-ocr-service",
+        "command": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["setup"],
+      "cache": true,
+      "options": {
+        "cwd": "apps/cardpilot-ocr-service",
+        "command": ".venv/bin/ruff check cardpilot_service tests scripts"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["setup"],
+      "cache": true,
+      "outputs": ["{projectRoot}/.coverage"],
+      "options": {
+        "cwd": "apps/cardpilot-ocr-service",
+        "command": ".venv/bin/pytest -q"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "docker compose --profile ocr build ocr"
+      }
+    },
+    "build-runtime": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "OCR_DOWNLOAD_MODELS=0 docker compose --profile ocr build ocr"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "docker compose --profile ocr up --build ocr"
+      }
+    },
+    "stop": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker compose --profile ocr stop ocr"
+      }
+    },
+    "logs": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "docker compose --profile ocr logs -f ocr"
+      }
+    }
+  }
+}

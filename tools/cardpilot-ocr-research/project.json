@@ -1,0 +1,49 @@
+{
+  "name": "cardpilot-ocr-research",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "tags": ["type:tool", "domain:ocr", "language:python"],
+  "targets": {
+    "setup": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "tools/cardpilot-ocr-research",
+        "command": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["setup"],
+      "cache": true,
+      "options": {
+        "cwd": "tools/cardpilot-ocr-research",
+        "command": ".venv/bin/ruff check scripts benchmark"
+      }
+    },
+    "prepare": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["setup"],
+      "options": {
+        "cwd": "tools/cardpilot-ocr-research",
+        "command": ".venv/bin/python scripts/prepare_mcocr.py"
+      }
+    },
+    "benchmark": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["setup"],
+      "options": {
+        "cwd": "tools/cardpilot-ocr-research",
+        "command": "PYTHONPATH=../../apps/cardpilot-ocr-service .venv/bin/python benchmark/run.py"
+      }
+    },
+    "export": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["setup"],
+      "options": {
+        "cwd": "tools/cardpilot-ocr-research",
+        "command": ".venv/bin/python scripts/export_artifact.py"
+      }
+    }
+  }
+}
