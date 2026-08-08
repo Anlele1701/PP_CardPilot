@@ -104,6 +104,7 @@ class InitialSetupController extends Notifier<InitialSetupState> {
     required String creditCardId,
     required String cardNickname,
     required int billingCycleDay,
+    required int creditLimitMinor,
   }) async {
     final accessMode = state.accessMode;
 
@@ -137,6 +138,7 @@ class InitialSetupController extends Notifier<InitialSetupState> {
       creditCardId: creditCardId,
       cardNickname: cardNickname,
       billingCycleDay: billingCycleDay,
+      creditLimitMinor: creditLimitMinor,
       authUserId: accessMode == AccessMode.authenticated ? authUser?.id : null,
       email: accessMode == AccessMode.authenticated ? authUser?.email : null,
     );

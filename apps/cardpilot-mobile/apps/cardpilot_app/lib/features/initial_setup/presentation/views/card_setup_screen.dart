@@ -23,6 +23,7 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _creditCardFieldKey = GlobalKey<FormFieldState<CreditCard>>();
   final _nicknameController = TextEditingController();
+  final _creditLimitController = TextEditingController();
   final _billingDayController = TextEditingController(text: '15');
   Bank? _selectedBank;
   CreditCard? _selectedCreditCard;
@@ -30,6 +31,7 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
   @override
   void dispose() {
     _nicknameController.dispose();
+    _creditLimitController.dispose();
     _billingDayController.dispose();
     super.dispose();
   }
@@ -53,6 +55,7 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
           creditCardId: selectedCreditCard.id,
           cardNickname: _nicknameController.text,
           billingCycleDay: int.parse(_billingDayController.text),
+          creditLimitMinor: int.parse(_creditLimitController.text),
         );
 
     if (!mounted) {
@@ -405,6 +408,27 @@ class _CardSetupScreenState extends ConsumerState<CardSetupScreen> {
                           return ValidationMessages.cardNicknameRequired;
                         }
                         return null;
+                      },
+                    ),
+                    const SizedBox(height: ui.AppSpacing.md),
+                    TextFormField(
+                      controller: _creditLimitController,
+                      enabled: !isSaving,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: 'Credit limit',
+                        hintText: 'e.g. 20000000',
+                        suffixText: 'VND',
+                        helperText:
+                            'Enter the total limit assigned by your bank.',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        final limit = int.tryParse(value ?? '');
+                        return limit == null || limit <= 0
+                            ? ValidationMessages.creditLimitPositive
+                            : null;
                       },
                     ),
                     const SizedBox(height: ui.AppSpacing.md),

@@ -22,6 +22,7 @@ void main() {
         creditCardId: 'card-acb-visa-platinum',
         cardNickname: '  Everyday Visa  ',
         billingCycleDay: 15,
+        creditLimitMinor: 20000000,
       );
 
       final workspace = result.when(
@@ -38,6 +39,7 @@ void main() {
       expect(workspace.cards.single.id, 'generated-1');
       expect(workspace.cards.single.nickname, 'Everyday Visa');
       expect(workspace.cards.single.billingCycleDay, 15);
+      expect(workspace.cards.single.creditLimitMinor, 20000000);
       expect(repository.savedWorkspace, same(workspace));
     }
   });

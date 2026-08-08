@@ -1,6 +1,6 @@
 # Mobile SQLite Architecture Proposal
 
-**Status:** Schema v1 implemented; sync and schema v2 remain planned
+**Status:** Schema v5 implemented; sync processing remains planned
 
 **Owner:** Mobile, with backend API support
 
@@ -12,7 +12,8 @@ This document defines the local persistence and sync architecture for
 `apps/cardpilot-mobile/apps/cardpilot_app`. Drift schema v1, database lifecycle,
 durable initial setup, startup restoration, and the empty-cache bank bootstrap
 are implemented. Version-aware reference refresh, outbox processing, backend
-synchronization, conflicts, and schema v2 remain planned.
+synchronization and reward calculation remain planned; local transactions,
+conflicts, and card credit limits are implemented through schema v3.
 
 ## 1. Goals and non-goals
 
@@ -41,20 +42,20 @@ synchronization, conflicts, and schema v2 remain planned.
 
 ## 2. Architecture decisions
 
-| Decision | Proposal | Reason |
-|----------|----------|--------|
-| Database library | `drift` + `drift_flutter` | Typed queries, transactions, reactive streams, migration tooling, and in-memory tests |
-| Database topology | One `cardpilot.sqlite` database per app installation | Reference caches are shared; `profile_id` scopes account data |
-| Local primary keys | UUID v4 strings generated before insert | The same ID can be retried and uploaded idempotently |
-| Time storage | UTC Unix epoch milliseconds in SQLite | Stable comparison and no local-time ambiguity; convert only at UI/API boundaries |
-| Money storage | Integer minor units plus ISO currency | Avoid floating-point rounding; VND currently has exponent 0 |
-| Rates | Scaled integers where local calculation is needed | Avoid `double` drift; document the scale per column |
-| Reference refresh | Server-owned dataset version and HTTP ETag, full snapshot replacement | Detects updates and deletions without timestamp gaps |
-| User-data sync | Transactional outbox | A successful local write cannot be lost between entity write and queueing |
-| Conflict detection | Server integer version / optimistic concurrency | Device clocks cannot safely decide the winning write |
-| Deletes | Tombstone until acknowledged by server | Prevents a deleted record from reappearing after pull |
-| Generated Drift code | Commit generated `.g.dart`, schema snapshots, and migration helpers | Builds remain deterministic and migration history is reviewable |
-| Encryption | Do not claim plain SQLite is encrypted; make encryption/privacy a production gate | Financial data is sensitive and platform file protection differs by OS |
+| Decision             | Proposal                                                                          | Reason                                                                                |
+| -------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Database library     | `drift` + `drift_flutter`                                                         | Typed queries, transactions, reactive streams, migration tooling, and in-memory tests |
+| Database topology    | One `cardpilot.sqlite` database per app installation                              | Reference caches are shared; `profile_id` scopes account data                         |
+| Local primary keys   | UUID v4 strings generated before insert                                           | The same ID can be retried and uploaded idempotently                                  |
+| Time storage         | UTC Unix epoch milliseconds in SQLite                                             | Stable comparison and no local-time ambiguity; convert only at UI/API boundaries      |
+| Money storage        | Integer minor units plus ISO currency                                             | Avoid floating-point rounding; VND currently has exponent 0                           |
+| Rates                | Scaled integers where local calculation is needed                                 | Avoid `double` drift; document the scale per column                                   |
+| Reference refresh    | Server-owned dataset version and HTTP ETag, full snapshot replacement             | Detects updates and deletions without timestamp gaps                                  |
+| User-data sync       | Transactional outbox                                                              | A successful local write cannot be lost between entity write and queueing             |
+| Conflict detection   | Server integer version / optimistic concurrency                                   | Device clocks cannot safely decide the winning write                                  |
+| Deletes              | Tombstone until acknowledged by server                                            | Prevents a deleted record from reappearing after pull                                 |
+| Generated Drift code | Commit generated `.g.dart`, schema snapshots, and migration helpers               | Builds remain deterministic and migration history is reviewable                       |
+| Encryption           | Do not claim plain SQLite is encrypted; make encryption/privacy a production gate | Financial data is sensitive and platform file protection differs by OS                |
 
 ### Why the SQLite schema is not an exact PostgreSQL copy
 
@@ -106,7 +107,7 @@ apps/cardpilot-mobile/apps/cardpilot_app/
       database/
         app_database.dart
         app_database.g.dart              # generated and committed
-        app_database.steps.dart          # generated when schema v2 is added
+        app_database.steps.dart          # generated step-by-step migrations
         database_connection.dart
         converters/                      # planned
           date_time_converter.dart
@@ -182,22 +183,22 @@ B can coexist, while a partial unique index allows only one live guest profile.
 A guest can later attach Supabase/backend IDs without changing its local ID or
 the `profile_id` stored by cards and transactions.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `id` | TEXT | PK, client UUID |
-| `access_mode` | TEXT | `guest` or `authenticated` |
-| `auth_user_id` | TEXT nullable | Supabase `auth.users.id`; unique when present |
-| `server_user_id` | TEXT nullable | `public.users.id`; unique when present |
-| `email` | TEXT nullable | Snapshot for authenticated account display |
-| `display_name` | TEXT | Required, max 40 |
-| `born_date_at_ms` | INTEGER nullable | Date normalized at mapper boundary |
-| `setup_completed_at_ms` | INTEGER nullable | Null means setup is incomplete |
-| `created_at_ms` | INTEGER | Required |
-| `updated_at_ms` | INTEGER | Required, changes on local edit |
-| `deleted_at_ms` | INTEGER nullable | Tombstone |
-| `sync_status` | TEXT | `local_only`, `pending`, `synced`, `failed`, `conflict` |
-| `server_version` | INTEGER nullable | Optimistic concurrency version |
-| `last_synced_at_ms` | INTEGER nullable | Diagnostics/UI only |
+| Column                  | Type             | Constraints / meaning                                   |
+| ----------------------- | ---------------- | ------------------------------------------------------- |
+| `id`                    | TEXT             | PK, client UUID                                         |
+| `access_mode`           | TEXT             | `guest` or `authenticated`                              |
+| `auth_user_id`          | TEXT nullable    | Supabase `auth.users.id`; unique when present           |
+| `server_user_id`        | TEXT nullable    | `public.users.id`; unique when present                  |
+| `email`                 | TEXT nullable    | Snapshot for authenticated account display              |
+| `display_name`          | TEXT             | Required, max 40                                        |
+| `born_date_at_ms`       | INTEGER nullable | Date normalized at mapper boundary                      |
+| `setup_completed_at_ms` | INTEGER nullable | Null means setup is incomplete                          |
+| `created_at_ms`         | INTEGER          | Required                                                |
+| `updated_at_ms`         | INTEGER          | Required, changes on local edit                         |
+| `deleted_at_ms`         | INTEGER nullable | Tombstone                                               |
+| `sync_status`           | TEXT             | `local_only`, `pending`, `synced`, `failed`, `conflict` |
+| `server_version`        | INTEGER nullable | Optimistic concurrency version                          |
+| `last_synced_at_ms`     | INTEGER nullable | Diagnostics/UI only                                     |
 
 Indexes and constraints:
 
@@ -210,26 +211,26 @@ Indexes and constraints:
 Singleton installation state. It selects the only profile visible to product
 queries without racing `is_active` flags across multiple rows.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `id` | INTEGER | PK, always `1` |
-| `installation_id` | TEXT | Unique client installation UUID |
+| Column              | Type          | Constraints / meaning                       |
+| ------------------- | ------------- | ------------------------------------------- |
+| `id`                | INTEGER       | PK, always `1`                              |
+| `installation_id`   | TEXT          | Unique client installation UUID             |
 | `active_profile_id` | TEXT nullable | FK → `local_profiles.id` ON DELETE SET NULL |
-| `created_at_ms` | INTEGER | Required |
-| `updated_at_ms` | INTEGER | Required |
+| `created_at_ms`     | INTEGER       | Required                                    |
+| `updated_at_ms`     | INTEGER       | Required                                    |
 
 #### `banks_cache`
 
 Read-only snapshot from `GET /api/v1/banks`.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `id` | TEXT | PK, PostgreSQL bank UUID |
-| `swift_code` | TEXT nullable | Unique when present |
-| `name` | TEXT | Required |
-| `short_name` | TEXT nullable | Display/search alias |
-| `server_updated_at_ms` | INTEGER nullable | Server audit value if exposed |
-| `dataset_version` | INTEGER | Cloud registry version that produced this row |
+| Column                 | Type             | Constraints / meaning                         |
+| ---------------------- | ---------------- | --------------------------------------------- |
+| `id`                   | TEXT             | PK, PostgreSQL bank UUID                      |
+| `swift_code`           | TEXT nullable    | Unique when present                           |
+| `name`                 | TEXT             | Required                                      |
+| `short_name`           | TEXT nullable    | Display/search alias                          |
+| `server_updated_at_ms` | INTEGER nullable | Server audit value if exposed                 |
+| `dataset_version`      | INTEGER          | Cloud registry version that produced this row |
 
 Indexes: `name`, `short_name`, and unique partial `swift_code`.
 
@@ -238,19 +239,19 @@ Indexes: `name`, `short_name`, and unique partial `swift_code`.
 Read-only catalog of card products. This table is added in schema v1 even if
 the backend endpoint lands after the initial SQLite foundation.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `id` | TEXT | PK, PostgreSQL credit-card UUID |
-| `bank_id` | TEXT | PostgreSQL bank UUID; intentionally no local FK |
-| `name` | TEXT | Required |
-| `network` | TEXT nullable | Visa, Mastercard, etc. |
-| `card_type` | TEXT | Defaults to `credit` |
-| `annual_fee_decimal` | TEXT nullable | Exact server decimal string until currency contract is explicit |
-| `source_url` | TEXT nullable | Reference source |
-| `last_verified_at_ms` | INTEGER nullable | Server verification time |
-| `is_active` | INTEGER | Boolean |
-| `server_updated_at_ms` | INTEGER nullable | Server audit value if exposed |
-| `dataset_version` | INTEGER | Cloud registry version |
+| Column                 | Type             | Constraints / meaning                                           |
+| ---------------------- | ---------------- | --------------------------------------------------------------- |
+| `id`                   | TEXT             | PK, PostgreSQL credit-card UUID                                 |
+| `bank_id`              | TEXT             | PostgreSQL bank UUID; intentionally no local FK                 |
+| `name`                 | TEXT             | Required                                                        |
+| `network`              | TEXT nullable    | Visa, Mastercard, etc.                                          |
+| `card_type`            | TEXT             | Defaults to `credit`                                            |
+| `annual_fee_decimal`   | TEXT nullable    | Exact server decimal string until currency contract is explicit |
+| `source_url`           | TEXT nullable    | Reference source                                                |
+| `last_verified_at_ms`  | INTEGER nullable | Server verification time                                        |
+| `is_active`            | INTEGER          | Boolean                                                         |
+| `server_updated_at_ms` | INTEGER nullable | Server audit value if exposed                                   |
+| `dataset_version`      | INTEGER          | Cloud registry version                                          |
 
 Indexes: `(bank_id, is_active)` and normalized `name` search when required.
 
@@ -270,23 +271,23 @@ refresh service validates references before committing a replacement snapshot.
 Durable replacement for the card portion of `LocalWorkspace`, partitioned by
 the owning local profile.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `id` | TEXT | PK, client UUID |
-| `profile_id` | TEXT | FK → `local_profiles.id` ON DELETE CASCADE |
-| `credit_card_id` | TEXT nullable | Catalog product ID when selected |
-| `bank_id` | TEXT nullable | Catalog bank ID when known |
-| `bank_name_snapshot` | TEXT | Required for offline display and custom `Other` bank |
-| `nickname` | TEXT | Required |
-| `billing_cycle_day` | INTEGER | Check 1–31 |
-| `is_default` | INTEGER | Boolean |
-| `has_annual_fee` | INTEGER | Boolean |
-| `created_at_ms` | INTEGER | Required |
-| `updated_at_ms` | INTEGER | Required |
-| `deleted_at_ms` | INTEGER nullable | Tombstone |
-| `sync_status` | TEXT | Same enum as profile |
-| `server_version` | INTEGER nullable | Optimistic concurrency version |
-| `last_synced_at_ms` | INTEGER nullable | Diagnostics/UI only |
+| Column               | Type             | Constraints / meaning                                |
+| -------------------- | ---------------- | ---------------------------------------------------- |
+| `id`                 | TEXT             | PK, client UUID                                      |
+| `profile_id`         | TEXT             | FK → `local_profiles.id` ON DELETE CASCADE           |
+| `credit_card_id`     | TEXT nullable    | Catalog product ID when selected                     |
+| `bank_id`            | TEXT nullable    | Catalog bank ID when known                           |
+| `bank_name_snapshot` | TEXT             | Required for offline display and custom `Other` bank |
+| `nickname`           | TEXT             | Required                                             |
+| `billing_cycle_day`  | INTEGER          | Check 1–31                                           |
+| `is_default`         | INTEGER          | Boolean                                              |
+| `has_annual_fee`     | INTEGER          | Boolean                                              |
+| `created_at_ms`      | INTEGER          | Required                                             |
+| `updated_at_ms`      | INTEGER          | Required                                             |
+| `deleted_at_ms`      | INTEGER nullable | Tombstone                                            |
+| `sync_status`        | TEXT             | Same enum as profile                                 |
+| `server_version`     | INTEGER nullable | Optimistic concurrency version                       |
+| `last_synced_at_ms`  | INTEGER nullable | Diagnostics/UI only                                  |
 
 Do not add a foreign key from user data to reference-cache rows. A full cache
 snapshot replacement or server-side catalog deletion must not delete or make a
@@ -303,21 +304,21 @@ Indexes:
 
 Stores user-generated mutations that have not been acknowledged by backend.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `id` | TEXT | PK, mutation UUID |
-| `profile_id` | TEXT | FK → local profile ON DELETE CASCADE |
-| `entity_type` | TEXT | `profile`, `user_card`, later `transaction` |
-| `entity_id` | TEXT | Client business ID |
-| `operation` | TEXT | `create`, `update`, or `delete` |
-| `payload_json` | TEXT | Versioned API payload; never auth tokens |
-| `payload_version` | INTEGER | Starts at 1 |
-| `base_server_version` | INTEGER nullable | Version edited by the client |
-| `idempotency_key` | TEXT | Unique; sent unchanged on every retry |
-| `attempt_count` | INTEGER | Starts at 0 |
-| `next_attempt_at_ms` | INTEGER | Retry scheduler |
-| `last_error_code` | TEXT nullable | Safe diagnostic code, not raw secrets |
-| `created_at_ms` | INTEGER | FIFO ordering |
+| Column                | Type             | Constraints / meaning                       |
+| --------------------- | ---------------- | ------------------------------------------- |
+| `id`                  | TEXT             | PK, mutation UUID                           |
+| `profile_id`          | TEXT             | FK → local profile ON DELETE CASCADE        |
+| `entity_type`         | TEXT             | `profile`, `user_card`, later `transaction` |
+| `entity_id`           | TEXT             | Client business ID                          |
+| `operation`           | TEXT             | `create`, `update`, or `delete`             |
+| `payload_json`        | TEXT             | Versioned API payload; never auth tokens    |
+| `payload_version`     | INTEGER          | Starts at 1                                 |
+| `base_server_version` | INTEGER nullable | Version edited by the client                |
+| `idempotency_key`     | TEXT             | Unique; sent unchanged on every retry       |
+| `attempt_count`       | INTEGER          | Starts at 0                                 |
+| `next_attempt_at_ms`  | INTEGER          | Retry scheduler                             |
+| `last_error_code`     | TEXT nullable    | Safe diagnostic code, not raw secrets       |
+| `created_at_ms`       | INTEGER          | FIFO ordering                               |
 
 Indexes: unique `idempotency_key` and
 `(profile_id, next_attempt_at_ms, created_at_ms)`.
@@ -334,28 +335,28 @@ operations in the same transaction, but it must preserve these semantics:
 
 One row per sync scope or reference dataset.
 
-| Column | Type | Constraints / meaning |
-|--------|------|-----------------------|
-| `scope` | TEXT | PK, e.g. `reference:banks`, `profile:<id>:user_data` |
-| `cursor` | TEXT nullable | Opaque server pull cursor |
-| `dataset_version` | INTEGER nullable | Cloud reference snapshot version |
-| `etag` | TEXT nullable | HTTP ETag |
-| `last_attempt_at_ms` | INTEGER nullable | Diagnostics |
-| `last_success_at_ms` | INTEGER nullable | Diagnostics shown for manual sync |
-| `next_check_at_ms` | INTEGER nullable | Optional retry/backoff boundary; does not schedule automatic sync |
-| `last_error_code` | TEXT nullable | Safe diagnostic code |
+| Column               | Type             | Constraints / meaning                                             |
+| -------------------- | ---------------- | ----------------------------------------------------------------- |
+| `scope`              | TEXT             | PK, e.g. `reference:banks`, `profile:<id>:user_data`              |
+| `cursor`             | TEXT nullable    | Opaque server pull cursor                                         |
+| `dataset_version`    | INTEGER nullable | Cloud reference snapshot version                                  |
+| `etag`               | TEXT nullable    | HTTP ETag                                                         |
+| `last_attempt_at_ms` | INTEGER nullable | Diagnostics                                                       |
+| `last_success_at_ms` | INTEGER nullable | Diagnostics shown for manual sync                                 |
+| `next_check_at_ms`   | INTEGER nullable | Optional retry/backoff boundary; does not schedule automatic sync |
+| `last_error_code`    | TEXT nullable    | Safe diagnostic code                                              |
 
 ### 6.2 Schema v2 — transactions and reward intelligence
 
-Schema v2 should only be introduced when transaction screens are implemented.
-It adds:
+Schema v2 is now implemented with the first local-first manual transaction
+flow. It adds:
 
-| Table | Important fields | Notes |
-|-------|------------------|-------|
-| `local_merchants` | client ID, optional server ID, raw/normalized name, location, country, sync columns | User-generated/local lookup |
-| `local_transactions` | client ID, profile/card/merchant IDs, timestamp, `amount_minor`, currency, MCC/category, estimate, source, note, sync columns | User-owned; FK to local card |
-| `local_cashback_calculations` | transaction ID, optional server rule ID, amount minor, scaled rate/confidence, explanation, status | Local estimate, server may replace |
-| `sync_conflicts` | mutation ID, entity identity, local/server JSON, server version, detected/resolved timestamps | Never silently discard a conflict |
+| Table                         | Important fields                                                                                                              | Notes                              |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `local_merchants`             | client ID, optional server ID, raw/normalized name, location, country, sync columns                                           | User-generated/local lookup        |
+| `local_transactions`          | client ID, profile/card/merchant IDs, timestamp, `amount_minor`, currency, MCC/category, estimate, source, note, sync columns | User-owned; FK to local card       |
+| `local_cashback_calculations` | transaction ID, optional server rule ID, amount minor, scaled rate/confidence, explanation, status                            | Local estimate, server may replace |
+| `sync_conflicts`              | mutation ID, entity identity, local/server JSON, server version, detected/resolved timestamps                                 | Never silently discard a conflict  |
 
 Transaction indexes must at minimum cover:
 
@@ -363,19 +364,83 @@ Transaction indexes must at minimum cover:
 - `(user_card_id, transaction_at_ms DESC)`;
 - `(profile_id, sync_status)`.
 
+### 6.3 Schema v3 — user-card credit limits
+
+Schema v3 adds `local_user_cards.credit_limit_minor`. New card setup and card
+editing require a positive VND limit; upgraded legacy rows use `0` until the
+user supplies their real bank limit. Home derives usage from local
+transactions for the card's current billing interval, using an inclusive
+previous billing boundary and exclusive next billing boundary. Billing days
+29–31 are clamped to the last valid day in shorter months.
+
+This value is labelled as an estimated remaining limit, not bank-authoritative
+available credit. A true available-credit figure also requires repayments,
+refunds, fees, pending authorizations, and the bank's current balance.
+
+`credit_limit_minor` is user-owned data and is included in the `user_card`
+outbox payload. The matching PostgreSQL `user_cards.credit_limit` migration is
+required before card synchronization is enabled.
+
+### 6.4 Schema v4 — merchant MCC candidates and local cashback
+
+Schema v4 adds `merchant_mcc_candidates_cache`. Each cached row retains the
+cloud merchant ID, merchant/branch label, optional location, MCC, confidence,
+source, and review status. This supports multiple branches and multiple MCC
+candidates without assigning one permanent MCC to a merchant brand.
+
+Opening the transaction editor lazily bootstraps the MCC catalog and reward
+rules for the selected credit-card product. Merchant text search refreshes
+matching candidates from the backend and caches them for offline fallback. The
+user may accept a candidate, choose another MCC eligible for the selected card,
+or search the complete MCC catalog.
+
+Creating or editing a transaction calculates the best matching active cashback
+rule locally. The transaction row, `mcc_code`, estimate fields,
+`local_cashback_calculations`, merchant row, and sync outbox mutations are
+committed in one SQLite transaction. The estimate applies effective dates,
+minimum transaction/monthly spend, and per-rule cycle cap. Non-`any` channel
+rules are intentionally not estimated until transaction channel is modeled.
+
+### 6.5 Schema v5 — merchant directory and local MCC contributions
+
+Schema v5 adds `payment_type` to `merchant_mcc_candidates_cache`, plus:
+
+- `merchant_branches_cache`, the complete cloud branch directory keyed by the
+  backend merchant UUID;
+- `local_merchant_mcc_contributions`, profile-scoped MCC/payment-type mappings
+  contributed on the device.
+
+The backend keeps one `merchants` row per branch. Mobile groups branches by
+`name_normalized` only for brand-level presentation. `payment_type` is an
+independent dimension (`in_store`, `online`, `shopee_food`, `grab_food`,
+`other`, or `unknown`) and must not be stored in the candidate `source` field.
+
+Opening the Merchants section under Transactions is cache-first. When
+`merchant_branches_cache` is empty, the repository downloads
+`GET /api/v1/merchants`, validates the whole response, and replaces branches
+and candidates in one Drift transaction.
+Existing cache is not automatically refreshed until dataset manifest support
+is implemented.
+
+Local contributions contain `profile_id`, merchant ID/name/location snapshots,
+MCC code/description, payment type, note, and timestamps. They are intentionally
+local-only in this phase: no `sync_status`, outbox operation, or cloud write is
+created. A later contribution API must define moderation and conflict behavior
+before these rows become synchronizable.
+
 ## 7. Domain-to-storage mapping
 
 The current domain model needs small changes during implementation:
 
-| Current domain value | SQLite mapping | Required code change |
-|----------------------|----------------|----------------------|
-| `LocalWorkspace.localId` | `local_profiles.id` | Treat current aggregate ID as local profile ID; generate UUID v4 |
-| `LocalWorkspace.accessMode` | `local_profiles.access_mode` | Enum ↔ stable lowercase string converter |
-| `LocalProfile.displayName` | `local_profiles.display_name` | Flatten current nested value into the profile row |
-| `LocalUserCard.bankId` | `bank_id` | Persist the selected backend bank ID; `creditCardId` remains future work |
-| `LocalUserCard.bankName` | `bank_name_snapshot` | Preserve the selected display name for offline rendering |
-| `LocalUserCard.nickname` | `nickname` | Add a client `id` before persistence |
-| `LocalUserCard.billingCycleDay` | `billing_cycle_day` | Preserve 1–31 validation in domain and DB |
+| Current domain value            | SQLite mapping                | Required code change                                                     |
+| ------------------------------- | ----------------------------- | ------------------------------------------------------------------------ |
+| `LocalWorkspace.localId`        | `local_profiles.id`           | Treat current aggregate ID as local profile ID; generate UUID v4         |
+| `LocalWorkspace.accessMode`     | `local_profiles.access_mode`  | Enum ↔ stable lowercase string converter                                |
+| `LocalProfile.displayName`      | `local_profiles.display_name` | Flatten current nested value into the profile row                        |
+| `LocalUserCard.bankId`          | `bank_id`                     | Persist the selected backend bank ID; `creditCardId` remains future work |
+| `LocalUserCard.bankName`        | `bank_name_snapshot`          | Preserve the selected display name for offline rendering                 |
+| `LocalUserCard.nickname`        | `nickname`                    | Add a client `id` before persistence                                     |
+| `LocalUserCard.billingCycleDay` | `billing_cycle_day`           | Preserve 1–31 validation in domain and DB                                |
 
 `InitialSetupRepository` can keep its `save/load` contract for the first slice,
 but the implementation changes from memory to Drift. `save(workspace)` maps the
@@ -504,12 +569,12 @@ committed; it does not mean cloud sync already succeeded.
 
 ### Proposed backend endpoints
 
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /api/v1/auth/bootstrap` | Verify Supabase token and create/load backend user |
-| `POST /api/v1/sync/claim-guest` | Associate a guest local profile and upload its initial snapshot idempotently |
-| `POST /api/v1/sync/push` | Accept ordered mutation batches |
-| `GET /api/v1/sync/pull?cursor=...` | Return server changes and next opaque cursor |
+| Endpoint                           | Purpose                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `POST /api/v1/auth/bootstrap`      | Verify Supabase token and create/load backend user                           |
+| `POST /api/v1/sync/claim-guest`    | Associate a guest local profile and upload its initial snapshot idempotently |
+| `POST /api/v1/sync/push`           | Accept ordered mutation batches                                              |
+| `GET /api/v1/sync/pull?cursor=...` | Return server changes and next opaque cursor                                 |
 
 Example push operation:
 
@@ -570,14 +635,14 @@ contract should add a monotonically increasing integer `version` for mutable
 user records. Comparing device timestamps is not sufficient because clocks can
 be wrong.
 
-| Data | Policy |
-|------|--------|
-| Reference data | Server snapshot always wins |
-| Membership | Server always wins |
-| Cashback award/official calculation | Server always wins; local value is estimate only |
-| Transaction create | Client UUID + idempotency key deduplicates |
-| Profile/card update | Require `baseServerVersion`; stale write returns conflict |
-| Delete | Tombstone locally and on server until all required sync retention passes |
+| Data                                | Policy                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| Reference data                      | Server snapshot always wins                                              |
+| Membership                          | Server always wins                                                       |
+| Cashback award/official calculation | Server always wins; local value is estimate only                         |
+| Transaction create                  | Client UUID + idempotency key deduplicates                               |
+| Profile/card update                 | Require `baseServerVersion`; stale write returns conflict                |
+| Delete                              | Tombstone locally and on server until all required sync retention passes |
 
 For the MVP, do not silently overwrite a profile/card conflict. Store both
 versions in `sync_conflicts` (schema v2 or earlier if multi-device sync ships
@@ -743,13 +808,45 @@ requires one default card.
 
 - Add server version columns/contracts and opaque pull cursor.
 - Implement push/pull coordinator, retries, and conflict persistence.
+
+### Slice 6 — Manual transaction lifecycle
+
+- [x] Add Drift schema v2 and a generated v1 → v2 migration.
+- [x] Add local merchant lookup plus transaction list/create/edit/tombstone.
+- [x] Commit merchant/transaction writes with their outbox operations.
+- [x] Connect the navigation `+` action to the manual transaction form.
+- [ ] Implement receipt scanning/OCR and map extracted data into the same
+      transaction draft.
+- [ ] Implement transaction filters.
+- [x] Implement MCC-aware local cashback calculations and breakdown UI.
 - Add sync status UI and explicit retry.
 
-### Slice 6 — Transactions and reward caches
+### Slice 7 — Credit-limit usage
 
-- Ship schema v2 through a tested migration.
-- Add local merchants, transactions, cashback estimates, conflicts, and their
-  sync operations. Common MCC/reward snapshots already belong to schema v1.
+- [x] Add Drift schema v3 and the generated v2 → v3 migration.
+- [x] Capture credit limit during initial setup and card create/edit.
+- [x] Include credit limit in local persistence and future sync payloads.
+- [x] Aggregate local transactions by each card's current billing interval.
+- [x] Show total available balance, per-card limit, and used amount on Home.
+- [ ] Distinguish statement closing day from payment due day if the product
+      later needs both concepts.
+
+### Slice 8 — Merchant MCC and reward caches
+
+- [x] Add read APIs for MCCs, card reward rules, and merchant candidates.
+- [x] Cache the full MCC catalog and per-card reward-rule mappings.
+- [x] Add schema v4 merchant/branch MCC candidate cache.
+- [x] Let users confirm a suggested, card-eligible, or arbitrary MCC.
+- [ ] Add dataset manifest/ETag refresh to replace bootstrap version `1`.
+
+### Slice 9 — Merchant directory and local contributions
+
+- [x] Add a complete merchant/branch directory API with payment-type MCCs.
+- [x] Add Drift schema v5 branch cache and profile-scoped contribution table.
+- [x] Add a Merchants section under Transactions, searchable directory, branch
+      details, manual-entry shortcut, and local contribution form.
+- [ ] Define a moderated backend contribution endpoint and sync contract.
+- [ ] Add merchant dataset version/ETag refresh to `Sync Now`.
 
 ## 16. Review checklist and blockers
 
@@ -778,6 +875,7 @@ Backend blockers before reliable cache/sync:
 ## Related documents
 
 - [Mobile Architecture](../MOBILE_ARCHITECTURE.md)
+- [Cashback Calculation Flow](../CASHBACK_CALCULATION_FLOW.md)
 - [Database Design](./database.md)
 - [API Design](./api.md)
 - [System Architecture](./system.md)

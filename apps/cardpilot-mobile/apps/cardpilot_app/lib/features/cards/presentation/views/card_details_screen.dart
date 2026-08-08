@@ -194,6 +194,12 @@ class CardDetailsScreen extends ConsumerWidget {
                     title: const Text('Billing cycle day'),
                     subtitle: Text('${card.billingCycleDay}'),
                   ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    leading: const Icon(Icons.account_balance_wallet_outlined),
+                    title: const Text('Credit limit'),
+                    subtitle: Text(_formatVnd(card.creditLimitMinor)),
+                  ),
                 ],
               ),
             ),
@@ -217,4 +223,13 @@ class CardDetailsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String _formatVnd(int amount) {
+  final digits = amount.abs().toString();
+  final grouped = digits.replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => '.',
+  );
+  return '${amount < 0 ? '-' : ''}₫$grouped';
 }

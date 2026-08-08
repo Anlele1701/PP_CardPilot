@@ -20,6 +20,7 @@ class CompleteInitialSetup {
     required String creditCardId,
     required String cardNickname,
     required int billingCycleDay,
+    required int creditLimitMinor,
     String? authUserId,
     String? email,
   }) async {
@@ -40,6 +41,7 @@ class CompleteInitialSetup {
             bankName: bankName,
             nickname: cardNickname.trim(),
             billingCycleDay: billingCycleDay,
+            creditLimitMinor: creditLimitMinor,
           ),
         ],
       );

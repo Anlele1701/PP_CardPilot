@@ -1,4 +1,5 @@
 # Database Design Document
+
 # CardPilot - Credit Card Cashback & Rewards Intelligence Platform
 
 **Version:** 1.1
@@ -15,10 +16,10 @@
 
 ## 1. Database Strategy Overview
 
-| Database | Type | Purpose | Trạng thái |
-|----------|------|---------|-----------|
-| PostgreSQL (Supabase-hosted) | Relational (OLTP) | Toàn bộ dữ liệu nghiệp vụ — source of truth | Active (schema tồn tại, chưa có application code đọc/ghi) |
-| SQLite (on-device, Flutter) | Embedded | Local-first user data + reference cache + sync outbox | Proposed with Drift — dependency/code chưa được thêm |
+| Database                     | Type              | Purpose                                               | Trạng thái                                                |
+| ---------------------------- | ----------------- | ----------------------------------------------------- | --------------------------------------------------------- |
+| PostgreSQL (Supabase-hosted) | Relational (OLTP) | Toàn bộ dữ liệu nghiệp vụ — source of truth           | Active (schema tồn tại, chưa có application code đọc/ghi) |
+| SQLite (on-device, Flutter)  | Embedded          | Local-first user data + reference cache + sync outbox | Proposed with Drift — dependency/code chưa được thêm      |
 
 Kết nối runtime dùng `DATABASE_URL` (khuyến nghị Supabase session pooler); migration CLI dùng `DIRECT_DATABASE_URL` (kết nối trực tiếp, fallback về `DATABASE_URL` nếu không có) — xem `apps/cardpilot-backend/src/database/data-source.ts`.
 
@@ -126,6 +127,7 @@ erDiagram
         uuid merchant_id FK
         varchar mcc_code FK
         varchar source
+        varchar payment_type
         numeric confidence_score
         integer feedback_count
         integer verified_count
@@ -317,6 +319,7 @@ CREATE TABLE "merchant_mcc_candidates" (
   "merchant_id" uuid NOT NULL,
   "mcc_code" varchar(4) NOT NULL,
   "source" varchar NOT NULL,
+  "payment_type" varchar NOT NULL DEFAULT 'unknown',
   "confidence_score" numeric(4,3) DEFAULT 0,
   "feedback_count" integer DEFAULT 0,
   "verified_count" integer DEFAULT 0,
@@ -473,19 +476,22 @@ Thiết kế chi tiết đã được tách sang
 
 ### 3.1 Local table summary
 
-| Local table | Purpose | Sync behavior |
-|-------------|---------|---------------|
-| `local_profiles` | Ranh giới dữ liệu guest/authenticated; nhiều account có thể tồn tại local | Link profile guest tới Supabase identity khi có account |
-| `app_settings` | Installation ID và `active_profile_id` singleton | Local only |
-| `local_user_cards` | Thẻ user tạo trên thiết bị | Push/upsert theo client-generated UUID |
-| `local_transactions` | Giao dịch manual/OCR | Outbox push theo client-generated UUID |
-| `local_cashback_calculations` | Kết quả dự tính để dashboard offline | Server có quyền tính lại và overwrite |
-| `banks_cache` | Danh mục ngân hàng read-only | Pull snapshot theo server dataset version/ETag |
-| `credit_cards_cache` | Danh mục sản phẩm thẻ read-only | Pull snapshot theo server dataset version/ETag |
-| `merchant_category_codes_cache` | Danh mục MCC read-only | Pull snapshot theo server dataset version/ETag |
-| `reward_rules_cache` | Master data read-only | Pull theo server version |
-| `sync_outbox` | Danh sách mutation chờ gửi | Retry an toàn theo idempotency key |
-| `sync_state` | Cursor, last sync time, dataset version và ETag | Local only |
+| Local table                        | Purpose                                                                   | Sync behavior                                           |
+| ---------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `local_profiles`                   | Ranh giới dữ liệu guest/authenticated; nhiều account có thể tồn tại local | Link profile guest tới Supabase identity khi có account |
+| `app_settings`                     | Installation ID và `active_profile_id` singleton                          | Local only                                              |
+| `local_user_cards`                 | Thẻ user tạo trên thiết bị                                                | Push/upsert theo client-generated UUID                  |
+| `local_transactions`               | Giao dịch manual/OCR                                                      | Outbox push theo client-generated UUID                  |
+| `local_cashback_calculations`      | Kết quả dự tính để dashboard offline                                      | Server có quyền tính lại và overwrite                   |
+| `banks_cache`                      | Danh mục ngân hàng read-only                                              | Pull snapshot theo server dataset version/ETag          |
+| `credit_cards_cache`               | Danh mục sản phẩm thẻ read-only                                           | Pull snapshot theo server dataset version/ETag          |
+| `merchant_category_codes_cache`    | Danh mục MCC read-only                                                    | Pull snapshot theo server dataset version/ETag          |
+| `reward_rules_cache`               | Master data read-only                                                     | Pull theo server version                                |
+| `merchant_branches_cache`          | Merchant/branch directory used for offline browsing                       | Pull complete server snapshot                           |
+| `merchant_mcc_candidates_cache`    | MCC mapping by branch and payment type                                    | Pull complete server snapshot                           |
+| `local_merchant_mcc_contributions` | Profile-scoped MCC contributions awaiting a future moderation contract    | Local only; no outbox yet                               |
+| `sync_outbox`                      | Danh sách mutation chờ gửi                                                | Retry an toàn theo idempotency key                      |
+| `sync_state`                       | Cursor, last sync time, dataset version và ETag                           | Local only                                              |
 
 Mọi record user-generated cần client UUID, timestamps, tombstone,
 `sync_status`, và `server_version`. Timestamp vật lý dùng UTC epoch milliseconds;
@@ -530,19 +536,22 @@ server-side deletion without relying only on `updated_at` timestamps.
 
 ## 4. Data Migration Strategy
 
-| Migration File | Mô tả |
-|-----------------|--------|
-| `1784410000000-create-initial-schema.ts` | Tạo toàn bộ 14 bảng PostgreSQL theo thứ tự dependency FK và các indexes/constraints ban đầu. |
-| `1784783921000-seed-reference-data.ts` | Seed banks và MCC reference data đúng một lần; có `down()` chỉ xoá các reference row thuộc migration. |
+| Migration File                                       | Mô tả                                                                                                                                                      |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `1784410000000-create-initial-schema.ts`             | Tạo toàn bộ 14 bảng PostgreSQL theo thứ tự dependency FK và các indexes/constraints ban đầu.                                                               |
+| `1784783921000-seed-reference-data.ts`               | Seed banks và MCC reference data đúng một lần; có `down()` chỉ xoá các reference row thuộc migration.                                                      |
 | `1785715200000-create-reference-dataset-versions.ts` | Tạo registry version cho common datasets và statement-level triggers tự tăng version khi memberships, banks, credit cards, MCC hoặc reward rules thay đổi. |
-| `1786072168025-seed-msb-bank-data.ts` | Seed các sản phẩm thẻ MSB, reward rules, MCC 5262 còn thiếu và mapping MCC cho từng rule. |
+| `1786072168025-seed-msb-bank-data.ts`                | Seed các sản phẩm thẻ MSB, reward rules, MCC 5262 còn thiếu và mapping MCC cho từng rule.                                                                  |
+| `1786170000000-add-merchant-payment-type.ts`         | Phân biệt MCC candidate theo payment type và thêm index cho merchant directory.                                                                            |
 
 Chạy migration qua:
+
 ```bash
 pnpm migration:show
 pnpm migration:run
 pnpm migration:revert
 ```
+
 (dùng `apps/cardpilot-backend/src/database/data-source.ts` làm DataSource — ưu tiên `DIRECT_DATABASE_URL`, fallback `DATABASE_URL`.)
 
 Khi thêm MCC master hoặc mapping MCC vào reward rule, làm theo

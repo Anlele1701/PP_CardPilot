@@ -28,6 +28,9 @@ class LocalUserCards extends Table {
   TextColumn get nickname => text().withLength(min: 1)();
   IntColumn get billingCycleDay =>
       integer().check(billingCycleDay.isBetweenValues(1, 31))();
+  IntColumn get creditLimitMinor => integer()
+      .withDefault(const Constant(0))
+      .check(creditLimitMinor.isBiggerOrEqualValue(0))();
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
   BoolColumn get hasAnnualFee => boolean().withDefault(const Constant(false))();
   IntColumn get createdAtMs => integer()();
@@ -51,4 +54,44 @@ class LocalUserCards extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('LocalMerchantMccContributionRow')
+@TableIndex(
+  name: 'idx_local_merchant_mcc_contributions_profile_merchant',
+  columns: {#profileId, #merchantServerId},
+)
+class LocalMerchantMccContributions extends Table {
+  @override
+  String get tableName => 'local_merchant_mcc_contributions';
+
+  TextColumn get id => text()();
+  TextColumn get profileId =>
+      text().references(LocalProfiles, #id, onDelete: KeyAction.cascade)();
+  TextColumn get merchantServerId => text()();
+  TextColumn get merchantNameSnapshot => text()();
+  TextColumn get locationText => text().nullable()();
+  TextColumn get mccCode => text().withLength(min: 4, max: 4)();
+  TextColumn get mccDescriptionSnapshot => text().nullable()();
+  TextColumn get paymentType => text().check(
+    paymentType.isIn(const [
+      'unknown',
+      'in_store',
+      'online',
+      'shopee_food',
+      'grab_food',
+      'other',
+    ]),
+  )();
+  TextColumn get note => text().nullable()();
+  IntColumn get createdAtMs => integer()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {profileId, merchantServerId, mccCode, paymentType},
+  ];
 }

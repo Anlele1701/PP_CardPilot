@@ -33,6 +33,7 @@ class UserCardLocalDataSource {
               bankNameSnapshot: card.bankName,
               nickname: card.nickname,
               billingCycleDay: card.billingCycleDay,
+              creditLimitMinor: Value(card.creditLimitMinor),
               isDefault: Value(isDefault),
               createdAtMs: now,
               updatedAtMs: now,
@@ -73,6 +74,7 @@ class UserCardLocalDataSource {
               bankNameSnapshot: Value(card.bankName),
               nickname: Value(card.nickname),
               billingCycleDay: Value(card.billingCycleDay),
+              creditLimitMinor: Value(card.creditLimitMinor),
               updatedAtMs: Value(now),
               syncStatus: const Value('pending'),
             ),
@@ -150,6 +152,7 @@ class UserCardLocalDataSource {
             'creditCardId': replacement.creditCardId,
             'nickname': replacement.nickname,
             'billingCycleDay': replacement.billingCycleDay,
+            'creditLimitMinor': replacement.creditLimitMinor,
             'isDefault': true,
           },
           baseServerVersion: replacement.serverVersion,
@@ -197,6 +200,7 @@ class UserCardLocalDataSource {
       'creditCardId': card.creditCardId,
       'nickname': card.nickname,
       'billingCycleDay': card.billingCycleDay,
+      'creditLimitMinor': card.creditLimitMinor,
       'isDefault': isDefault,
     };
   }
@@ -238,6 +242,7 @@ class UserCardLocalDataSource {
             bankName: row.bankNameSnapshot,
             nickname: row.nickname,
             billingCycleDay: row.billingCycleDay,
+            creditLimitMinor: row.creditLimitMinor,
           ),
         )
         .toList(growable: false);

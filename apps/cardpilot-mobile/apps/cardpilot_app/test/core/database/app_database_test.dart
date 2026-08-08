@@ -27,11 +27,11 @@ void main() {
     }
   });
 
-  test('creates schema v1 with valid foreign keys', () async {
+  test('creates schema v5 with valid foreign keys', () async {
     final database = AppDatabase(NativeDatabase(databaseFile));
     addTearDown(database.close);
 
-    expect(database.schemaVersion, 1);
+    expect(database.schemaVersion, 5);
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_schema WHERE type = 'table' ORDER BY name",
@@ -46,12 +46,19 @@ void main() {
         'banks_cache',
         'credit_cards_cache',
         'local_profiles',
+        'local_merchants',
+        'local_transactions',
+        'local_cashback_calculations',
         'local_user_cards',
         'merchant_category_codes_cache',
+        'merchant_mcc_candidates_cache',
+        'merchant_branches_cache',
+        'local_merchant_mcc_contributions',
         'memberships_cache',
         'reward_rule_mccs_cache',
         'reward_rules_cache',
         'sync_outbox',
+        'sync_conflicts',
         'sync_state',
       }),
     );
@@ -76,6 +83,7 @@ void main() {
             bankName: 'ACB',
             nickname: 'Everyday Visa',
             billingCycleDay: 15,
+            creditLimitMinor: 20000000,
           ),
         ],
       );
@@ -101,6 +109,7 @@ void main() {
       expect(restored?.cards.single.id, 'card-guest');
       expect(restored?.cards.single.bankId, 'bank-acb');
       expect(restored?.cards.single.nickname, 'Everyday Visa');
+      expect(restored?.cards.single.creditLimitMinor, 20000000);
     },
   );
 

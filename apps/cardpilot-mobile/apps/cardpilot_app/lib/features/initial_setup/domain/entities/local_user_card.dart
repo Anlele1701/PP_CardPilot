@@ -6,6 +6,7 @@ class LocalUserCard {
     required this.nickname,
     required this.billingCycleDay,
     this.creditCardId,
+    this.creditLimitMinor = 0,
   });
 
   final String id;
@@ -14,4 +15,5 @@ class LocalUserCard {
   final String bankName;
   final String nickname;
   final int billingCycleDay;
+  final int creditLimitMinor;
 }

@@ -4980,6 +4980,1163 @@ class RewardRuleMccsCacheCompanion
   }
 }
 
+class $MerchantMccCandidatesCacheTable extends MerchantMccCandidatesCache
+    with
+        TableInfo<
+          $MerchantMccCandidatesCacheTable,
+          MerchantMccCandidateCacheRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MerchantMccCandidatesCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantServerIdMeta = const VerificationMeta(
+    'merchantServerId',
+  );
+  @override
+  late final GeneratedColumn<String> merchantServerId = GeneratedColumn<String>(
+    'merchant_server_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantNameMeta = const VerificationMeta(
+    'merchantName',
+  );
+  @override
+  late final GeneratedColumn<String> merchantName = GeneratedColumn<String>(
+    'merchant_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantNameNormalizedMeta =
+      const VerificationMeta('merchantNameNormalized');
+  @override
+  late final GeneratedColumn<String> merchantNameNormalized =
+      GeneratedColumn<String>(
+        'merchant_name_normalized',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _locationTextMeta = const VerificationMeta(
+    'locationText',
+  );
+  @override
+  late final GeneratedColumn<String> locationText = GeneratedColumn<String>(
+    'location_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mccCodeMeta = const VerificationMeta(
+    'mccCode',
+  );
+  @override
+  late final GeneratedColumn<String> mccCode = GeneratedColumn<String>(
+    'mcc_code',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 4,
+      maxTextLength: 4,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mccDescriptionMeta = const VerificationMeta(
+    'mccDescription',
+  );
+  @override
+  late final GeneratedColumn<String> mccDescription = GeneratedColumn<String>(
+    'mcc_description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _paymentTypeMeta = const VerificationMeta(
+    'paymentType',
+  );
+  @override
+  late final GeneratedColumn<String> paymentType = GeneratedColumn<String>(
+    'payment_type',
+    aliasedName,
+    false,
+    check: () => paymentType.isIn(const [
+      'unknown',
+      'in_store',
+      'online',
+      'shopee_food',
+      'grab_food',
+      'other',
+    ]),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unknown'),
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _confidencePpmMeta = const VerificationMeta(
+    'confidencePpm',
+  );
+  @override
+  late final GeneratedColumn<int> confidencePpm = GeneratedColumn<int>(
+    'confidence_ppm',
+    aliasedName,
+    true,
+    check: () =>
+        confidencePpm.isNull() |
+        ComparableExpr(confidencePpm).isBetweenValues(0, 1000000),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _datasetVersionMeta = const VerificationMeta(
+    'datasetVersion',
+  );
+  @override
+  late final GeneratedColumn<int> datasetVersion = GeneratedColumn<int>(
+    'dataset_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    merchantServerId,
+    merchantName,
+    merchantNameNormalized,
+    locationText,
+    mccCode,
+    mccDescription,
+    paymentType,
+    source,
+    confidencePpm,
+    status,
+    datasetVersion,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'merchant_mcc_candidates_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MerchantMccCandidateCacheRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('merchant_server_id')) {
+      context.handle(
+        _merchantServerIdMeta,
+        merchantServerId.isAcceptableOrUnknown(
+          data['merchant_server_id']!,
+          _merchantServerIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantServerIdMeta);
+    }
+    if (data.containsKey('merchant_name')) {
+      context.handle(
+        _merchantNameMeta,
+        merchantName.isAcceptableOrUnknown(
+          data['merchant_name']!,
+          _merchantNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantNameMeta);
+    }
+    if (data.containsKey('merchant_name_normalized')) {
+      context.handle(
+        _merchantNameNormalizedMeta,
+        merchantNameNormalized.isAcceptableOrUnknown(
+          data['merchant_name_normalized']!,
+          _merchantNameNormalizedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantNameNormalizedMeta);
+    }
+    if (data.containsKey('location_text')) {
+      context.handle(
+        _locationTextMeta,
+        locationText.isAcceptableOrUnknown(
+          data['location_text']!,
+          _locationTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mcc_code')) {
+      context.handle(
+        _mccCodeMeta,
+        mccCode.isAcceptableOrUnknown(data['mcc_code']!, _mccCodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mccCodeMeta);
+    }
+    if (data.containsKey('mcc_description')) {
+      context.handle(
+        _mccDescriptionMeta,
+        mccDescription.isAcceptableOrUnknown(
+          data['mcc_description']!,
+          _mccDescriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('payment_type')) {
+      context.handle(
+        _paymentTypeMeta,
+        paymentType.isAcceptableOrUnknown(
+          data['payment_type']!,
+          _paymentTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('confidence_ppm')) {
+      context.handle(
+        _confidencePpmMeta,
+        confidencePpm.isAcceptableOrUnknown(
+          data['confidence_ppm']!,
+          _confidencePpmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('dataset_version')) {
+      context.handle(
+        _datasetVersionMeta,
+        datasetVersion.isAcceptableOrUnknown(
+          data['dataset_version']!,
+          _datasetVersionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MerchantMccCandidateCacheRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MerchantMccCandidateCacheRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      merchantServerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_server_id'],
+      )!,
+      merchantName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_name'],
+      )!,
+      merchantNameNormalized: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_name_normalized'],
+      )!,
+      locationText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_text'],
+      ),
+      mccCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mcc_code'],
+      )!,
+      mccDescription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mcc_description'],
+      ),
+      paymentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_type'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      confidencePpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}confidence_ppm'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      datasetVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}dataset_version'],
+      )!,
+    );
+  }
+
+  @override
+  $MerchantMccCandidatesCacheTable createAlias(String alias) {
+    return $MerchantMccCandidatesCacheTable(attachedDatabase, alias);
+  }
+}
+
+class MerchantMccCandidateCacheRow extends DataClass
+    implements Insertable<MerchantMccCandidateCacheRow> {
+  final String id;
+  final String merchantServerId;
+  final String merchantName;
+  final String merchantNameNormalized;
+  final String? locationText;
+  final String mccCode;
+  final String? mccDescription;
+  final String paymentType;
+  final String source;
+  final int? confidencePpm;
+  final String status;
+  final int datasetVersion;
+  const MerchantMccCandidateCacheRow({
+    required this.id,
+    required this.merchantServerId,
+    required this.merchantName,
+    required this.merchantNameNormalized,
+    this.locationText,
+    required this.mccCode,
+    this.mccDescription,
+    required this.paymentType,
+    required this.source,
+    this.confidencePpm,
+    required this.status,
+    required this.datasetVersion,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['merchant_server_id'] = Variable<String>(merchantServerId);
+    map['merchant_name'] = Variable<String>(merchantName);
+    map['merchant_name_normalized'] = Variable<String>(merchantNameNormalized);
+    if (!nullToAbsent || locationText != null) {
+      map['location_text'] = Variable<String>(locationText);
+    }
+    map['mcc_code'] = Variable<String>(mccCode);
+    if (!nullToAbsent || mccDescription != null) {
+      map['mcc_description'] = Variable<String>(mccDescription);
+    }
+    map['payment_type'] = Variable<String>(paymentType);
+    map['source'] = Variable<String>(source);
+    if (!nullToAbsent || confidencePpm != null) {
+      map['confidence_ppm'] = Variable<int>(confidencePpm);
+    }
+    map['status'] = Variable<String>(status);
+    map['dataset_version'] = Variable<int>(datasetVersion);
+    return map;
+  }
+
+  MerchantMccCandidatesCacheCompanion toCompanion(bool nullToAbsent) {
+    return MerchantMccCandidatesCacheCompanion(
+      id: Value(id),
+      merchantServerId: Value(merchantServerId),
+      merchantName: Value(merchantName),
+      merchantNameNormalized: Value(merchantNameNormalized),
+      locationText: locationText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationText),
+      mccCode: Value(mccCode),
+      mccDescription: mccDescription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mccDescription),
+      paymentType: Value(paymentType),
+      source: Value(source),
+      confidencePpm: confidencePpm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidencePpm),
+      status: Value(status),
+      datasetVersion: Value(datasetVersion),
+    );
+  }
+
+  factory MerchantMccCandidateCacheRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MerchantMccCandidateCacheRow(
+      id: serializer.fromJson<String>(json['id']),
+      merchantServerId: serializer.fromJson<String>(json['merchantServerId']),
+      merchantName: serializer.fromJson<String>(json['merchantName']),
+      merchantNameNormalized: serializer.fromJson<String>(
+        json['merchantNameNormalized'],
+      ),
+      locationText: serializer.fromJson<String?>(json['locationText']),
+      mccCode: serializer.fromJson<String>(json['mccCode']),
+      mccDescription: serializer.fromJson<String?>(json['mccDescription']),
+      paymentType: serializer.fromJson<String>(json['paymentType']),
+      source: serializer.fromJson<String>(json['source']),
+      confidencePpm: serializer.fromJson<int?>(json['confidencePpm']),
+      status: serializer.fromJson<String>(json['status']),
+      datasetVersion: serializer.fromJson<int>(json['datasetVersion']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'merchantServerId': serializer.toJson<String>(merchantServerId),
+      'merchantName': serializer.toJson<String>(merchantName),
+      'merchantNameNormalized': serializer.toJson<String>(
+        merchantNameNormalized,
+      ),
+      'locationText': serializer.toJson<String?>(locationText),
+      'mccCode': serializer.toJson<String>(mccCode),
+      'mccDescription': serializer.toJson<String?>(mccDescription),
+      'paymentType': serializer.toJson<String>(paymentType),
+      'source': serializer.toJson<String>(source),
+      'confidencePpm': serializer.toJson<int?>(confidencePpm),
+      'status': serializer.toJson<String>(status),
+      'datasetVersion': serializer.toJson<int>(datasetVersion),
+    };
+  }
+
+  MerchantMccCandidateCacheRow copyWith({
+    String? id,
+    String? merchantServerId,
+    String? merchantName,
+    String? merchantNameNormalized,
+    Value<String?> locationText = const Value.absent(),
+    String? mccCode,
+    Value<String?> mccDescription = const Value.absent(),
+    String? paymentType,
+    String? source,
+    Value<int?> confidencePpm = const Value.absent(),
+    String? status,
+    int? datasetVersion,
+  }) => MerchantMccCandidateCacheRow(
+    id: id ?? this.id,
+    merchantServerId: merchantServerId ?? this.merchantServerId,
+    merchantName: merchantName ?? this.merchantName,
+    merchantNameNormalized:
+        merchantNameNormalized ?? this.merchantNameNormalized,
+    locationText: locationText.present ? locationText.value : this.locationText,
+    mccCode: mccCode ?? this.mccCode,
+    mccDescription: mccDescription.present
+        ? mccDescription.value
+        : this.mccDescription,
+    paymentType: paymentType ?? this.paymentType,
+    source: source ?? this.source,
+    confidencePpm: confidencePpm.present
+        ? confidencePpm.value
+        : this.confidencePpm,
+    status: status ?? this.status,
+    datasetVersion: datasetVersion ?? this.datasetVersion,
+  );
+  MerchantMccCandidateCacheRow copyWithCompanion(
+    MerchantMccCandidatesCacheCompanion data,
+  ) {
+    return MerchantMccCandidateCacheRow(
+      id: data.id.present ? data.id.value : this.id,
+      merchantServerId: data.merchantServerId.present
+          ? data.merchantServerId.value
+          : this.merchantServerId,
+      merchantName: data.merchantName.present
+          ? data.merchantName.value
+          : this.merchantName,
+      merchantNameNormalized: data.merchantNameNormalized.present
+          ? data.merchantNameNormalized.value
+          : this.merchantNameNormalized,
+      locationText: data.locationText.present
+          ? data.locationText.value
+          : this.locationText,
+      mccCode: data.mccCode.present ? data.mccCode.value : this.mccCode,
+      mccDescription: data.mccDescription.present
+          ? data.mccDescription.value
+          : this.mccDescription,
+      paymentType: data.paymentType.present
+          ? data.paymentType.value
+          : this.paymentType,
+      source: data.source.present ? data.source.value : this.source,
+      confidencePpm: data.confidencePpm.present
+          ? data.confidencePpm.value
+          : this.confidencePpm,
+      status: data.status.present ? data.status.value : this.status,
+      datasetVersion: data.datasetVersion.present
+          ? data.datasetVersion.value
+          : this.datasetVersion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantMccCandidateCacheRow(')
+          ..write('id: $id, ')
+          ..write('merchantServerId: $merchantServerId, ')
+          ..write('merchantName: $merchantName, ')
+          ..write('merchantNameNormalized: $merchantNameNormalized, ')
+          ..write('locationText: $locationText, ')
+          ..write('mccCode: $mccCode, ')
+          ..write('mccDescription: $mccDescription, ')
+          ..write('paymentType: $paymentType, ')
+          ..write('source: $source, ')
+          ..write('confidencePpm: $confidencePpm, ')
+          ..write('status: $status, ')
+          ..write('datasetVersion: $datasetVersion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    merchantServerId,
+    merchantName,
+    merchantNameNormalized,
+    locationText,
+    mccCode,
+    mccDescription,
+    paymentType,
+    source,
+    confidencePpm,
+    status,
+    datasetVersion,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MerchantMccCandidateCacheRow &&
+          other.id == this.id &&
+          other.merchantServerId == this.merchantServerId &&
+          other.merchantName == this.merchantName &&
+          other.merchantNameNormalized == this.merchantNameNormalized &&
+          other.locationText == this.locationText &&
+          other.mccCode == this.mccCode &&
+          other.mccDescription == this.mccDescription &&
+          other.paymentType == this.paymentType &&
+          other.source == this.source &&
+          other.confidencePpm == this.confidencePpm &&
+          other.status == this.status &&
+          other.datasetVersion == this.datasetVersion);
+}
+
+class MerchantMccCandidatesCacheCompanion
+    extends UpdateCompanion<MerchantMccCandidateCacheRow> {
+  final Value<String> id;
+  final Value<String> merchantServerId;
+  final Value<String> merchantName;
+  final Value<String> merchantNameNormalized;
+  final Value<String?> locationText;
+  final Value<String> mccCode;
+  final Value<String?> mccDescription;
+  final Value<String> paymentType;
+  final Value<String> source;
+  final Value<int?> confidencePpm;
+  final Value<String> status;
+  final Value<int> datasetVersion;
+  final Value<int> rowid;
+  const MerchantMccCandidatesCacheCompanion({
+    this.id = const Value.absent(),
+    this.merchantServerId = const Value.absent(),
+    this.merchantName = const Value.absent(),
+    this.merchantNameNormalized = const Value.absent(),
+    this.locationText = const Value.absent(),
+    this.mccCode = const Value.absent(),
+    this.mccDescription = const Value.absent(),
+    this.paymentType = const Value.absent(),
+    this.source = const Value.absent(),
+    this.confidencePpm = const Value.absent(),
+    this.status = const Value.absent(),
+    this.datasetVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MerchantMccCandidatesCacheCompanion.insert({
+    required String id,
+    required String merchantServerId,
+    required String merchantName,
+    required String merchantNameNormalized,
+    this.locationText = const Value.absent(),
+    required String mccCode,
+    this.mccDescription = const Value.absent(),
+    this.paymentType = const Value.absent(),
+    required String source,
+    this.confidencePpm = const Value.absent(),
+    required String status,
+    this.datasetVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       merchantServerId = Value(merchantServerId),
+       merchantName = Value(merchantName),
+       merchantNameNormalized = Value(merchantNameNormalized),
+       mccCode = Value(mccCode),
+       source = Value(source),
+       status = Value(status);
+  static Insertable<MerchantMccCandidateCacheRow> custom({
+    Expression<String>? id,
+    Expression<String>? merchantServerId,
+    Expression<String>? merchantName,
+    Expression<String>? merchantNameNormalized,
+    Expression<String>? locationText,
+    Expression<String>? mccCode,
+    Expression<String>? mccDescription,
+    Expression<String>? paymentType,
+    Expression<String>? source,
+    Expression<int>? confidencePpm,
+    Expression<String>? status,
+    Expression<int>? datasetVersion,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (merchantServerId != null) 'merchant_server_id': merchantServerId,
+      if (merchantName != null) 'merchant_name': merchantName,
+      if (merchantNameNormalized != null)
+        'merchant_name_normalized': merchantNameNormalized,
+      if (locationText != null) 'location_text': locationText,
+      if (mccCode != null) 'mcc_code': mccCode,
+      if (mccDescription != null) 'mcc_description': mccDescription,
+      if (paymentType != null) 'payment_type': paymentType,
+      if (source != null) 'source': source,
+      if (confidencePpm != null) 'confidence_ppm': confidencePpm,
+      if (status != null) 'status': status,
+      if (datasetVersion != null) 'dataset_version': datasetVersion,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MerchantMccCandidatesCacheCompanion copyWith({
+    Value<String>? id,
+    Value<String>? merchantServerId,
+    Value<String>? merchantName,
+    Value<String>? merchantNameNormalized,
+    Value<String?>? locationText,
+    Value<String>? mccCode,
+    Value<String?>? mccDescription,
+    Value<String>? paymentType,
+    Value<String>? source,
+    Value<int?>? confidencePpm,
+    Value<String>? status,
+    Value<int>? datasetVersion,
+    Value<int>? rowid,
+  }) {
+    return MerchantMccCandidatesCacheCompanion(
+      id: id ?? this.id,
+      merchantServerId: merchantServerId ?? this.merchantServerId,
+      merchantName: merchantName ?? this.merchantName,
+      merchantNameNormalized:
+          merchantNameNormalized ?? this.merchantNameNormalized,
+      locationText: locationText ?? this.locationText,
+      mccCode: mccCode ?? this.mccCode,
+      mccDescription: mccDescription ?? this.mccDescription,
+      paymentType: paymentType ?? this.paymentType,
+      source: source ?? this.source,
+      confidencePpm: confidencePpm ?? this.confidencePpm,
+      status: status ?? this.status,
+      datasetVersion: datasetVersion ?? this.datasetVersion,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (merchantServerId.present) {
+      map['merchant_server_id'] = Variable<String>(merchantServerId.value);
+    }
+    if (merchantName.present) {
+      map['merchant_name'] = Variable<String>(merchantName.value);
+    }
+    if (merchantNameNormalized.present) {
+      map['merchant_name_normalized'] = Variable<String>(
+        merchantNameNormalized.value,
+      );
+    }
+    if (locationText.present) {
+      map['location_text'] = Variable<String>(locationText.value);
+    }
+    if (mccCode.present) {
+      map['mcc_code'] = Variable<String>(mccCode.value);
+    }
+    if (mccDescription.present) {
+      map['mcc_description'] = Variable<String>(mccDescription.value);
+    }
+    if (paymentType.present) {
+      map['payment_type'] = Variable<String>(paymentType.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (confidencePpm.present) {
+      map['confidence_ppm'] = Variable<int>(confidencePpm.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (datasetVersion.present) {
+      map['dataset_version'] = Variable<int>(datasetVersion.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantMccCandidatesCacheCompanion(')
+          ..write('id: $id, ')
+          ..write('merchantServerId: $merchantServerId, ')
+          ..write('merchantName: $merchantName, ')
+          ..write('merchantNameNormalized: $merchantNameNormalized, ')
+          ..write('locationText: $locationText, ')
+          ..write('mccCode: $mccCode, ')
+          ..write('mccDescription: $mccDescription, ')
+          ..write('paymentType: $paymentType, ')
+          ..write('source: $source, ')
+          ..write('confidencePpm: $confidencePpm, ')
+          ..write('status: $status, ')
+          ..write('datasetVersion: $datasetVersion, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MerchantBranchesCacheTable extends MerchantBranchesCache
+    with TableInfo<$MerchantBranchesCacheTable, MerchantBranchCacheRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MerchantBranchesCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameNormalizedMeta = const VerificationMeta(
+    'nameNormalized',
+  );
+  @override
+  late final GeneratedColumn<String> nameNormalized = GeneratedColumn<String>(
+    'name_normalized',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _locationTextMeta = const VerificationMeta(
+    'locationText',
+  );
+  @override
+  late final GeneratedColumn<String> locationText = GeneratedColumn<String>(
+    'location_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _datasetVersionMeta = const VerificationMeta(
+    'datasetVersion',
+  );
+  @override
+  late final GeneratedColumn<int> datasetVersion = GeneratedColumn<int>(
+    'dataset_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    nameNormalized,
+    locationText,
+    datasetVersion,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'merchant_branches_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MerchantBranchCacheRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('name_normalized')) {
+      context.handle(
+        _nameNormalizedMeta,
+        nameNormalized.isAcceptableOrUnknown(
+          data['name_normalized']!,
+          _nameNormalizedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nameNormalizedMeta);
+    }
+    if (data.containsKey('location_text')) {
+      context.handle(
+        _locationTextMeta,
+        locationText.isAcceptableOrUnknown(
+          data['location_text']!,
+          _locationTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('dataset_version')) {
+      context.handle(
+        _datasetVersionMeta,
+        datasetVersion.isAcceptableOrUnknown(
+          data['dataset_version']!,
+          _datasetVersionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MerchantBranchCacheRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MerchantBranchCacheRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      nameNormalized: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name_normalized'],
+      )!,
+      locationText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_text'],
+      ),
+      datasetVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}dataset_version'],
+      )!,
+    );
+  }
+
+  @override
+  $MerchantBranchesCacheTable createAlias(String alias) {
+    return $MerchantBranchesCacheTable(attachedDatabase, alias);
+  }
+}
+
+class MerchantBranchCacheRow extends DataClass
+    implements Insertable<MerchantBranchCacheRow> {
+  final String id;
+  final String name;
+  final String nameNormalized;
+  final String? locationText;
+  final int datasetVersion;
+  const MerchantBranchCacheRow({
+    required this.id,
+    required this.name,
+    required this.nameNormalized,
+    this.locationText,
+    required this.datasetVersion,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['name_normalized'] = Variable<String>(nameNormalized);
+    if (!nullToAbsent || locationText != null) {
+      map['location_text'] = Variable<String>(locationText);
+    }
+    map['dataset_version'] = Variable<int>(datasetVersion);
+    return map;
+  }
+
+  MerchantBranchesCacheCompanion toCompanion(bool nullToAbsent) {
+    return MerchantBranchesCacheCompanion(
+      id: Value(id),
+      name: Value(name),
+      nameNormalized: Value(nameNormalized),
+      locationText: locationText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationText),
+      datasetVersion: Value(datasetVersion),
+    );
+  }
+
+  factory MerchantBranchCacheRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MerchantBranchCacheRow(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      nameNormalized: serializer.fromJson<String>(json['nameNormalized']),
+      locationText: serializer.fromJson<String?>(json['locationText']),
+      datasetVersion: serializer.fromJson<int>(json['datasetVersion']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'nameNormalized': serializer.toJson<String>(nameNormalized),
+      'locationText': serializer.toJson<String?>(locationText),
+      'datasetVersion': serializer.toJson<int>(datasetVersion),
+    };
+  }
+
+  MerchantBranchCacheRow copyWith({
+    String? id,
+    String? name,
+    String? nameNormalized,
+    Value<String?> locationText = const Value.absent(),
+    int? datasetVersion,
+  }) => MerchantBranchCacheRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    nameNormalized: nameNormalized ?? this.nameNormalized,
+    locationText: locationText.present ? locationText.value : this.locationText,
+    datasetVersion: datasetVersion ?? this.datasetVersion,
+  );
+  MerchantBranchCacheRow copyWithCompanion(
+    MerchantBranchesCacheCompanion data,
+  ) {
+    return MerchantBranchCacheRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      nameNormalized: data.nameNormalized.present
+          ? data.nameNormalized.value
+          : this.nameNormalized,
+      locationText: data.locationText.present
+          ? data.locationText.value
+          : this.locationText,
+      datasetVersion: data.datasetVersion.present
+          ? data.datasetVersion.value
+          : this.datasetVersion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantBranchCacheRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('nameNormalized: $nameNormalized, ')
+          ..write('locationText: $locationText, ')
+          ..write('datasetVersion: $datasetVersion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, nameNormalized, locationText, datasetVersion);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MerchantBranchCacheRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.nameNormalized == this.nameNormalized &&
+          other.locationText == this.locationText &&
+          other.datasetVersion == this.datasetVersion);
+}
+
+class MerchantBranchesCacheCompanion
+    extends UpdateCompanion<MerchantBranchCacheRow> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> nameNormalized;
+  final Value<String?> locationText;
+  final Value<int> datasetVersion;
+  final Value<int> rowid;
+  const MerchantBranchesCacheCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.nameNormalized = const Value.absent(),
+    this.locationText = const Value.absent(),
+    this.datasetVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MerchantBranchesCacheCompanion.insert({
+    required String id,
+    required String name,
+    required String nameNormalized,
+    this.locationText = const Value.absent(),
+    this.datasetVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       nameNormalized = Value(nameNormalized);
+  static Insertable<MerchantBranchCacheRow> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? nameNormalized,
+    Expression<String>? locationText,
+    Expression<int>? datasetVersion,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (nameNormalized != null) 'name_normalized': nameNormalized,
+      if (locationText != null) 'location_text': locationText,
+      if (datasetVersion != null) 'dataset_version': datasetVersion,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MerchantBranchesCacheCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? nameNormalized,
+    Value<String?>? locationText,
+    Value<int>? datasetVersion,
+    Value<int>? rowid,
+  }) {
+    return MerchantBranchesCacheCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      nameNormalized: nameNormalized ?? this.nameNormalized,
+      locationText: locationText ?? this.locationText,
+      datasetVersion: datasetVersion ?? this.datasetVersion,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (nameNormalized.present) {
+      map['name_normalized'] = Variable<String>(nameNormalized.value);
+    }
+    if (locationText.present) {
+      map['location_text'] = Variable<String>(locationText.value);
+    }
+    if (datasetVersion.present) {
+      map['dataset_version'] = Variable<int>(datasetVersion.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantBranchesCacheCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('nameNormalized: $nameNormalized, ')
+          ..write('locationText: $locationText, ')
+          ..write('datasetVersion: $datasetVersion, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $LocalUserCardsTable extends LocalUserCards
     with TableInfo<$LocalUserCardsTable, LocalUserCardRow> {
   @override
@@ -5063,6 +6220,19 @@ class $LocalUserCardsTable extends LocalUserCards
     check: () => ComparableExpr(billingCycleDay).isBetweenValues(1, 31),
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _creditLimitMinorMeta = const VerificationMeta(
+    'creditLimitMinor',
+  );
+  @override
+  late final GeneratedColumn<int> creditLimitMinor = GeneratedColumn<int>(
+    'credit_limit_minor',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(creditLimitMinor).isBiggerOrEqualValue(0),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _isDefaultMeta = const VerificationMeta(
     'isDefault',
@@ -5180,6 +6350,7 @@ class $LocalUserCardsTable extends LocalUserCards
     bankNameSnapshot,
     nickname,
     billingCycleDay,
+    creditLimitMinor,
     isDefault,
     hasAnnualFee,
     createdAtMs,
@@ -5258,6 +6429,15 @@ class $LocalUserCardsTable extends LocalUserCards
       );
     } else if (isInserting) {
       context.missing(_billingCycleDayMeta);
+    }
+    if (data.containsKey('credit_limit_minor')) {
+      context.handle(
+        _creditLimitMinorMeta,
+        creditLimitMinor.isAcceptableOrUnknown(
+          data['credit_limit_minor']!,
+          _creditLimitMinorMeta,
+        ),
+      );
     }
     if (data.containsKey('is_default')) {
       context.handle(
@@ -5366,6 +6546,10 @@ class $LocalUserCardsTable extends LocalUserCards
         DriftSqlType.int,
         data['${effectivePrefix}billing_cycle_day'],
       )!,
+      creditLimitMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}credit_limit_minor'],
+      )!,
       isDefault: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_default'],
@@ -5416,6 +6600,7 @@ class LocalUserCardRow extends DataClass
   final String bankNameSnapshot;
   final String nickname;
   final int billingCycleDay;
+  final int creditLimitMinor;
   final bool isDefault;
   final bool hasAnnualFee;
   final int createdAtMs;
@@ -5432,6 +6617,7 @@ class LocalUserCardRow extends DataClass
     required this.bankNameSnapshot,
     required this.nickname,
     required this.billingCycleDay,
+    required this.creditLimitMinor,
     required this.isDefault,
     required this.hasAnnualFee,
     required this.createdAtMs,
@@ -5455,6 +6641,7 @@ class LocalUserCardRow extends DataClass
     map['bank_name_snapshot'] = Variable<String>(bankNameSnapshot);
     map['nickname'] = Variable<String>(nickname);
     map['billing_cycle_day'] = Variable<int>(billingCycleDay);
+    map['credit_limit_minor'] = Variable<int>(creditLimitMinor);
     map['is_default'] = Variable<bool>(isDefault);
     map['has_annual_fee'] = Variable<bool>(hasAnnualFee);
     map['created_at_ms'] = Variable<int>(createdAtMs);
@@ -5485,6 +6672,7 @@ class LocalUserCardRow extends DataClass
       bankNameSnapshot: Value(bankNameSnapshot),
       nickname: Value(nickname),
       billingCycleDay: Value(billingCycleDay),
+      creditLimitMinor: Value(creditLimitMinor),
       isDefault: Value(isDefault),
       hasAnnualFee: Value(hasAnnualFee),
       createdAtMs: Value(createdAtMs),
@@ -5515,6 +6703,7 @@ class LocalUserCardRow extends DataClass
       bankNameSnapshot: serializer.fromJson<String>(json['bankNameSnapshot']),
       nickname: serializer.fromJson<String>(json['nickname']),
       billingCycleDay: serializer.fromJson<int>(json['billingCycleDay']),
+      creditLimitMinor: serializer.fromJson<int>(json['creditLimitMinor']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       hasAnnualFee: serializer.fromJson<bool>(json['hasAnnualFee']),
       createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
@@ -5536,6 +6725,7 @@ class LocalUserCardRow extends DataClass
       'bankNameSnapshot': serializer.toJson<String>(bankNameSnapshot),
       'nickname': serializer.toJson<String>(nickname),
       'billingCycleDay': serializer.toJson<int>(billingCycleDay),
+      'creditLimitMinor': serializer.toJson<int>(creditLimitMinor),
       'isDefault': serializer.toJson<bool>(isDefault),
       'hasAnnualFee': serializer.toJson<bool>(hasAnnualFee),
       'createdAtMs': serializer.toJson<int>(createdAtMs),
@@ -5555,6 +6745,7 @@ class LocalUserCardRow extends DataClass
     String? bankNameSnapshot,
     String? nickname,
     int? billingCycleDay,
+    int? creditLimitMinor,
     bool? isDefault,
     bool? hasAnnualFee,
     int? createdAtMs,
@@ -5571,6 +6762,7 @@ class LocalUserCardRow extends DataClass
     bankNameSnapshot: bankNameSnapshot ?? this.bankNameSnapshot,
     nickname: nickname ?? this.nickname,
     billingCycleDay: billingCycleDay ?? this.billingCycleDay,
+    creditLimitMinor: creditLimitMinor ?? this.creditLimitMinor,
     isDefault: isDefault ?? this.isDefault,
     hasAnnualFee: hasAnnualFee ?? this.hasAnnualFee,
     createdAtMs: createdAtMs ?? this.createdAtMs,
@@ -5599,6 +6791,9 @@ class LocalUserCardRow extends DataClass
       billingCycleDay: data.billingCycleDay.present
           ? data.billingCycleDay.value
           : this.billingCycleDay,
+      creditLimitMinor: data.creditLimitMinor.present
+          ? data.creditLimitMinor.value
+          : this.creditLimitMinor,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       hasAnnualFee: data.hasAnnualFee.present
           ? data.hasAnnualFee.value
@@ -5634,6 +6829,7 @@ class LocalUserCardRow extends DataClass
           ..write('bankNameSnapshot: $bankNameSnapshot, ')
           ..write('nickname: $nickname, ')
           ..write('billingCycleDay: $billingCycleDay, ')
+          ..write('creditLimitMinor: $creditLimitMinor, ')
           ..write('isDefault: $isDefault, ')
           ..write('hasAnnualFee: $hasAnnualFee, ')
           ..write('createdAtMs: $createdAtMs, ')
@@ -5655,6 +6851,7 @@ class LocalUserCardRow extends DataClass
     bankNameSnapshot,
     nickname,
     billingCycleDay,
+    creditLimitMinor,
     isDefault,
     hasAnnualFee,
     createdAtMs,
@@ -5675,6 +6872,7 @@ class LocalUserCardRow extends DataClass
           other.bankNameSnapshot == this.bankNameSnapshot &&
           other.nickname == this.nickname &&
           other.billingCycleDay == this.billingCycleDay &&
+          other.creditLimitMinor == this.creditLimitMinor &&
           other.isDefault == this.isDefault &&
           other.hasAnnualFee == this.hasAnnualFee &&
           other.createdAtMs == this.createdAtMs &&
@@ -5693,6 +6891,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
   final Value<String> bankNameSnapshot;
   final Value<String> nickname;
   final Value<int> billingCycleDay;
+  final Value<int> creditLimitMinor;
   final Value<bool> isDefault;
   final Value<bool> hasAnnualFee;
   final Value<int> createdAtMs;
@@ -5710,6 +6909,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
     this.bankNameSnapshot = const Value.absent(),
     this.nickname = const Value.absent(),
     this.billingCycleDay = const Value.absent(),
+    this.creditLimitMinor = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.hasAnnualFee = const Value.absent(),
     this.createdAtMs = const Value.absent(),
@@ -5728,6 +6928,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
     required String bankNameSnapshot,
     required String nickname,
     required int billingCycleDay,
+    this.creditLimitMinor = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.hasAnnualFee = const Value.absent(),
     required int createdAtMs,
@@ -5752,6 +6953,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
     Expression<String>? bankNameSnapshot,
     Expression<String>? nickname,
     Expression<int>? billingCycleDay,
+    Expression<int>? creditLimitMinor,
     Expression<bool>? isDefault,
     Expression<bool>? hasAnnualFee,
     Expression<int>? createdAtMs,
@@ -5770,6 +6972,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
       if (bankNameSnapshot != null) 'bank_name_snapshot': bankNameSnapshot,
       if (nickname != null) 'nickname': nickname,
       if (billingCycleDay != null) 'billing_cycle_day': billingCycleDay,
+      if (creditLimitMinor != null) 'credit_limit_minor': creditLimitMinor,
       if (isDefault != null) 'is_default': isDefault,
       if (hasAnnualFee != null) 'has_annual_fee': hasAnnualFee,
       if (createdAtMs != null) 'created_at_ms': createdAtMs,
@@ -5790,6 +6993,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
     Value<String>? bankNameSnapshot,
     Value<String>? nickname,
     Value<int>? billingCycleDay,
+    Value<int>? creditLimitMinor,
     Value<bool>? isDefault,
     Value<bool>? hasAnnualFee,
     Value<int>? createdAtMs,
@@ -5808,6 +7012,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
       bankNameSnapshot: bankNameSnapshot ?? this.bankNameSnapshot,
       nickname: nickname ?? this.nickname,
       billingCycleDay: billingCycleDay ?? this.billingCycleDay,
+      creditLimitMinor: creditLimitMinor ?? this.creditLimitMinor,
       isDefault: isDefault ?? this.isDefault,
       hasAnnualFee: hasAnnualFee ?? this.hasAnnualFee,
       createdAtMs: createdAtMs ?? this.createdAtMs,
@@ -5843,6 +7048,9 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
     }
     if (billingCycleDay.present) {
       map['billing_cycle_day'] = Variable<int>(billingCycleDay.value);
+    }
+    if (creditLimitMinor.present) {
+      map['credit_limit_minor'] = Variable<int>(creditLimitMinor.value);
     }
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
@@ -5884,6 +7092,7 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
           ..write('bankNameSnapshot: $bankNameSnapshot, ')
           ..write('nickname: $nickname, ')
           ..write('billingCycleDay: $billingCycleDay, ')
+          ..write('creditLimitMinor: $creditLimitMinor, ')
           ..write('isDefault: $isDefault, ')
           ..write('hasAnnualFee: $hasAnnualFee, ')
           ..write('createdAtMs: $createdAtMs, ')
@@ -5892,6 +7101,743 @@ class LocalUserCardsCompanion extends UpdateCompanion<LocalUserCardRow> {
           ..write('syncStatus: $syncStatus, ')
           ..write('serverVersion: $serverVersion, ')
           ..write('lastSyncedAtMs: $lastSyncedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LocalMerchantMccContributionsTable extends LocalMerchantMccContributions
+    with
+        TableInfo<
+          $LocalMerchantMccContributionsTable,
+          LocalMerchantMccContributionRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalMerchantMccContributionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _merchantServerIdMeta = const VerificationMeta(
+    'merchantServerId',
+  );
+  @override
+  late final GeneratedColumn<String> merchantServerId = GeneratedColumn<String>(
+    'merchant_server_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantNameSnapshotMeta =
+      const VerificationMeta('merchantNameSnapshot');
+  @override
+  late final GeneratedColumn<String> merchantNameSnapshot =
+      GeneratedColumn<String>(
+        'merchant_name_snapshot',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _locationTextMeta = const VerificationMeta(
+    'locationText',
+  );
+  @override
+  late final GeneratedColumn<String> locationText = GeneratedColumn<String>(
+    'location_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mccCodeMeta = const VerificationMeta(
+    'mccCode',
+  );
+  @override
+  late final GeneratedColumn<String> mccCode = GeneratedColumn<String>(
+    'mcc_code',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 4,
+      maxTextLength: 4,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mccDescriptionSnapshotMeta =
+      const VerificationMeta('mccDescriptionSnapshot');
+  @override
+  late final GeneratedColumn<String> mccDescriptionSnapshot =
+      GeneratedColumn<String>(
+        'mcc_description_snapshot',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _paymentTypeMeta = const VerificationMeta(
+    'paymentType',
+  );
+  @override
+  late final GeneratedColumn<String> paymentType = GeneratedColumn<String>(
+    'payment_type',
+    aliasedName,
+    false,
+    check: () => paymentType.isIn(const [
+      'unknown',
+      'in_store',
+      'online',
+      'shopee_food',
+      'grab_food',
+      'other',
+    ]),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMsMeta = const VerificationMeta(
+    'createdAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
+    'created_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta(
+    'updatedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+    'updated_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    merchantServerId,
+    merchantNameSnapshot,
+    locationText,
+    mccCode,
+    mccDescriptionSnapshot,
+    paymentType,
+    note,
+    createdAtMs,
+    updatedAtMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_merchant_mcc_contributions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalMerchantMccContributionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('merchant_server_id')) {
+      context.handle(
+        _merchantServerIdMeta,
+        merchantServerId.isAcceptableOrUnknown(
+          data['merchant_server_id']!,
+          _merchantServerIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantServerIdMeta);
+    }
+    if (data.containsKey('merchant_name_snapshot')) {
+      context.handle(
+        _merchantNameSnapshotMeta,
+        merchantNameSnapshot.isAcceptableOrUnknown(
+          data['merchant_name_snapshot']!,
+          _merchantNameSnapshotMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantNameSnapshotMeta);
+    }
+    if (data.containsKey('location_text')) {
+      context.handle(
+        _locationTextMeta,
+        locationText.isAcceptableOrUnknown(
+          data['location_text']!,
+          _locationTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mcc_code')) {
+      context.handle(
+        _mccCodeMeta,
+        mccCode.isAcceptableOrUnknown(data['mcc_code']!, _mccCodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mccCodeMeta);
+    }
+    if (data.containsKey('mcc_description_snapshot')) {
+      context.handle(
+        _mccDescriptionSnapshotMeta,
+        mccDescriptionSnapshot.isAcceptableOrUnknown(
+          data['mcc_description_snapshot']!,
+          _mccDescriptionSnapshotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('payment_type')) {
+      context.handle(
+        _paymentTypeMeta,
+        paymentType.isAcceptableOrUnknown(
+          data['payment_type']!,
+          _paymentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_paymentTypeMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at_ms')) {
+      context.handle(
+        _createdAtMsMeta,
+        createdAtMs.isAcceptableOrUnknown(
+          data['created_at_ms']!,
+          _createdAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMsMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+        _updatedAtMsMeta,
+        updatedAtMs.isAcceptableOrUnknown(
+          data['updated_at_ms']!,
+          _updatedAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {profileId, merchantServerId, mccCode, paymentType},
+  ];
+  @override
+  LocalMerchantMccContributionRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalMerchantMccContributionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      merchantServerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_server_id'],
+      )!,
+      merchantNameSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_name_snapshot'],
+      )!,
+      locationText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_text'],
+      ),
+      mccCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mcc_code'],
+      )!,
+      mccDescriptionSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mcc_description_snapshot'],
+      ),
+      paymentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_type'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_ms'],
+      )!,
+      updatedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $LocalMerchantMccContributionsTable createAlias(String alias) {
+    return $LocalMerchantMccContributionsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalMerchantMccContributionRow extends DataClass
+    implements Insertable<LocalMerchantMccContributionRow> {
+  final String id;
+  final String profileId;
+  final String merchantServerId;
+  final String merchantNameSnapshot;
+  final String? locationText;
+  final String mccCode;
+  final String? mccDescriptionSnapshot;
+  final String paymentType;
+  final String? note;
+  final int createdAtMs;
+  final int updatedAtMs;
+  const LocalMerchantMccContributionRow({
+    required this.id,
+    required this.profileId,
+    required this.merchantServerId,
+    required this.merchantNameSnapshot,
+    this.locationText,
+    required this.mccCode,
+    this.mccDescriptionSnapshot,
+    required this.paymentType,
+    this.note,
+    required this.createdAtMs,
+    required this.updatedAtMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    map['merchant_server_id'] = Variable<String>(merchantServerId);
+    map['merchant_name_snapshot'] = Variable<String>(merchantNameSnapshot);
+    if (!nullToAbsent || locationText != null) {
+      map['location_text'] = Variable<String>(locationText);
+    }
+    map['mcc_code'] = Variable<String>(mccCode);
+    if (!nullToAbsent || mccDescriptionSnapshot != null) {
+      map['mcc_description_snapshot'] = Variable<String>(
+        mccDescriptionSnapshot,
+      );
+    }
+    map['payment_type'] = Variable<String>(paymentType);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at_ms'] = Variable<int>(createdAtMs);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  LocalMerchantMccContributionsCompanion toCompanion(bool nullToAbsent) {
+    return LocalMerchantMccContributionsCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      merchantServerId: Value(merchantServerId),
+      merchantNameSnapshot: Value(merchantNameSnapshot),
+      locationText: locationText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationText),
+      mccCode: Value(mccCode),
+      mccDescriptionSnapshot: mccDescriptionSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mccDescriptionSnapshot),
+      paymentType: Value(paymentType),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAtMs: Value(createdAtMs),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory LocalMerchantMccContributionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalMerchantMccContributionRow(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      merchantServerId: serializer.fromJson<String>(json['merchantServerId']),
+      merchantNameSnapshot: serializer.fromJson<String>(
+        json['merchantNameSnapshot'],
+      ),
+      locationText: serializer.fromJson<String?>(json['locationText']),
+      mccCode: serializer.fromJson<String>(json['mccCode']),
+      mccDescriptionSnapshot: serializer.fromJson<String?>(
+        json['mccDescriptionSnapshot'],
+      ),
+      paymentType: serializer.fromJson<String>(json['paymentType']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'merchantServerId': serializer.toJson<String>(merchantServerId),
+      'merchantNameSnapshot': serializer.toJson<String>(merchantNameSnapshot),
+      'locationText': serializer.toJson<String?>(locationText),
+      'mccCode': serializer.toJson<String>(mccCode),
+      'mccDescriptionSnapshot': serializer.toJson<String?>(
+        mccDescriptionSnapshot,
+      ),
+      'paymentType': serializer.toJson<String>(paymentType),
+      'note': serializer.toJson<String?>(note),
+      'createdAtMs': serializer.toJson<int>(createdAtMs),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  LocalMerchantMccContributionRow copyWith({
+    String? id,
+    String? profileId,
+    String? merchantServerId,
+    String? merchantNameSnapshot,
+    Value<String?> locationText = const Value.absent(),
+    String? mccCode,
+    Value<String?> mccDescriptionSnapshot = const Value.absent(),
+    String? paymentType,
+    Value<String?> note = const Value.absent(),
+    int? createdAtMs,
+    int? updatedAtMs,
+  }) => LocalMerchantMccContributionRow(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    merchantServerId: merchantServerId ?? this.merchantServerId,
+    merchantNameSnapshot: merchantNameSnapshot ?? this.merchantNameSnapshot,
+    locationText: locationText.present ? locationText.value : this.locationText,
+    mccCode: mccCode ?? this.mccCode,
+    mccDescriptionSnapshot: mccDescriptionSnapshot.present
+        ? mccDescriptionSnapshot.value
+        : this.mccDescriptionSnapshot,
+    paymentType: paymentType ?? this.paymentType,
+    note: note.present ? note.value : this.note,
+    createdAtMs: createdAtMs ?? this.createdAtMs,
+    updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+  );
+  LocalMerchantMccContributionRow copyWithCompanion(
+    LocalMerchantMccContributionsCompanion data,
+  ) {
+    return LocalMerchantMccContributionRow(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      merchantServerId: data.merchantServerId.present
+          ? data.merchantServerId.value
+          : this.merchantServerId,
+      merchantNameSnapshot: data.merchantNameSnapshot.present
+          ? data.merchantNameSnapshot.value
+          : this.merchantNameSnapshot,
+      locationText: data.locationText.present
+          ? data.locationText.value
+          : this.locationText,
+      mccCode: data.mccCode.present ? data.mccCode.value : this.mccCode,
+      mccDescriptionSnapshot: data.mccDescriptionSnapshot.present
+          ? data.mccDescriptionSnapshot.value
+          : this.mccDescriptionSnapshot,
+      paymentType: data.paymentType.present
+          ? data.paymentType.value
+          : this.paymentType,
+      note: data.note.present ? data.note.value : this.note,
+      createdAtMs: data.createdAtMs.present
+          ? data.createdAtMs.value
+          : this.createdAtMs,
+      updatedAtMs: data.updatedAtMs.present
+          ? data.updatedAtMs.value
+          : this.updatedAtMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalMerchantMccContributionRow(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('merchantServerId: $merchantServerId, ')
+          ..write('merchantNameSnapshot: $merchantNameSnapshot, ')
+          ..write('locationText: $locationText, ')
+          ..write('mccCode: $mccCode, ')
+          ..write('mccDescriptionSnapshot: $mccDescriptionSnapshot, ')
+          ..write('paymentType: $paymentType, ')
+          ..write('note: $note, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    merchantServerId,
+    merchantNameSnapshot,
+    locationText,
+    mccCode,
+    mccDescriptionSnapshot,
+    paymentType,
+    note,
+    createdAtMs,
+    updatedAtMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalMerchantMccContributionRow &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.merchantServerId == this.merchantServerId &&
+          other.merchantNameSnapshot == this.merchantNameSnapshot &&
+          other.locationText == this.locationText &&
+          other.mccCode == this.mccCode &&
+          other.mccDescriptionSnapshot == this.mccDescriptionSnapshot &&
+          other.paymentType == this.paymentType &&
+          other.note == this.note &&
+          other.createdAtMs == this.createdAtMs &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class LocalMerchantMccContributionsCompanion
+    extends UpdateCompanion<LocalMerchantMccContributionRow> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<String> merchantServerId;
+  final Value<String> merchantNameSnapshot;
+  final Value<String?> locationText;
+  final Value<String> mccCode;
+  final Value<String?> mccDescriptionSnapshot;
+  final Value<String> paymentType;
+  final Value<String?> note;
+  final Value<int> createdAtMs;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const LocalMerchantMccContributionsCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.merchantServerId = const Value.absent(),
+    this.merchantNameSnapshot = const Value.absent(),
+    this.locationText = const Value.absent(),
+    this.mccCode = const Value.absent(),
+    this.mccDescriptionSnapshot = const Value.absent(),
+    this.paymentType = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAtMs = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalMerchantMccContributionsCompanion.insert({
+    required String id,
+    required String profileId,
+    required String merchantServerId,
+    required String merchantNameSnapshot,
+    this.locationText = const Value.absent(),
+    required String mccCode,
+    this.mccDescriptionSnapshot = const Value.absent(),
+    required String paymentType,
+    this.note = const Value.absent(),
+    required int createdAtMs,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       merchantServerId = Value(merchantServerId),
+       merchantNameSnapshot = Value(merchantNameSnapshot),
+       mccCode = Value(mccCode),
+       paymentType = Value(paymentType),
+       createdAtMs = Value(createdAtMs),
+       updatedAtMs = Value(updatedAtMs);
+  static Insertable<LocalMerchantMccContributionRow> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<String>? merchantServerId,
+    Expression<String>? merchantNameSnapshot,
+    Expression<String>? locationText,
+    Expression<String>? mccCode,
+    Expression<String>? mccDescriptionSnapshot,
+    Expression<String>? paymentType,
+    Expression<String>? note,
+    Expression<int>? createdAtMs,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (merchantServerId != null) 'merchant_server_id': merchantServerId,
+      if (merchantNameSnapshot != null)
+        'merchant_name_snapshot': merchantNameSnapshot,
+      if (locationText != null) 'location_text': locationText,
+      if (mccCode != null) 'mcc_code': mccCode,
+      if (mccDescriptionSnapshot != null)
+        'mcc_description_snapshot': mccDescriptionSnapshot,
+      if (paymentType != null) 'payment_type': paymentType,
+      if (note != null) 'note': note,
+      if (createdAtMs != null) 'created_at_ms': createdAtMs,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalMerchantMccContributionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<String>? merchantServerId,
+    Value<String>? merchantNameSnapshot,
+    Value<String?>? locationText,
+    Value<String>? mccCode,
+    Value<String?>? mccDescriptionSnapshot,
+    Value<String>? paymentType,
+    Value<String?>? note,
+    Value<int>? createdAtMs,
+    Value<int>? updatedAtMs,
+    Value<int>? rowid,
+  }) {
+    return LocalMerchantMccContributionsCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      merchantServerId: merchantServerId ?? this.merchantServerId,
+      merchantNameSnapshot: merchantNameSnapshot ?? this.merchantNameSnapshot,
+      locationText: locationText ?? this.locationText,
+      mccCode: mccCode ?? this.mccCode,
+      mccDescriptionSnapshot:
+          mccDescriptionSnapshot ?? this.mccDescriptionSnapshot,
+      paymentType: paymentType ?? this.paymentType,
+      note: note ?? this.note,
+      createdAtMs: createdAtMs ?? this.createdAtMs,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (merchantServerId.present) {
+      map['merchant_server_id'] = Variable<String>(merchantServerId.value);
+    }
+    if (merchantNameSnapshot.present) {
+      map['merchant_name_snapshot'] = Variable<String>(
+        merchantNameSnapshot.value,
+      );
+    }
+    if (locationText.present) {
+      map['location_text'] = Variable<String>(locationText.value);
+    }
+    if (mccCode.present) {
+      map['mcc_code'] = Variable<String>(mccCode.value);
+    }
+    if (mccDescriptionSnapshot.present) {
+      map['mcc_description_snapshot'] = Variable<String>(
+        mccDescriptionSnapshot.value,
+      );
+    }
+    if (paymentType.present) {
+      map['payment_type'] = Variable<String>(paymentType.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAtMs.present) {
+      map['created_at_ms'] = Variable<int>(createdAtMs.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalMerchantMccContributionsCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('merchantServerId: $merchantServerId, ')
+          ..write('merchantNameSnapshot: $merchantNameSnapshot, ')
+          ..write('locationText: $locationText, ')
+          ..write('mccCode: $mccCode, ')
+          ..write('mccDescriptionSnapshot: $mccDescriptionSnapshot, ')
+          ..write('paymentType: $paymentType, ')
+          ..write('note: $note, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7258,6 +9204,3553 @@ class SyncStateCompanion extends UpdateCompanion<SyncStateRow> {
   }
 }
 
+class $LocalMerchantsTable extends LocalMerchants
+    with TableInfo<$LocalMerchantsTable, LocalMerchantRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalMerchantsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _serverMerchantIdMeta = const VerificationMeta(
+    'serverMerchantId',
+  );
+  @override
+  late final GeneratedColumn<String> serverMerchantId = GeneratedColumn<String>(
+    'server_merchant_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameRawMeta = const VerificationMeta(
+    'nameRaw',
+  );
+  @override
+  late final GeneratedColumn<String> nameRaw = GeneratedColumn<String>(
+    'name_raw',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameNormalizedMeta = const VerificationMeta(
+    'nameNormalized',
+  );
+  @override
+  late final GeneratedColumn<String> nameNormalized = GeneratedColumn<String>(
+    'name_normalized',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _locationTextMeta = const VerificationMeta(
+    'locationText',
+  );
+  @override
+  late final GeneratedColumn<String> locationText = GeneratedColumn<String>(
+    'location_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _countryCodeMeta = const VerificationMeta(
+    'countryCode',
+  );
+  @override
+  late final GeneratedColumn<String> countryCode = GeneratedColumn<String>(
+    'country_code',
+    aliasedName,
+    false,
+    check: () => countryCode.length.equals(2),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('VN'),
+  );
+  static const VerificationMeta _createdAtMsMeta = const VerificationMeta(
+    'createdAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
+    'created_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta(
+    'updatedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+    'updated_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMsMeta = const VerificationMeta(
+    'deletedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> deletedAtMs = GeneratedColumn<int>(
+    'deleted_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    check: () => syncStatus.isIn(const [
+      'local_only',
+      'pending',
+      'synced',
+      'failed',
+      'conflict',
+    ]),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('local_only'),
+  );
+  static const VerificationMeta _serverVersionMeta = const VerificationMeta(
+    'serverVersion',
+  );
+  @override
+  late final GeneratedColumn<int> serverVersion = GeneratedColumn<int>(
+    'server_version',
+    aliasedName,
+    true,
+    check: () =>
+        serverVersion.isNull() |
+        ComparableExpr(serverVersion).isBiggerOrEqualValue(1),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastSyncedAtMsMeta = const VerificationMeta(
+    'lastSyncedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> lastSyncedAtMs = GeneratedColumn<int>(
+    'last_synced_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    serverMerchantId,
+    nameRaw,
+    nameNormalized,
+    locationText,
+    countryCode,
+    createdAtMs,
+    updatedAtMs,
+    deletedAtMs,
+    syncStatus,
+    serverVersion,
+    lastSyncedAtMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_merchants';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalMerchantRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('server_merchant_id')) {
+      context.handle(
+        _serverMerchantIdMeta,
+        serverMerchantId.isAcceptableOrUnknown(
+          data['server_merchant_id']!,
+          _serverMerchantIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('name_raw')) {
+      context.handle(
+        _nameRawMeta,
+        nameRaw.isAcceptableOrUnknown(data['name_raw']!, _nameRawMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameRawMeta);
+    }
+    if (data.containsKey('name_normalized')) {
+      context.handle(
+        _nameNormalizedMeta,
+        nameNormalized.isAcceptableOrUnknown(
+          data['name_normalized']!,
+          _nameNormalizedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nameNormalizedMeta);
+    }
+    if (data.containsKey('location_text')) {
+      context.handle(
+        _locationTextMeta,
+        locationText.isAcceptableOrUnknown(
+          data['location_text']!,
+          _locationTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('country_code')) {
+      context.handle(
+        _countryCodeMeta,
+        countryCode.isAcceptableOrUnknown(
+          data['country_code']!,
+          _countryCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at_ms')) {
+      context.handle(
+        _createdAtMsMeta,
+        createdAtMs.isAcceptableOrUnknown(
+          data['created_at_ms']!,
+          _createdAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMsMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+        _updatedAtMsMeta,
+        updatedAtMs.isAcceptableOrUnknown(
+          data['updated_at_ms']!,
+          _updatedAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    if (data.containsKey('deleted_at_ms')) {
+      context.handle(
+        _deletedAtMsMeta,
+        deletedAtMs.isAcceptableOrUnknown(
+          data['deleted_at_ms']!,
+          _deletedAtMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_version')) {
+      context.handle(
+        _serverVersionMeta,
+        serverVersion.isAcceptableOrUnknown(
+          data['server_version']!,
+          _serverVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_synced_at_ms')) {
+      context.handle(
+        _lastSyncedAtMsMeta,
+        lastSyncedAtMs.isAcceptableOrUnknown(
+          data['last_synced_at_ms']!,
+          _lastSyncedAtMsMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalMerchantRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalMerchantRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      serverMerchantId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_merchant_id'],
+      ),
+      nameRaw: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name_raw'],
+      )!,
+      nameNormalized: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name_normalized'],
+      )!,
+      locationText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_text'],
+      ),
+      countryCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}country_code'],
+      )!,
+      createdAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_ms'],
+      )!,
+      updatedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_ms'],
+      )!,
+      deletedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deleted_at_ms'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      serverVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_version'],
+      ),
+      lastSyncedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_synced_at_ms'],
+      ),
+    );
+  }
+
+  @override
+  $LocalMerchantsTable createAlias(String alias) {
+    return $LocalMerchantsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalMerchantRow extends DataClass
+    implements Insertable<LocalMerchantRow> {
+  final String id;
+  final String profileId;
+  final String? serverMerchantId;
+  final String nameRaw;
+  final String nameNormalized;
+  final String? locationText;
+  final String countryCode;
+  final int createdAtMs;
+  final int updatedAtMs;
+  final int? deletedAtMs;
+  final String syncStatus;
+  final int? serverVersion;
+  final int? lastSyncedAtMs;
+  const LocalMerchantRow({
+    required this.id,
+    required this.profileId,
+    this.serverMerchantId,
+    required this.nameRaw,
+    required this.nameNormalized,
+    this.locationText,
+    required this.countryCode,
+    required this.createdAtMs,
+    required this.updatedAtMs,
+    this.deletedAtMs,
+    required this.syncStatus,
+    this.serverVersion,
+    this.lastSyncedAtMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    if (!nullToAbsent || serverMerchantId != null) {
+      map['server_merchant_id'] = Variable<String>(serverMerchantId);
+    }
+    map['name_raw'] = Variable<String>(nameRaw);
+    map['name_normalized'] = Variable<String>(nameNormalized);
+    if (!nullToAbsent || locationText != null) {
+      map['location_text'] = Variable<String>(locationText);
+    }
+    map['country_code'] = Variable<String>(countryCode);
+    map['created_at_ms'] = Variable<int>(createdAtMs);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    if (!nullToAbsent || deletedAtMs != null) {
+      map['deleted_at_ms'] = Variable<int>(deletedAtMs);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || serverVersion != null) {
+      map['server_version'] = Variable<int>(serverVersion);
+    }
+    if (!nullToAbsent || lastSyncedAtMs != null) {
+      map['last_synced_at_ms'] = Variable<int>(lastSyncedAtMs);
+    }
+    return map;
+  }
+
+  LocalMerchantsCompanion toCompanion(bool nullToAbsent) {
+    return LocalMerchantsCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      serverMerchantId: serverMerchantId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverMerchantId),
+      nameRaw: Value(nameRaw),
+      nameNormalized: Value(nameNormalized),
+      locationText: locationText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationText),
+      countryCode: Value(countryCode),
+      createdAtMs: Value(createdAtMs),
+      updatedAtMs: Value(updatedAtMs),
+      deletedAtMs: deletedAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAtMs),
+      syncStatus: Value(syncStatus),
+      serverVersion: serverVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverVersion),
+      lastSyncedAtMs: lastSyncedAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAtMs),
+    );
+  }
+
+  factory LocalMerchantRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalMerchantRow(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      serverMerchantId: serializer.fromJson<String?>(json['serverMerchantId']),
+      nameRaw: serializer.fromJson<String>(json['nameRaw']),
+      nameNormalized: serializer.fromJson<String>(json['nameNormalized']),
+      locationText: serializer.fromJson<String?>(json['locationText']),
+      countryCode: serializer.fromJson<String>(json['countryCode']),
+      createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+      deletedAtMs: serializer.fromJson<int?>(json['deletedAtMs']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      serverVersion: serializer.fromJson<int?>(json['serverVersion']),
+      lastSyncedAtMs: serializer.fromJson<int?>(json['lastSyncedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'serverMerchantId': serializer.toJson<String?>(serverMerchantId),
+      'nameRaw': serializer.toJson<String>(nameRaw),
+      'nameNormalized': serializer.toJson<String>(nameNormalized),
+      'locationText': serializer.toJson<String?>(locationText),
+      'countryCode': serializer.toJson<String>(countryCode),
+      'createdAtMs': serializer.toJson<int>(createdAtMs),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+      'deletedAtMs': serializer.toJson<int?>(deletedAtMs),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'serverVersion': serializer.toJson<int?>(serverVersion),
+      'lastSyncedAtMs': serializer.toJson<int?>(lastSyncedAtMs),
+    };
+  }
+
+  LocalMerchantRow copyWith({
+    String? id,
+    String? profileId,
+    Value<String?> serverMerchantId = const Value.absent(),
+    String? nameRaw,
+    String? nameNormalized,
+    Value<String?> locationText = const Value.absent(),
+    String? countryCode,
+    int? createdAtMs,
+    int? updatedAtMs,
+    Value<int?> deletedAtMs = const Value.absent(),
+    String? syncStatus,
+    Value<int?> serverVersion = const Value.absent(),
+    Value<int?> lastSyncedAtMs = const Value.absent(),
+  }) => LocalMerchantRow(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    serverMerchantId: serverMerchantId.present
+        ? serverMerchantId.value
+        : this.serverMerchantId,
+    nameRaw: nameRaw ?? this.nameRaw,
+    nameNormalized: nameNormalized ?? this.nameNormalized,
+    locationText: locationText.present ? locationText.value : this.locationText,
+    countryCode: countryCode ?? this.countryCode,
+    createdAtMs: createdAtMs ?? this.createdAtMs,
+    updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+    deletedAtMs: deletedAtMs.present ? deletedAtMs.value : this.deletedAtMs,
+    syncStatus: syncStatus ?? this.syncStatus,
+    serverVersion: serverVersion.present
+        ? serverVersion.value
+        : this.serverVersion,
+    lastSyncedAtMs: lastSyncedAtMs.present
+        ? lastSyncedAtMs.value
+        : this.lastSyncedAtMs,
+  );
+  LocalMerchantRow copyWithCompanion(LocalMerchantsCompanion data) {
+    return LocalMerchantRow(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      serverMerchantId: data.serverMerchantId.present
+          ? data.serverMerchantId.value
+          : this.serverMerchantId,
+      nameRaw: data.nameRaw.present ? data.nameRaw.value : this.nameRaw,
+      nameNormalized: data.nameNormalized.present
+          ? data.nameNormalized.value
+          : this.nameNormalized,
+      locationText: data.locationText.present
+          ? data.locationText.value
+          : this.locationText,
+      countryCode: data.countryCode.present
+          ? data.countryCode.value
+          : this.countryCode,
+      createdAtMs: data.createdAtMs.present
+          ? data.createdAtMs.value
+          : this.createdAtMs,
+      updatedAtMs: data.updatedAtMs.present
+          ? data.updatedAtMs.value
+          : this.updatedAtMs,
+      deletedAtMs: data.deletedAtMs.present
+          ? data.deletedAtMs.value
+          : this.deletedAtMs,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverVersion: data.serverVersion.present
+          ? data.serverVersion.value
+          : this.serverVersion,
+      lastSyncedAtMs: data.lastSyncedAtMs.present
+          ? data.lastSyncedAtMs.value
+          : this.lastSyncedAtMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalMerchantRow(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('serverMerchantId: $serverMerchantId, ')
+          ..write('nameRaw: $nameRaw, ')
+          ..write('nameNormalized: $nameNormalized, ')
+          ..write('locationText: $locationText, ')
+          ..write('countryCode: $countryCode, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('deletedAtMs: $deletedAtMs, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverVersion: $serverVersion, ')
+          ..write('lastSyncedAtMs: $lastSyncedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    serverMerchantId,
+    nameRaw,
+    nameNormalized,
+    locationText,
+    countryCode,
+    createdAtMs,
+    updatedAtMs,
+    deletedAtMs,
+    syncStatus,
+    serverVersion,
+    lastSyncedAtMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalMerchantRow &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.serverMerchantId == this.serverMerchantId &&
+          other.nameRaw == this.nameRaw &&
+          other.nameNormalized == this.nameNormalized &&
+          other.locationText == this.locationText &&
+          other.countryCode == this.countryCode &&
+          other.createdAtMs == this.createdAtMs &&
+          other.updatedAtMs == this.updatedAtMs &&
+          other.deletedAtMs == this.deletedAtMs &&
+          other.syncStatus == this.syncStatus &&
+          other.serverVersion == this.serverVersion &&
+          other.lastSyncedAtMs == this.lastSyncedAtMs);
+}
+
+class LocalMerchantsCompanion extends UpdateCompanion<LocalMerchantRow> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<String?> serverMerchantId;
+  final Value<String> nameRaw;
+  final Value<String> nameNormalized;
+  final Value<String?> locationText;
+  final Value<String> countryCode;
+  final Value<int> createdAtMs;
+  final Value<int> updatedAtMs;
+  final Value<int?> deletedAtMs;
+  final Value<String> syncStatus;
+  final Value<int?> serverVersion;
+  final Value<int?> lastSyncedAtMs;
+  final Value<int> rowid;
+  const LocalMerchantsCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.serverMerchantId = const Value.absent(),
+    this.nameRaw = const Value.absent(),
+    this.nameNormalized = const Value.absent(),
+    this.locationText = const Value.absent(),
+    this.countryCode = const Value.absent(),
+    this.createdAtMs = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.deletedAtMs = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverVersion = const Value.absent(),
+    this.lastSyncedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalMerchantsCompanion.insert({
+    required String id,
+    required String profileId,
+    this.serverMerchantId = const Value.absent(),
+    required String nameRaw,
+    required String nameNormalized,
+    this.locationText = const Value.absent(),
+    this.countryCode = const Value.absent(),
+    required int createdAtMs,
+    required int updatedAtMs,
+    this.deletedAtMs = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverVersion = const Value.absent(),
+    this.lastSyncedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       nameRaw = Value(nameRaw),
+       nameNormalized = Value(nameNormalized),
+       createdAtMs = Value(createdAtMs),
+       updatedAtMs = Value(updatedAtMs);
+  static Insertable<LocalMerchantRow> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<String>? serverMerchantId,
+    Expression<String>? nameRaw,
+    Expression<String>? nameNormalized,
+    Expression<String>? locationText,
+    Expression<String>? countryCode,
+    Expression<int>? createdAtMs,
+    Expression<int>? updatedAtMs,
+    Expression<int>? deletedAtMs,
+    Expression<String>? syncStatus,
+    Expression<int>? serverVersion,
+    Expression<int>? lastSyncedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (serverMerchantId != null) 'server_merchant_id': serverMerchantId,
+      if (nameRaw != null) 'name_raw': nameRaw,
+      if (nameNormalized != null) 'name_normalized': nameNormalized,
+      if (locationText != null) 'location_text': locationText,
+      if (countryCode != null) 'country_code': countryCode,
+      if (createdAtMs != null) 'created_at_ms': createdAtMs,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (deletedAtMs != null) 'deleted_at_ms': deletedAtMs,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverVersion != null) 'server_version': serverVersion,
+      if (lastSyncedAtMs != null) 'last_synced_at_ms': lastSyncedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalMerchantsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<String?>? serverMerchantId,
+    Value<String>? nameRaw,
+    Value<String>? nameNormalized,
+    Value<String?>? locationText,
+    Value<String>? countryCode,
+    Value<int>? createdAtMs,
+    Value<int>? updatedAtMs,
+    Value<int?>? deletedAtMs,
+    Value<String>? syncStatus,
+    Value<int?>? serverVersion,
+    Value<int?>? lastSyncedAtMs,
+    Value<int>? rowid,
+  }) {
+    return LocalMerchantsCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      serverMerchantId: serverMerchantId ?? this.serverMerchantId,
+      nameRaw: nameRaw ?? this.nameRaw,
+      nameNormalized: nameNormalized ?? this.nameNormalized,
+      locationText: locationText ?? this.locationText,
+      countryCode: countryCode ?? this.countryCode,
+      createdAtMs: createdAtMs ?? this.createdAtMs,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      deletedAtMs: deletedAtMs ?? this.deletedAtMs,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverVersion: serverVersion ?? this.serverVersion,
+      lastSyncedAtMs: lastSyncedAtMs ?? this.lastSyncedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (serverMerchantId.present) {
+      map['server_merchant_id'] = Variable<String>(serverMerchantId.value);
+    }
+    if (nameRaw.present) {
+      map['name_raw'] = Variable<String>(nameRaw.value);
+    }
+    if (nameNormalized.present) {
+      map['name_normalized'] = Variable<String>(nameNormalized.value);
+    }
+    if (locationText.present) {
+      map['location_text'] = Variable<String>(locationText.value);
+    }
+    if (countryCode.present) {
+      map['country_code'] = Variable<String>(countryCode.value);
+    }
+    if (createdAtMs.present) {
+      map['created_at_ms'] = Variable<int>(createdAtMs.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (deletedAtMs.present) {
+      map['deleted_at_ms'] = Variable<int>(deletedAtMs.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverVersion.present) {
+      map['server_version'] = Variable<int>(serverVersion.value);
+    }
+    if (lastSyncedAtMs.present) {
+      map['last_synced_at_ms'] = Variable<int>(lastSyncedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalMerchantsCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('serverMerchantId: $serverMerchantId, ')
+          ..write('nameRaw: $nameRaw, ')
+          ..write('nameNormalized: $nameNormalized, ')
+          ..write('locationText: $locationText, ')
+          ..write('countryCode: $countryCode, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('deletedAtMs: $deletedAtMs, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverVersion: $serverVersion, ')
+          ..write('lastSyncedAtMs: $lastSyncedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LocalTransactionsTable extends LocalTransactions
+    with TableInfo<$LocalTransactionsTable, LocalTransactionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalTransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _userCardIdMeta = const VerificationMeta(
+    'userCardId',
+  );
+  @override
+  late final GeneratedColumn<String> userCardId = GeneratedColumn<String>(
+    'user_card_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_user_cards (id)',
+    ),
+  );
+  static const VerificationMeta _merchantIdMeta = const VerificationMeta(
+    'merchantId',
+  );
+  @override
+  late final GeneratedColumn<String> merchantId = GeneratedColumn<String>(
+    'merchant_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_merchants (id)',
+    ),
+  );
+  static const VerificationMeta _transactionAtMsMeta = const VerificationMeta(
+    'transactionAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> transactionAtMs = GeneratedColumn<int>(
+    'transaction_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(amountMinor).isBiggerOrEqualValue(0),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    check: () => currency.length.equals(3),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('VND'),
+  );
+  static const VerificationMeta _mccCodeMeta = const VerificationMeta(
+    'mccCode',
+  );
+  @override
+  late final GeneratedColumn<String> mccCode = GeneratedColumn<String>(
+    'mcc_code',
+    aliasedName,
+    true,
+    check: () => mccCode.isNull() | mccCode.length.equals(4),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mccSourceMeta = const VerificationMeta(
+    'mccSource',
+  );
+  @override
+  late final GeneratedColumn<String> mccSource = GeneratedColumn<String>(
+    'mcc_source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cashbackEstimatedMinorMeta =
+      const VerificationMeta('cashbackEstimatedMinor');
+  @override
+  late final GeneratedColumn<int> cashbackEstimatedMinor = GeneratedColumn<int>(
+    'cashback_estimated_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cashbackConfidencePpmMeta =
+      const VerificationMeta('cashbackConfidencePpm');
+  @override
+  late final GeneratedColumn<int> cashbackConfidencePpm = GeneratedColumn<int>(
+    'cashback_confidence_ppm',
+    aliasedName,
+    true,
+    check: () =>
+        cashbackConfidencePpm.isNull() |
+        ComparableExpr(cashbackConfidencePpm).isBetweenValues(0, 1000000),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('manual'),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMsMeta = const VerificationMeta(
+    'createdAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
+    'created_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta(
+    'updatedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+    'updated_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMsMeta = const VerificationMeta(
+    'deletedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> deletedAtMs = GeneratedColumn<int>(
+    'deleted_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    check: () => syncStatus.isIn(const [
+      'local_only',
+      'pending',
+      'synced',
+      'failed',
+      'conflict',
+    ]),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('local_only'),
+  );
+  static const VerificationMeta _serverVersionMeta = const VerificationMeta(
+    'serverVersion',
+  );
+  @override
+  late final GeneratedColumn<int> serverVersion = GeneratedColumn<int>(
+    'server_version',
+    aliasedName,
+    true,
+    check: () =>
+        serverVersion.isNull() |
+        ComparableExpr(serverVersion).isBiggerOrEqualValue(1),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastSyncedAtMsMeta = const VerificationMeta(
+    'lastSyncedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> lastSyncedAtMs = GeneratedColumn<int>(
+    'last_synced_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    userCardId,
+    merchantId,
+    transactionAtMs,
+    amountMinor,
+    currency,
+    mccCode,
+    mccSource,
+    category,
+    cashbackEstimatedMinor,
+    cashbackConfidencePpm,
+    source,
+    note,
+    createdAtMs,
+    updatedAtMs,
+    deletedAtMs,
+    syncStatus,
+    serverVersion,
+    lastSyncedAtMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalTransactionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('user_card_id')) {
+      context.handle(
+        _userCardIdMeta,
+        userCardId.isAcceptableOrUnknown(
+          data['user_card_id']!,
+          _userCardIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_userCardIdMeta);
+    }
+    if (data.containsKey('merchant_id')) {
+      context.handle(
+        _merchantIdMeta,
+        merchantId.isAcceptableOrUnknown(data['merchant_id']!, _merchantIdMeta),
+      );
+    }
+    if (data.containsKey('transaction_at_ms')) {
+      context.handle(
+        _transactionAtMsMeta,
+        transactionAtMs.isAcceptableOrUnknown(
+          data['transaction_at_ms']!,
+          _transactionAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionAtMsMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('mcc_code')) {
+      context.handle(
+        _mccCodeMeta,
+        mccCode.isAcceptableOrUnknown(data['mcc_code']!, _mccCodeMeta),
+      );
+    }
+    if (data.containsKey('mcc_source')) {
+      context.handle(
+        _mccSourceMeta,
+        mccSource.isAcceptableOrUnknown(data['mcc_source']!, _mccSourceMeta),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('cashback_estimated_minor')) {
+      context.handle(
+        _cashbackEstimatedMinorMeta,
+        cashbackEstimatedMinor.isAcceptableOrUnknown(
+          data['cashback_estimated_minor']!,
+          _cashbackEstimatedMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cashback_confidence_ppm')) {
+      context.handle(
+        _cashbackConfidencePpmMeta,
+        cashbackConfidencePpm.isAcceptableOrUnknown(
+          data['cashback_confidence_ppm']!,
+          _cashbackConfidencePpmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at_ms')) {
+      context.handle(
+        _createdAtMsMeta,
+        createdAtMs.isAcceptableOrUnknown(
+          data['created_at_ms']!,
+          _createdAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMsMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+        _updatedAtMsMeta,
+        updatedAtMs.isAcceptableOrUnknown(
+          data['updated_at_ms']!,
+          _updatedAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    if (data.containsKey('deleted_at_ms')) {
+      context.handle(
+        _deletedAtMsMeta,
+        deletedAtMs.isAcceptableOrUnknown(
+          data['deleted_at_ms']!,
+          _deletedAtMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('server_version')) {
+      context.handle(
+        _serverVersionMeta,
+        serverVersion.isAcceptableOrUnknown(
+          data['server_version']!,
+          _serverVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_synced_at_ms')) {
+      context.handle(
+        _lastSyncedAtMsMeta,
+        lastSyncedAtMs.isAcceptableOrUnknown(
+          data['last_synced_at_ms']!,
+          _lastSyncedAtMsMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalTransactionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalTransactionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      userCardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_card_id'],
+      )!,
+      merchantId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_id'],
+      ),
+      transactionAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}transaction_at_ms'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      mccCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mcc_code'],
+      ),
+      mccSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mcc_source'],
+      ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      cashbackEstimatedMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cashback_estimated_minor'],
+      ),
+      cashbackConfidencePpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cashback_confidence_ppm'],
+      ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_ms'],
+      )!,
+      updatedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_ms'],
+      )!,
+      deletedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deleted_at_ms'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      serverVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_version'],
+      ),
+      lastSyncedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_synced_at_ms'],
+      ),
+    );
+  }
+
+  @override
+  $LocalTransactionsTable createAlias(String alias) {
+    return $LocalTransactionsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalTransactionRow extends DataClass
+    implements Insertable<LocalTransactionRow> {
+  final String id;
+  final String profileId;
+  final String userCardId;
+  final String? merchantId;
+  final int transactionAtMs;
+  final int amountMinor;
+  final String currency;
+  final String? mccCode;
+  final String? mccSource;
+  final String? category;
+  final int? cashbackEstimatedMinor;
+  final int? cashbackConfidencePpm;
+  final String source;
+  final String? note;
+  final int createdAtMs;
+  final int updatedAtMs;
+  final int? deletedAtMs;
+  final String syncStatus;
+  final int? serverVersion;
+  final int? lastSyncedAtMs;
+  const LocalTransactionRow({
+    required this.id,
+    required this.profileId,
+    required this.userCardId,
+    this.merchantId,
+    required this.transactionAtMs,
+    required this.amountMinor,
+    required this.currency,
+    this.mccCode,
+    this.mccSource,
+    this.category,
+    this.cashbackEstimatedMinor,
+    this.cashbackConfidencePpm,
+    required this.source,
+    this.note,
+    required this.createdAtMs,
+    required this.updatedAtMs,
+    this.deletedAtMs,
+    required this.syncStatus,
+    this.serverVersion,
+    this.lastSyncedAtMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    map['user_card_id'] = Variable<String>(userCardId);
+    if (!nullToAbsent || merchantId != null) {
+      map['merchant_id'] = Variable<String>(merchantId);
+    }
+    map['transaction_at_ms'] = Variable<int>(transactionAtMs);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['currency'] = Variable<String>(currency);
+    if (!nullToAbsent || mccCode != null) {
+      map['mcc_code'] = Variable<String>(mccCode);
+    }
+    if (!nullToAbsent || mccSource != null) {
+      map['mcc_source'] = Variable<String>(mccSource);
+    }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    if (!nullToAbsent || cashbackEstimatedMinor != null) {
+      map['cashback_estimated_minor'] = Variable<int>(cashbackEstimatedMinor);
+    }
+    if (!nullToAbsent || cashbackConfidencePpm != null) {
+      map['cashback_confidence_ppm'] = Variable<int>(cashbackConfidencePpm);
+    }
+    map['source'] = Variable<String>(source);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at_ms'] = Variable<int>(createdAtMs);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    if (!nullToAbsent || deletedAtMs != null) {
+      map['deleted_at_ms'] = Variable<int>(deletedAtMs);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || serverVersion != null) {
+      map['server_version'] = Variable<int>(serverVersion);
+    }
+    if (!nullToAbsent || lastSyncedAtMs != null) {
+      map['last_synced_at_ms'] = Variable<int>(lastSyncedAtMs);
+    }
+    return map;
+  }
+
+  LocalTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return LocalTransactionsCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      userCardId: Value(userCardId),
+      merchantId: merchantId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(merchantId),
+      transactionAtMs: Value(transactionAtMs),
+      amountMinor: Value(amountMinor),
+      currency: Value(currency),
+      mccCode: mccCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mccCode),
+      mccSource: mccSource == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mccSource),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      cashbackEstimatedMinor: cashbackEstimatedMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cashbackEstimatedMinor),
+      cashbackConfidencePpm: cashbackConfidencePpm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cashbackConfidencePpm),
+      source: Value(source),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAtMs: Value(createdAtMs),
+      updatedAtMs: Value(updatedAtMs),
+      deletedAtMs: deletedAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAtMs),
+      syncStatus: Value(syncStatus),
+      serverVersion: serverVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverVersion),
+      lastSyncedAtMs: lastSyncedAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAtMs),
+    );
+  }
+
+  factory LocalTransactionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalTransactionRow(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      userCardId: serializer.fromJson<String>(json['userCardId']),
+      merchantId: serializer.fromJson<String?>(json['merchantId']),
+      transactionAtMs: serializer.fromJson<int>(json['transactionAtMs']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      currency: serializer.fromJson<String>(json['currency']),
+      mccCode: serializer.fromJson<String?>(json['mccCode']),
+      mccSource: serializer.fromJson<String?>(json['mccSource']),
+      category: serializer.fromJson<String?>(json['category']),
+      cashbackEstimatedMinor: serializer.fromJson<int?>(
+        json['cashbackEstimatedMinor'],
+      ),
+      cashbackConfidencePpm: serializer.fromJson<int?>(
+        json['cashbackConfidencePpm'],
+      ),
+      source: serializer.fromJson<String>(json['source']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+      deletedAtMs: serializer.fromJson<int?>(json['deletedAtMs']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      serverVersion: serializer.fromJson<int?>(json['serverVersion']),
+      lastSyncedAtMs: serializer.fromJson<int?>(json['lastSyncedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'userCardId': serializer.toJson<String>(userCardId),
+      'merchantId': serializer.toJson<String?>(merchantId),
+      'transactionAtMs': serializer.toJson<int>(transactionAtMs),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'currency': serializer.toJson<String>(currency),
+      'mccCode': serializer.toJson<String?>(mccCode),
+      'mccSource': serializer.toJson<String?>(mccSource),
+      'category': serializer.toJson<String?>(category),
+      'cashbackEstimatedMinor': serializer.toJson<int?>(cashbackEstimatedMinor),
+      'cashbackConfidencePpm': serializer.toJson<int?>(cashbackConfidencePpm),
+      'source': serializer.toJson<String>(source),
+      'note': serializer.toJson<String?>(note),
+      'createdAtMs': serializer.toJson<int>(createdAtMs),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+      'deletedAtMs': serializer.toJson<int?>(deletedAtMs),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'serverVersion': serializer.toJson<int?>(serverVersion),
+      'lastSyncedAtMs': serializer.toJson<int?>(lastSyncedAtMs),
+    };
+  }
+
+  LocalTransactionRow copyWith({
+    String? id,
+    String? profileId,
+    String? userCardId,
+    Value<String?> merchantId = const Value.absent(),
+    int? transactionAtMs,
+    int? amountMinor,
+    String? currency,
+    Value<String?> mccCode = const Value.absent(),
+    Value<String?> mccSource = const Value.absent(),
+    Value<String?> category = const Value.absent(),
+    Value<int?> cashbackEstimatedMinor = const Value.absent(),
+    Value<int?> cashbackConfidencePpm = const Value.absent(),
+    String? source,
+    Value<String?> note = const Value.absent(),
+    int? createdAtMs,
+    int? updatedAtMs,
+    Value<int?> deletedAtMs = const Value.absent(),
+    String? syncStatus,
+    Value<int?> serverVersion = const Value.absent(),
+    Value<int?> lastSyncedAtMs = const Value.absent(),
+  }) => LocalTransactionRow(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    userCardId: userCardId ?? this.userCardId,
+    merchantId: merchantId.present ? merchantId.value : this.merchantId,
+    transactionAtMs: transactionAtMs ?? this.transactionAtMs,
+    amountMinor: amountMinor ?? this.amountMinor,
+    currency: currency ?? this.currency,
+    mccCode: mccCode.present ? mccCode.value : this.mccCode,
+    mccSource: mccSource.present ? mccSource.value : this.mccSource,
+    category: category.present ? category.value : this.category,
+    cashbackEstimatedMinor: cashbackEstimatedMinor.present
+        ? cashbackEstimatedMinor.value
+        : this.cashbackEstimatedMinor,
+    cashbackConfidencePpm: cashbackConfidencePpm.present
+        ? cashbackConfidencePpm.value
+        : this.cashbackConfidencePpm,
+    source: source ?? this.source,
+    note: note.present ? note.value : this.note,
+    createdAtMs: createdAtMs ?? this.createdAtMs,
+    updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+    deletedAtMs: deletedAtMs.present ? deletedAtMs.value : this.deletedAtMs,
+    syncStatus: syncStatus ?? this.syncStatus,
+    serverVersion: serverVersion.present
+        ? serverVersion.value
+        : this.serverVersion,
+    lastSyncedAtMs: lastSyncedAtMs.present
+        ? lastSyncedAtMs.value
+        : this.lastSyncedAtMs,
+  );
+  LocalTransactionRow copyWithCompanion(LocalTransactionsCompanion data) {
+    return LocalTransactionRow(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      userCardId: data.userCardId.present
+          ? data.userCardId.value
+          : this.userCardId,
+      merchantId: data.merchantId.present
+          ? data.merchantId.value
+          : this.merchantId,
+      transactionAtMs: data.transactionAtMs.present
+          ? data.transactionAtMs.value
+          : this.transactionAtMs,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      mccCode: data.mccCode.present ? data.mccCode.value : this.mccCode,
+      mccSource: data.mccSource.present ? data.mccSource.value : this.mccSource,
+      category: data.category.present ? data.category.value : this.category,
+      cashbackEstimatedMinor: data.cashbackEstimatedMinor.present
+          ? data.cashbackEstimatedMinor.value
+          : this.cashbackEstimatedMinor,
+      cashbackConfidencePpm: data.cashbackConfidencePpm.present
+          ? data.cashbackConfidencePpm.value
+          : this.cashbackConfidencePpm,
+      source: data.source.present ? data.source.value : this.source,
+      note: data.note.present ? data.note.value : this.note,
+      createdAtMs: data.createdAtMs.present
+          ? data.createdAtMs.value
+          : this.createdAtMs,
+      updatedAtMs: data.updatedAtMs.present
+          ? data.updatedAtMs.value
+          : this.updatedAtMs,
+      deletedAtMs: data.deletedAtMs.present
+          ? data.deletedAtMs.value
+          : this.deletedAtMs,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      serverVersion: data.serverVersion.present
+          ? data.serverVersion.value
+          : this.serverVersion,
+      lastSyncedAtMs: data.lastSyncedAtMs.present
+          ? data.lastSyncedAtMs.value
+          : this.lastSyncedAtMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalTransactionRow(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('userCardId: $userCardId, ')
+          ..write('merchantId: $merchantId, ')
+          ..write('transactionAtMs: $transactionAtMs, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
+          ..write('mccCode: $mccCode, ')
+          ..write('mccSource: $mccSource, ')
+          ..write('category: $category, ')
+          ..write('cashbackEstimatedMinor: $cashbackEstimatedMinor, ')
+          ..write('cashbackConfidencePpm: $cashbackConfidencePpm, ')
+          ..write('source: $source, ')
+          ..write('note: $note, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('deletedAtMs: $deletedAtMs, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverVersion: $serverVersion, ')
+          ..write('lastSyncedAtMs: $lastSyncedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    userCardId,
+    merchantId,
+    transactionAtMs,
+    amountMinor,
+    currency,
+    mccCode,
+    mccSource,
+    category,
+    cashbackEstimatedMinor,
+    cashbackConfidencePpm,
+    source,
+    note,
+    createdAtMs,
+    updatedAtMs,
+    deletedAtMs,
+    syncStatus,
+    serverVersion,
+    lastSyncedAtMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalTransactionRow &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.userCardId == this.userCardId &&
+          other.merchantId == this.merchantId &&
+          other.transactionAtMs == this.transactionAtMs &&
+          other.amountMinor == this.amountMinor &&
+          other.currency == this.currency &&
+          other.mccCode == this.mccCode &&
+          other.mccSource == this.mccSource &&
+          other.category == this.category &&
+          other.cashbackEstimatedMinor == this.cashbackEstimatedMinor &&
+          other.cashbackConfidencePpm == this.cashbackConfidencePpm &&
+          other.source == this.source &&
+          other.note == this.note &&
+          other.createdAtMs == this.createdAtMs &&
+          other.updatedAtMs == this.updatedAtMs &&
+          other.deletedAtMs == this.deletedAtMs &&
+          other.syncStatus == this.syncStatus &&
+          other.serverVersion == this.serverVersion &&
+          other.lastSyncedAtMs == this.lastSyncedAtMs);
+}
+
+class LocalTransactionsCompanion extends UpdateCompanion<LocalTransactionRow> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<String> userCardId;
+  final Value<String?> merchantId;
+  final Value<int> transactionAtMs;
+  final Value<int> amountMinor;
+  final Value<String> currency;
+  final Value<String?> mccCode;
+  final Value<String?> mccSource;
+  final Value<String?> category;
+  final Value<int?> cashbackEstimatedMinor;
+  final Value<int?> cashbackConfidencePpm;
+  final Value<String> source;
+  final Value<String?> note;
+  final Value<int> createdAtMs;
+  final Value<int> updatedAtMs;
+  final Value<int?> deletedAtMs;
+  final Value<String> syncStatus;
+  final Value<int?> serverVersion;
+  final Value<int?> lastSyncedAtMs;
+  final Value<int> rowid;
+  const LocalTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.userCardId = const Value.absent(),
+    this.merchantId = const Value.absent(),
+    this.transactionAtMs = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.mccCode = const Value.absent(),
+    this.mccSource = const Value.absent(),
+    this.category = const Value.absent(),
+    this.cashbackEstimatedMinor = const Value.absent(),
+    this.cashbackConfidencePpm = const Value.absent(),
+    this.source = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAtMs = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.deletedAtMs = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverVersion = const Value.absent(),
+    this.lastSyncedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalTransactionsCompanion.insert({
+    required String id,
+    required String profileId,
+    required String userCardId,
+    this.merchantId = const Value.absent(),
+    required int transactionAtMs,
+    required int amountMinor,
+    this.currency = const Value.absent(),
+    this.mccCode = const Value.absent(),
+    this.mccSource = const Value.absent(),
+    this.category = const Value.absent(),
+    this.cashbackEstimatedMinor = const Value.absent(),
+    this.cashbackConfidencePpm = const Value.absent(),
+    this.source = const Value.absent(),
+    this.note = const Value.absent(),
+    required int createdAtMs,
+    required int updatedAtMs,
+    this.deletedAtMs = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.serverVersion = const Value.absent(),
+    this.lastSyncedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       userCardId = Value(userCardId),
+       transactionAtMs = Value(transactionAtMs),
+       amountMinor = Value(amountMinor),
+       createdAtMs = Value(createdAtMs),
+       updatedAtMs = Value(updatedAtMs);
+  static Insertable<LocalTransactionRow> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<String>? userCardId,
+    Expression<String>? merchantId,
+    Expression<int>? transactionAtMs,
+    Expression<int>? amountMinor,
+    Expression<String>? currency,
+    Expression<String>? mccCode,
+    Expression<String>? mccSource,
+    Expression<String>? category,
+    Expression<int>? cashbackEstimatedMinor,
+    Expression<int>? cashbackConfidencePpm,
+    Expression<String>? source,
+    Expression<String>? note,
+    Expression<int>? createdAtMs,
+    Expression<int>? updatedAtMs,
+    Expression<int>? deletedAtMs,
+    Expression<String>? syncStatus,
+    Expression<int>? serverVersion,
+    Expression<int>? lastSyncedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (userCardId != null) 'user_card_id': userCardId,
+      if (merchantId != null) 'merchant_id': merchantId,
+      if (transactionAtMs != null) 'transaction_at_ms': transactionAtMs,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (currency != null) 'currency': currency,
+      if (mccCode != null) 'mcc_code': mccCode,
+      if (mccSource != null) 'mcc_source': mccSource,
+      if (category != null) 'category': category,
+      if (cashbackEstimatedMinor != null)
+        'cashback_estimated_minor': cashbackEstimatedMinor,
+      if (cashbackConfidencePpm != null)
+        'cashback_confidence_ppm': cashbackConfidencePpm,
+      if (source != null) 'source': source,
+      if (note != null) 'note': note,
+      if (createdAtMs != null) 'created_at_ms': createdAtMs,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (deletedAtMs != null) 'deleted_at_ms': deletedAtMs,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverVersion != null) 'server_version': serverVersion,
+      if (lastSyncedAtMs != null) 'last_synced_at_ms': lastSyncedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalTransactionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<String>? userCardId,
+    Value<String?>? merchantId,
+    Value<int>? transactionAtMs,
+    Value<int>? amountMinor,
+    Value<String>? currency,
+    Value<String?>? mccCode,
+    Value<String?>? mccSource,
+    Value<String?>? category,
+    Value<int?>? cashbackEstimatedMinor,
+    Value<int?>? cashbackConfidencePpm,
+    Value<String>? source,
+    Value<String?>? note,
+    Value<int>? createdAtMs,
+    Value<int>? updatedAtMs,
+    Value<int?>? deletedAtMs,
+    Value<String>? syncStatus,
+    Value<int?>? serverVersion,
+    Value<int?>? lastSyncedAtMs,
+    Value<int>? rowid,
+  }) {
+    return LocalTransactionsCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      userCardId: userCardId ?? this.userCardId,
+      merchantId: merchantId ?? this.merchantId,
+      transactionAtMs: transactionAtMs ?? this.transactionAtMs,
+      amountMinor: amountMinor ?? this.amountMinor,
+      currency: currency ?? this.currency,
+      mccCode: mccCode ?? this.mccCode,
+      mccSource: mccSource ?? this.mccSource,
+      category: category ?? this.category,
+      cashbackEstimatedMinor:
+          cashbackEstimatedMinor ?? this.cashbackEstimatedMinor,
+      cashbackConfidencePpm:
+          cashbackConfidencePpm ?? this.cashbackConfidencePpm,
+      source: source ?? this.source,
+      note: note ?? this.note,
+      createdAtMs: createdAtMs ?? this.createdAtMs,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      deletedAtMs: deletedAtMs ?? this.deletedAtMs,
+      syncStatus: syncStatus ?? this.syncStatus,
+      serverVersion: serverVersion ?? this.serverVersion,
+      lastSyncedAtMs: lastSyncedAtMs ?? this.lastSyncedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (userCardId.present) {
+      map['user_card_id'] = Variable<String>(userCardId.value);
+    }
+    if (merchantId.present) {
+      map['merchant_id'] = Variable<String>(merchantId.value);
+    }
+    if (transactionAtMs.present) {
+      map['transaction_at_ms'] = Variable<int>(transactionAtMs.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (mccCode.present) {
+      map['mcc_code'] = Variable<String>(mccCode.value);
+    }
+    if (mccSource.present) {
+      map['mcc_source'] = Variable<String>(mccSource.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (cashbackEstimatedMinor.present) {
+      map['cashback_estimated_minor'] = Variable<int>(
+        cashbackEstimatedMinor.value,
+      );
+    }
+    if (cashbackConfidencePpm.present) {
+      map['cashback_confidence_ppm'] = Variable<int>(
+        cashbackConfidencePpm.value,
+      );
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAtMs.present) {
+      map['created_at_ms'] = Variable<int>(createdAtMs.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (deletedAtMs.present) {
+      map['deleted_at_ms'] = Variable<int>(deletedAtMs.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (serverVersion.present) {
+      map['server_version'] = Variable<int>(serverVersion.value);
+    }
+    if (lastSyncedAtMs.present) {
+      map['last_synced_at_ms'] = Variable<int>(lastSyncedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('userCardId: $userCardId, ')
+          ..write('merchantId: $merchantId, ')
+          ..write('transactionAtMs: $transactionAtMs, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
+          ..write('mccCode: $mccCode, ')
+          ..write('mccSource: $mccSource, ')
+          ..write('category: $category, ')
+          ..write('cashbackEstimatedMinor: $cashbackEstimatedMinor, ')
+          ..write('cashbackConfidencePpm: $cashbackConfidencePpm, ')
+          ..write('source: $source, ')
+          ..write('note: $note, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('deletedAtMs: $deletedAtMs, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverVersion: $serverVersion, ')
+          ..write('lastSyncedAtMs: $lastSyncedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LocalCashbackCalculationsTable extends LocalCashbackCalculations
+    with
+        TableInfo<
+          $LocalCashbackCalculationsTable,
+          LocalCashbackCalculationRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalCashbackCalculationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _transactionIdMeta = const VerificationMeta(
+    'transactionId',
+  );
+  @override
+  late final GeneratedColumn<String> transactionId = GeneratedColumn<String>(
+    'transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_transactions (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _userCardIdMeta = const VerificationMeta(
+    'userCardId',
+  );
+  @override
+  late final GeneratedColumn<String> userCardId = GeneratedColumn<String>(
+    'user_card_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_user_cards (id)',
+    ),
+  );
+  static const VerificationMeta _rewardRuleIdMeta = const VerificationMeta(
+    'rewardRuleId',
+  );
+  @override
+  late final GeneratedColumn<String> rewardRuleId = GeneratedColumn<String>(
+    'reward_rule_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _estimatedCashbackMinorMeta =
+      const VerificationMeta('estimatedCashbackMinor');
+  @override
+  late final GeneratedColumn<int> estimatedCashbackMinor = GeneratedColumn<int>(
+    'estimated_cashback_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _appliedRatePpmMeta = const VerificationMeta(
+    'appliedRatePpm',
+  );
+  @override
+  late final GeneratedColumn<int> appliedRatePpm = GeneratedColumn<int>(
+    'applied_rate_ppm',
+    aliasedName,
+    true,
+    check: () =>
+        appliedRatePpm.isNull() |
+        ComparableExpr(appliedRatePpm).isBiggerOrEqualValue(0),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _confidencePpmMeta = const VerificationMeta(
+    'confidencePpm',
+  );
+  @override
+  late final GeneratedColumn<int> confidencePpm = GeneratedColumn<int>(
+    'confidence_ppm',
+    aliasedName,
+    true,
+    check: () =>
+        confidencePpm.isNull() |
+        ComparableExpr(confidencePpm).isBetweenValues(0, 1000000),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _explanationMeta = const VerificationMeta(
+    'explanation',
+  );
+  @override
+  late final GeneratedColumn<String> explanation = GeneratedColumn<String>(
+    'explanation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('estimated'),
+  );
+  static const VerificationMeta _calculationSourceMeta = const VerificationMeta(
+    'calculationSource',
+  );
+  @override
+  late final GeneratedColumn<String> calculationSource =
+      GeneratedColumn<String>(
+        'calculation_source',
+        aliasedName,
+        false,
+        check: () => calculationSource.isIn(const ['local', 'server']),
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('local'),
+      );
+  static const VerificationMeta _createdAtMsMeta = const VerificationMeta(
+    'createdAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
+    'created_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta(
+    'updatedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+    'updated_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    transactionId,
+    userCardId,
+    rewardRuleId,
+    estimatedCashbackMinor,
+    appliedRatePpm,
+    confidencePpm,
+    explanation,
+    status,
+    calculationSource,
+    createdAtMs,
+    updatedAtMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_cashback_calculations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalCashbackCalculationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+        _transactionIdMeta,
+        transactionId.isAcceptableOrUnknown(
+          data['transaction_id']!,
+          _transactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionIdMeta);
+    }
+    if (data.containsKey('user_card_id')) {
+      context.handle(
+        _userCardIdMeta,
+        userCardId.isAcceptableOrUnknown(
+          data['user_card_id']!,
+          _userCardIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_userCardIdMeta);
+    }
+    if (data.containsKey('reward_rule_id')) {
+      context.handle(
+        _rewardRuleIdMeta,
+        rewardRuleId.isAcceptableOrUnknown(
+          data['reward_rule_id']!,
+          _rewardRuleIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('estimated_cashback_minor')) {
+      context.handle(
+        _estimatedCashbackMinorMeta,
+        estimatedCashbackMinor.isAcceptableOrUnknown(
+          data['estimated_cashback_minor']!,
+          _estimatedCashbackMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('applied_rate_ppm')) {
+      context.handle(
+        _appliedRatePpmMeta,
+        appliedRatePpm.isAcceptableOrUnknown(
+          data['applied_rate_ppm']!,
+          _appliedRatePpmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('confidence_ppm')) {
+      context.handle(
+        _confidencePpmMeta,
+        confidencePpm.isAcceptableOrUnknown(
+          data['confidence_ppm']!,
+          _confidencePpmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('explanation')) {
+      context.handle(
+        _explanationMeta,
+        explanation.isAcceptableOrUnknown(
+          data['explanation']!,
+          _explanationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('calculation_source')) {
+      context.handle(
+        _calculationSourceMeta,
+        calculationSource.isAcceptableOrUnknown(
+          data['calculation_source']!,
+          _calculationSourceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at_ms')) {
+      context.handle(
+        _createdAtMsMeta,
+        createdAtMs.isAcceptableOrUnknown(
+          data['created_at_ms']!,
+          _createdAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMsMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+        _updatedAtMsMeta,
+        updatedAtMs.isAcceptableOrUnknown(
+          data['updated_at_ms']!,
+          _updatedAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {transactionId, calculationSource},
+  ];
+  @override
+  LocalCashbackCalculationRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalCashbackCalculationRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      transactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transaction_id'],
+      )!,
+      userCardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_card_id'],
+      )!,
+      rewardRuleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reward_rule_id'],
+      ),
+      estimatedCashbackMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}estimated_cashback_minor'],
+      ),
+      appliedRatePpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}applied_rate_ppm'],
+      ),
+      confidencePpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}confidence_ppm'],
+      ),
+      explanation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}explanation'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      calculationSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}calculation_source'],
+      )!,
+      createdAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_ms'],
+      )!,
+      updatedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $LocalCashbackCalculationsTable createAlias(String alias) {
+    return $LocalCashbackCalculationsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalCashbackCalculationRow extends DataClass
+    implements Insertable<LocalCashbackCalculationRow> {
+  final String id;
+  final String profileId;
+  final String transactionId;
+  final String userCardId;
+  final String? rewardRuleId;
+  final int? estimatedCashbackMinor;
+  final int? appliedRatePpm;
+  final int? confidencePpm;
+  final String? explanation;
+  final String status;
+  final String calculationSource;
+  final int createdAtMs;
+  final int updatedAtMs;
+  const LocalCashbackCalculationRow({
+    required this.id,
+    required this.profileId,
+    required this.transactionId,
+    required this.userCardId,
+    this.rewardRuleId,
+    this.estimatedCashbackMinor,
+    this.appliedRatePpm,
+    this.confidencePpm,
+    this.explanation,
+    required this.status,
+    required this.calculationSource,
+    required this.createdAtMs,
+    required this.updatedAtMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    map['transaction_id'] = Variable<String>(transactionId);
+    map['user_card_id'] = Variable<String>(userCardId);
+    if (!nullToAbsent || rewardRuleId != null) {
+      map['reward_rule_id'] = Variable<String>(rewardRuleId);
+    }
+    if (!nullToAbsent || estimatedCashbackMinor != null) {
+      map['estimated_cashback_minor'] = Variable<int>(estimatedCashbackMinor);
+    }
+    if (!nullToAbsent || appliedRatePpm != null) {
+      map['applied_rate_ppm'] = Variable<int>(appliedRatePpm);
+    }
+    if (!nullToAbsent || confidencePpm != null) {
+      map['confidence_ppm'] = Variable<int>(confidencePpm);
+    }
+    if (!nullToAbsent || explanation != null) {
+      map['explanation'] = Variable<String>(explanation);
+    }
+    map['status'] = Variable<String>(status);
+    map['calculation_source'] = Variable<String>(calculationSource);
+    map['created_at_ms'] = Variable<int>(createdAtMs);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  LocalCashbackCalculationsCompanion toCompanion(bool nullToAbsent) {
+    return LocalCashbackCalculationsCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      transactionId: Value(transactionId),
+      userCardId: Value(userCardId),
+      rewardRuleId: rewardRuleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rewardRuleId),
+      estimatedCashbackMinor: estimatedCashbackMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(estimatedCashbackMinor),
+      appliedRatePpm: appliedRatePpm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appliedRatePpm),
+      confidencePpm: confidencePpm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidencePpm),
+      explanation: explanation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(explanation),
+      status: Value(status),
+      calculationSource: Value(calculationSource),
+      createdAtMs: Value(createdAtMs),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory LocalCashbackCalculationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalCashbackCalculationRow(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      transactionId: serializer.fromJson<String>(json['transactionId']),
+      userCardId: serializer.fromJson<String>(json['userCardId']),
+      rewardRuleId: serializer.fromJson<String?>(json['rewardRuleId']),
+      estimatedCashbackMinor: serializer.fromJson<int?>(
+        json['estimatedCashbackMinor'],
+      ),
+      appliedRatePpm: serializer.fromJson<int?>(json['appliedRatePpm']),
+      confidencePpm: serializer.fromJson<int?>(json['confidencePpm']),
+      explanation: serializer.fromJson<String?>(json['explanation']),
+      status: serializer.fromJson<String>(json['status']),
+      calculationSource: serializer.fromJson<String>(json['calculationSource']),
+      createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'transactionId': serializer.toJson<String>(transactionId),
+      'userCardId': serializer.toJson<String>(userCardId),
+      'rewardRuleId': serializer.toJson<String?>(rewardRuleId),
+      'estimatedCashbackMinor': serializer.toJson<int?>(estimatedCashbackMinor),
+      'appliedRatePpm': serializer.toJson<int?>(appliedRatePpm),
+      'confidencePpm': serializer.toJson<int?>(confidencePpm),
+      'explanation': serializer.toJson<String?>(explanation),
+      'status': serializer.toJson<String>(status),
+      'calculationSource': serializer.toJson<String>(calculationSource),
+      'createdAtMs': serializer.toJson<int>(createdAtMs),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  LocalCashbackCalculationRow copyWith({
+    String? id,
+    String? profileId,
+    String? transactionId,
+    String? userCardId,
+    Value<String?> rewardRuleId = const Value.absent(),
+    Value<int?> estimatedCashbackMinor = const Value.absent(),
+    Value<int?> appliedRatePpm = const Value.absent(),
+    Value<int?> confidencePpm = const Value.absent(),
+    Value<String?> explanation = const Value.absent(),
+    String? status,
+    String? calculationSource,
+    int? createdAtMs,
+    int? updatedAtMs,
+  }) => LocalCashbackCalculationRow(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    transactionId: transactionId ?? this.transactionId,
+    userCardId: userCardId ?? this.userCardId,
+    rewardRuleId: rewardRuleId.present ? rewardRuleId.value : this.rewardRuleId,
+    estimatedCashbackMinor: estimatedCashbackMinor.present
+        ? estimatedCashbackMinor.value
+        : this.estimatedCashbackMinor,
+    appliedRatePpm: appliedRatePpm.present
+        ? appliedRatePpm.value
+        : this.appliedRatePpm,
+    confidencePpm: confidencePpm.present
+        ? confidencePpm.value
+        : this.confidencePpm,
+    explanation: explanation.present ? explanation.value : this.explanation,
+    status: status ?? this.status,
+    calculationSource: calculationSource ?? this.calculationSource,
+    createdAtMs: createdAtMs ?? this.createdAtMs,
+    updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+  );
+  LocalCashbackCalculationRow copyWithCompanion(
+    LocalCashbackCalculationsCompanion data,
+  ) {
+    return LocalCashbackCalculationRow(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      transactionId: data.transactionId.present
+          ? data.transactionId.value
+          : this.transactionId,
+      userCardId: data.userCardId.present
+          ? data.userCardId.value
+          : this.userCardId,
+      rewardRuleId: data.rewardRuleId.present
+          ? data.rewardRuleId.value
+          : this.rewardRuleId,
+      estimatedCashbackMinor: data.estimatedCashbackMinor.present
+          ? data.estimatedCashbackMinor.value
+          : this.estimatedCashbackMinor,
+      appliedRatePpm: data.appliedRatePpm.present
+          ? data.appliedRatePpm.value
+          : this.appliedRatePpm,
+      confidencePpm: data.confidencePpm.present
+          ? data.confidencePpm.value
+          : this.confidencePpm,
+      explanation: data.explanation.present
+          ? data.explanation.value
+          : this.explanation,
+      status: data.status.present ? data.status.value : this.status,
+      calculationSource: data.calculationSource.present
+          ? data.calculationSource.value
+          : this.calculationSource,
+      createdAtMs: data.createdAtMs.present
+          ? data.createdAtMs.value
+          : this.createdAtMs,
+      updatedAtMs: data.updatedAtMs.present
+          ? data.updatedAtMs.value
+          : this.updatedAtMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalCashbackCalculationRow(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('userCardId: $userCardId, ')
+          ..write('rewardRuleId: $rewardRuleId, ')
+          ..write('estimatedCashbackMinor: $estimatedCashbackMinor, ')
+          ..write('appliedRatePpm: $appliedRatePpm, ')
+          ..write('confidencePpm: $confidencePpm, ')
+          ..write('explanation: $explanation, ')
+          ..write('status: $status, ')
+          ..write('calculationSource: $calculationSource, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    transactionId,
+    userCardId,
+    rewardRuleId,
+    estimatedCashbackMinor,
+    appliedRatePpm,
+    confidencePpm,
+    explanation,
+    status,
+    calculationSource,
+    createdAtMs,
+    updatedAtMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalCashbackCalculationRow &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.transactionId == this.transactionId &&
+          other.userCardId == this.userCardId &&
+          other.rewardRuleId == this.rewardRuleId &&
+          other.estimatedCashbackMinor == this.estimatedCashbackMinor &&
+          other.appliedRatePpm == this.appliedRatePpm &&
+          other.confidencePpm == this.confidencePpm &&
+          other.explanation == this.explanation &&
+          other.status == this.status &&
+          other.calculationSource == this.calculationSource &&
+          other.createdAtMs == this.createdAtMs &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class LocalCashbackCalculationsCompanion
+    extends UpdateCompanion<LocalCashbackCalculationRow> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<String> transactionId;
+  final Value<String> userCardId;
+  final Value<String?> rewardRuleId;
+  final Value<int?> estimatedCashbackMinor;
+  final Value<int?> appliedRatePpm;
+  final Value<int?> confidencePpm;
+  final Value<String?> explanation;
+  final Value<String> status;
+  final Value<String> calculationSource;
+  final Value<int> createdAtMs;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const LocalCashbackCalculationsCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.transactionId = const Value.absent(),
+    this.userCardId = const Value.absent(),
+    this.rewardRuleId = const Value.absent(),
+    this.estimatedCashbackMinor = const Value.absent(),
+    this.appliedRatePpm = const Value.absent(),
+    this.confidencePpm = const Value.absent(),
+    this.explanation = const Value.absent(),
+    this.status = const Value.absent(),
+    this.calculationSource = const Value.absent(),
+    this.createdAtMs = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalCashbackCalculationsCompanion.insert({
+    required String id,
+    required String profileId,
+    required String transactionId,
+    required String userCardId,
+    this.rewardRuleId = const Value.absent(),
+    this.estimatedCashbackMinor = const Value.absent(),
+    this.appliedRatePpm = const Value.absent(),
+    this.confidencePpm = const Value.absent(),
+    this.explanation = const Value.absent(),
+    this.status = const Value.absent(),
+    this.calculationSource = const Value.absent(),
+    required int createdAtMs,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       transactionId = Value(transactionId),
+       userCardId = Value(userCardId),
+       createdAtMs = Value(createdAtMs),
+       updatedAtMs = Value(updatedAtMs);
+  static Insertable<LocalCashbackCalculationRow> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<String>? transactionId,
+    Expression<String>? userCardId,
+    Expression<String>? rewardRuleId,
+    Expression<int>? estimatedCashbackMinor,
+    Expression<int>? appliedRatePpm,
+    Expression<int>? confidencePpm,
+    Expression<String>? explanation,
+    Expression<String>? status,
+    Expression<String>? calculationSource,
+    Expression<int>? createdAtMs,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (transactionId != null) 'transaction_id': transactionId,
+      if (userCardId != null) 'user_card_id': userCardId,
+      if (rewardRuleId != null) 'reward_rule_id': rewardRuleId,
+      if (estimatedCashbackMinor != null)
+        'estimated_cashback_minor': estimatedCashbackMinor,
+      if (appliedRatePpm != null) 'applied_rate_ppm': appliedRatePpm,
+      if (confidencePpm != null) 'confidence_ppm': confidencePpm,
+      if (explanation != null) 'explanation': explanation,
+      if (status != null) 'status': status,
+      if (calculationSource != null) 'calculation_source': calculationSource,
+      if (createdAtMs != null) 'created_at_ms': createdAtMs,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalCashbackCalculationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<String>? transactionId,
+    Value<String>? userCardId,
+    Value<String?>? rewardRuleId,
+    Value<int?>? estimatedCashbackMinor,
+    Value<int?>? appliedRatePpm,
+    Value<int?>? confidencePpm,
+    Value<String?>? explanation,
+    Value<String>? status,
+    Value<String>? calculationSource,
+    Value<int>? createdAtMs,
+    Value<int>? updatedAtMs,
+    Value<int>? rowid,
+  }) {
+    return LocalCashbackCalculationsCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      transactionId: transactionId ?? this.transactionId,
+      userCardId: userCardId ?? this.userCardId,
+      rewardRuleId: rewardRuleId ?? this.rewardRuleId,
+      estimatedCashbackMinor:
+          estimatedCashbackMinor ?? this.estimatedCashbackMinor,
+      appliedRatePpm: appliedRatePpm ?? this.appliedRatePpm,
+      confidencePpm: confidencePpm ?? this.confidencePpm,
+      explanation: explanation ?? this.explanation,
+      status: status ?? this.status,
+      calculationSource: calculationSource ?? this.calculationSource,
+      createdAtMs: createdAtMs ?? this.createdAtMs,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<String>(transactionId.value);
+    }
+    if (userCardId.present) {
+      map['user_card_id'] = Variable<String>(userCardId.value);
+    }
+    if (rewardRuleId.present) {
+      map['reward_rule_id'] = Variable<String>(rewardRuleId.value);
+    }
+    if (estimatedCashbackMinor.present) {
+      map['estimated_cashback_minor'] = Variable<int>(
+        estimatedCashbackMinor.value,
+      );
+    }
+    if (appliedRatePpm.present) {
+      map['applied_rate_ppm'] = Variable<int>(appliedRatePpm.value);
+    }
+    if (confidencePpm.present) {
+      map['confidence_ppm'] = Variable<int>(confidencePpm.value);
+    }
+    if (explanation.present) {
+      map['explanation'] = Variable<String>(explanation.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (calculationSource.present) {
+      map['calculation_source'] = Variable<String>(calculationSource.value);
+    }
+    if (createdAtMs.present) {
+      map['created_at_ms'] = Variable<int>(createdAtMs.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalCashbackCalculationsCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('userCardId: $userCardId, ')
+          ..write('rewardRuleId: $rewardRuleId, ')
+          ..write('estimatedCashbackMinor: $estimatedCashbackMinor, ')
+          ..write('appliedRatePpm: $appliedRatePpm, ')
+          ..write('confidencePpm: $confidencePpm, ')
+          ..write('explanation: $explanation, ')
+          ..write('status: $status, ')
+          ..write('calculationSource: $calculationSource, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SyncConflictsTable extends SyncConflicts
+    with TableInfo<$SyncConflictsTable, SyncConflictRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncConflictsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_profiles (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _mutationIdMeta = const VerificationMeta(
+    'mutationId',
+  );
+  @override
+  late final GeneratedColumn<String> mutationId = GeneratedColumn<String>(
+    'mutation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _localPayloadJsonMeta = const VerificationMeta(
+    'localPayloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> localPayloadJson = GeneratedColumn<String>(
+    'local_payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverPayloadJsonMeta = const VerificationMeta(
+    'serverPayloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> serverPayloadJson =
+      GeneratedColumn<String>(
+        'server_payload_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _serverVersionMeta = const VerificationMeta(
+    'serverVersion',
+  );
+  @override
+  late final GeneratedColumn<int> serverVersion = GeneratedColumn<int>(
+    'server_version',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(serverVersion).isBiggerOrEqualValue(1),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _detectedAtMsMeta = const VerificationMeta(
+    'detectedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> detectedAtMs = GeneratedColumn<int>(
+    'detected_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resolvedAtMsMeta = const VerificationMeta(
+    'resolvedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> resolvedAtMs = GeneratedColumn<int>(
+    'resolved_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _resolutionMeta = const VerificationMeta(
+    'resolution',
+  );
+  @override
+  late final GeneratedColumn<String> resolution = GeneratedColumn<String>(
+    'resolution',
+    aliasedName,
+    true,
+    check: () =>
+        resolution.isNull() |
+        resolution.isIn(const ['keep_local', 'keep_server', 'merged']),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    mutationId,
+    entityType,
+    entityId,
+    localPayloadJson,
+    serverPayloadJson,
+    serverVersion,
+    detectedAtMs,
+    resolvedAtMs,
+    resolution,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_conflicts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncConflictRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('mutation_id')) {
+      context.handle(
+        _mutationIdMeta,
+        mutationId.isAcceptableOrUnknown(data['mutation_id']!, _mutationIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mutationIdMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('local_payload_json')) {
+      context.handle(
+        _localPayloadJsonMeta,
+        localPayloadJson.isAcceptableOrUnknown(
+          data['local_payload_json']!,
+          _localPayloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_localPayloadJsonMeta);
+    }
+    if (data.containsKey('server_payload_json')) {
+      context.handle(
+        _serverPayloadJsonMeta,
+        serverPayloadJson.isAcceptableOrUnknown(
+          data['server_payload_json']!,
+          _serverPayloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_serverPayloadJsonMeta);
+    }
+    if (data.containsKey('server_version')) {
+      context.handle(
+        _serverVersionMeta,
+        serverVersion.isAcceptableOrUnknown(
+          data['server_version']!,
+          _serverVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_serverVersionMeta);
+    }
+    if (data.containsKey('detected_at_ms')) {
+      context.handle(
+        _detectedAtMsMeta,
+        detectedAtMs.isAcceptableOrUnknown(
+          data['detected_at_ms']!,
+          _detectedAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_detectedAtMsMeta);
+    }
+    if (data.containsKey('resolved_at_ms')) {
+      context.handle(
+        _resolvedAtMsMeta,
+        resolvedAtMs.isAcceptableOrUnknown(
+          data['resolved_at_ms']!,
+          _resolvedAtMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolution')) {
+      context.handle(
+        _resolutionMeta,
+        resolution.isAcceptableOrUnknown(data['resolution']!, _resolutionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SyncConflictRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncConflictRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      mutationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mutation_id'],
+      )!,
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      localPayloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_payload_json'],
+      )!,
+      serverPayloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_payload_json'],
+      )!,
+      serverVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_version'],
+      )!,
+      detectedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}detected_at_ms'],
+      )!,
+      resolvedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}resolved_at_ms'],
+      ),
+      resolution: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolution'],
+      ),
+    );
+  }
+
+  @override
+  $SyncConflictsTable createAlias(String alias) {
+    return $SyncConflictsTable(attachedDatabase, alias);
+  }
+}
+
+class SyncConflictRow extends DataClass implements Insertable<SyncConflictRow> {
+  final String id;
+  final String profileId;
+  final String mutationId;
+  final String entityType;
+  final String entityId;
+  final String localPayloadJson;
+  final String serverPayloadJson;
+  final int serverVersion;
+  final int detectedAtMs;
+  final int? resolvedAtMs;
+  final String? resolution;
+  const SyncConflictRow({
+    required this.id,
+    required this.profileId,
+    required this.mutationId,
+    required this.entityType,
+    required this.entityId,
+    required this.localPayloadJson,
+    required this.serverPayloadJson,
+    required this.serverVersion,
+    required this.detectedAtMs,
+    this.resolvedAtMs,
+    this.resolution,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    map['mutation_id'] = Variable<String>(mutationId);
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['local_payload_json'] = Variable<String>(localPayloadJson);
+    map['server_payload_json'] = Variable<String>(serverPayloadJson);
+    map['server_version'] = Variable<int>(serverVersion);
+    map['detected_at_ms'] = Variable<int>(detectedAtMs);
+    if (!nullToAbsent || resolvedAtMs != null) {
+      map['resolved_at_ms'] = Variable<int>(resolvedAtMs);
+    }
+    if (!nullToAbsent || resolution != null) {
+      map['resolution'] = Variable<String>(resolution);
+    }
+    return map;
+  }
+
+  SyncConflictsCompanion toCompanion(bool nullToAbsent) {
+    return SyncConflictsCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      mutationId: Value(mutationId),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      localPayloadJson: Value(localPayloadJson),
+      serverPayloadJson: Value(serverPayloadJson),
+      serverVersion: Value(serverVersion),
+      detectedAtMs: Value(detectedAtMs),
+      resolvedAtMs: resolvedAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedAtMs),
+      resolution: resolution == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolution),
+    );
+  }
+
+  factory SyncConflictRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncConflictRow(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      mutationId: serializer.fromJson<String>(json['mutationId']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      localPayloadJson: serializer.fromJson<String>(json['localPayloadJson']),
+      serverPayloadJson: serializer.fromJson<String>(json['serverPayloadJson']),
+      serverVersion: serializer.fromJson<int>(json['serverVersion']),
+      detectedAtMs: serializer.fromJson<int>(json['detectedAtMs']),
+      resolvedAtMs: serializer.fromJson<int?>(json['resolvedAtMs']),
+      resolution: serializer.fromJson<String?>(json['resolution']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'mutationId': serializer.toJson<String>(mutationId),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'localPayloadJson': serializer.toJson<String>(localPayloadJson),
+      'serverPayloadJson': serializer.toJson<String>(serverPayloadJson),
+      'serverVersion': serializer.toJson<int>(serverVersion),
+      'detectedAtMs': serializer.toJson<int>(detectedAtMs),
+      'resolvedAtMs': serializer.toJson<int?>(resolvedAtMs),
+      'resolution': serializer.toJson<String?>(resolution),
+    };
+  }
+
+  SyncConflictRow copyWith({
+    String? id,
+    String? profileId,
+    String? mutationId,
+    String? entityType,
+    String? entityId,
+    String? localPayloadJson,
+    String? serverPayloadJson,
+    int? serverVersion,
+    int? detectedAtMs,
+    Value<int?> resolvedAtMs = const Value.absent(),
+    Value<String?> resolution = const Value.absent(),
+  }) => SyncConflictRow(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    mutationId: mutationId ?? this.mutationId,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    localPayloadJson: localPayloadJson ?? this.localPayloadJson,
+    serverPayloadJson: serverPayloadJson ?? this.serverPayloadJson,
+    serverVersion: serverVersion ?? this.serverVersion,
+    detectedAtMs: detectedAtMs ?? this.detectedAtMs,
+    resolvedAtMs: resolvedAtMs.present ? resolvedAtMs.value : this.resolvedAtMs,
+    resolution: resolution.present ? resolution.value : this.resolution,
+  );
+  SyncConflictRow copyWithCompanion(SyncConflictsCompanion data) {
+    return SyncConflictRow(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      mutationId: data.mutationId.present
+          ? data.mutationId.value
+          : this.mutationId,
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      localPayloadJson: data.localPayloadJson.present
+          ? data.localPayloadJson.value
+          : this.localPayloadJson,
+      serverPayloadJson: data.serverPayloadJson.present
+          ? data.serverPayloadJson.value
+          : this.serverPayloadJson,
+      serverVersion: data.serverVersion.present
+          ? data.serverVersion.value
+          : this.serverVersion,
+      detectedAtMs: data.detectedAtMs.present
+          ? data.detectedAtMs.value
+          : this.detectedAtMs,
+      resolvedAtMs: data.resolvedAtMs.present
+          ? data.resolvedAtMs.value
+          : this.resolvedAtMs,
+      resolution: data.resolution.present
+          ? data.resolution.value
+          : this.resolution,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncConflictRow(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('mutationId: $mutationId, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('localPayloadJson: $localPayloadJson, ')
+          ..write('serverPayloadJson: $serverPayloadJson, ')
+          ..write('serverVersion: $serverVersion, ')
+          ..write('detectedAtMs: $detectedAtMs, ')
+          ..write('resolvedAtMs: $resolvedAtMs, ')
+          ..write('resolution: $resolution')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    mutationId,
+    entityType,
+    entityId,
+    localPayloadJson,
+    serverPayloadJson,
+    serverVersion,
+    detectedAtMs,
+    resolvedAtMs,
+    resolution,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncConflictRow &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.mutationId == this.mutationId &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.localPayloadJson == this.localPayloadJson &&
+          other.serverPayloadJson == this.serverPayloadJson &&
+          other.serverVersion == this.serverVersion &&
+          other.detectedAtMs == this.detectedAtMs &&
+          other.resolvedAtMs == this.resolvedAtMs &&
+          other.resolution == this.resolution);
+}
+
+class SyncConflictsCompanion extends UpdateCompanion<SyncConflictRow> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<String> mutationId;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<String> localPayloadJson;
+  final Value<String> serverPayloadJson;
+  final Value<int> serverVersion;
+  final Value<int> detectedAtMs;
+  final Value<int?> resolvedAtMs;
+  final Value<String?> resolution;
+  final Value<int> rowid;
+  const SyncConflictsCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.mutationId = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.localPayloadJson = const Value.absent(),
+    this.serverPayloadJson = const Value.absent(),
+    this.serverVersion = const Value.absent(),
+    this.detectedAtMs = const Value.absent(),
+    this.resolvedAtMs = const Value.absent(),
+    this.resolution = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncConflictsCompanion.insert({
+    required String id,
+    required String profileId,
+    required String mutationId,
+    required String entityType,
+    required String entityId,
+    required String localPayloadJson,
+    required String serverPayloadJson,
+    required int serverVersion,
+    required int detectedAtMs,
+    this.resolvedAtMs = const Value.absent(),
+    this.resolution = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       mutationId = Value(mutationId),
+       entityType = Value(entityType),
+       entityId = Value(entityId),
+       localPayloadJson = Value(localPayloadJson),
+       serverPayloadJson = Value(serverPayloadJson),
+       serverVersion = Value(serverVersion),
+       detectedAtMs = Value(detectedAtMs);
+  static Insertable<SyncConflictRow> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<String>? mutationId,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? localPayloadJson,
+    Expression<String>? serverPayloadJson,
+    Expression<int>? serverVersion,
+    Expression<int>? detectedAtMs,
+    Expression<int>? resolvedAtMs,
+    Expression<String>? resolution,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (mutationId != null) 'mutation_id': mutationId,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (localPayloadJson != null) 'local_payload_json': localPayloadJson,
+      if (serverPayloadJson != null) 'server_payload_json': serverPayloadJson,
+      if (serverVersion != null) 'server_version': serverVersion,
+      if (detectedAtMs != null) 'detected_at_ms': detectedAtMs,
+      if (resolvedAtMs != null) 'resolved_at_ms': resolvedAtMs,
+      if (resolution != null) 'resolution': resolution,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncConflictsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<String>? mutationId,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<String>? localPayloadJson,
+    Value<String>? serverPayloadJson,
+    Value<int>? serverVersion,
+    Value<int>? detectedAtMs,
+    Value<int?>? resolvedAtMs,
+    Value<String?>? resolution,
+    Value<int>? rowid,
+  }) {
+    return SyncConflictsCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      mutationId: mutationId ?? this.mutationId,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      localPayloadJson: localPayloadJson ?? this.localPayloadJson,
+      serverPayloadJson: serverPayloadJson ?? this.serverPayloadJson,
+      serverVersion: serverVersion ?? this.serverVersion,
+      detectedAtMs: detectedAtMs ?? this.detectedAtMs,
+      resolvedAtMs: resolvedAtMs ?? this.resolvedAtMs,
+      resolution: resolution ?? this.resolution,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (mutationId.present) {
+      map['mutation_id'] = Variable<String>(mutationId.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (localPayloadJson.present) {
+      map['local_payload_json'] = Variable<String>(localPayloadJson.value);
+    }
+    if (serverPayloadJson.present) {
+      map['server_payload_json'] = Variable<String>(serverPayloadJson.value);
+    }
+    if (serverVersion.present) {
+      map['server_version'] = Variable<int>(serverVersion.value);
+    }
+    if (detectedAtMs.present) {
+      map['detected_at_ms'] = Variable<int>(detectedAtMs.value);
+    }
+    if (resolvedAtMs.present) {
+      map['resolved_at_ms'] = Variable<int>(resolvedAtMs.value);
+    }
+    if (resolution.present) {
+      map['resolution'] = Variable<String>(resolution.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncConflictsCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('mutationId: $mutationId, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('localPayloadJson: $localPayloadJson, ')
+          ..write('serverPayloadJson: $serverPayloadJson, ')
+          ..write('serverVersion: $serverVersion, ')
+          ..write('detectedAtMs: $detectedAtMs, ')
+          ..write('resolvedAtMs: $resolvedAtMs, ')
+          ..write('resolution: $resolution, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7277,9 +12770,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $RewardRuleMccsCacheTable rewardRuleMccsCache =
       $RewardRuleMccsCacheTable(this);
+  late final $MerchantMccCandidatesCacheTable merchantMccCandidatesCache =
+      $MerchantMccCandidatesCacheTable(this);
+  late final $MerchantBranchesCacheTable merchantBranchesCache =
+      $MerchantBranchesCacheTable(this);
   late final $LocalUserCardsTable localUserCards = $LocalUserCardsTable(this);
+  late final $LocalMerchantMccContributionsTable localMerchantMccContributions =
+      $LocalMerchantMccContributionsTable(this);
   late final $SyncOutboxTable syncOutbox = $SyncOutboxTable(this);
   late final $SyncStateTable syncState = $SyncStateTable(this);
+  late final $LocalMerchantsTable localMerchants = $LocalMerchantsTable(this);
+  late final $LocalTransactionsTable localTransactions =
+      $LocalTransactionsTable(this);
+  late final $LocalCashbackCalculationsTable localCashbackCalculations =
+      $LocalCashbackCalculationsTable(this);
+  late final $SyncConflictsTable syncConflicts = $SyncConflictsTable(this);
   late final Index idxLocalProfilesSyncStatus = Index(
     'idx_local_profiles_sync_status',
     'CREATE INDEX idx_local_profiles_sync_status ON local_profiles (sync_status, updated_at_ms)',
@@ -7332,6 +12837,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_reward_rule_mccs_cache_mcc',
     'CREATE INDEX idx_reward_rule_mccs_cache_mcc ON reward_rule_mccs_cache (mcc_code)',
   );
+  late final Index idxMerchantMccCandidatesCacheName = Index(
+    'idx_merchant_mcc_candidates_cache_name',
+    'CREATE INDEX idx_merchant_mcc_candidates_cache_name ON merchant_mcc_candidates_cache (merchant_name_normalized)',
+  );
+  late final Index idxMerchantMccCandidatesCacheMcc = Index(
+    'idx_merchant_mcc_candidates_cache_mcc',
+    'CREATE INDEX idx_merchant_mcc_candidates_cache_mcc ON merchant_mcc_candidates_cache (mcc_code)',
+  );
+  late final Index idxMerchantBranchesCacheName = Index(
+    'idx_merchant_branches_cache_name',
+    'CREATE INDEX idx_merchant_branches_cache_name ON merchant_branches_cache (name_normalized)',
+  );
   late final Index idxLocalUserCardsProfileActive = Index(
     'idx_local_user_cards_profile_active',
     'CREATE INDEX idx_local_user_cards_profile_active ON local_user_cards (profile_id, deleted_at_ms)',
@@ -7340,9 +12857,41 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'uq_local_user_cards_default',
     'CREATE UNIQUE INDEX uq_local_user_cards_default ON local_user_cards (profile_id) WHERE is_default = 1 AND deleted_at_ms IS NULL',
   );
+  late final Index idxLocalMerchantMccContributionsProfileMerchant = Index(
+    'idx_local_merchant_mcc_contributions_profile_merchant',
+    'CREATE INDEX idx_local_merchant_mcc_contributions_profile_merchant ON local_merchant_mcc_contributions (profile_id, merchant_server_id)',
+  );
   late final Index idxSyncOutboxReady = Index(
     'idx_sync_outbox_ready',
     'CREATE INDEX idx_sync_outbox_ready ON sync_outbox (profile_id, next_attempt_at_ms, created_at_ms)',
+  );
+  late final Index idxLocalMerchantsProfileName = Index(
+    'idx_local_merchants_profile_name',
+    'CREATE INDEX idx_local_merchants_profile_name ON local_merchants (profile_id, name_normalized)',
+  );
+  late final Index uqLocalMerchantsServerId = Index(
+    'uq_local_merchants_server_id',
+    'CREATE UNIQUE INDEX uq_local_merchants_server_id ON local_merchants (profile_id, server_merchant_id) WHERE server_merchant_id IS NOT NULL AND deleted_at_ms IS NULL',
+  );
+  late final Index idxLocalTransactionsProfileDate = Index(
+    'idx_local_transactions_profile_date',
+    'CREATE INDEX idx_local_transactions_profile_date ON local_transactions (profile_id, transaction_at_ms)',
+  );
+  late final Index idxLocalTransactionsCardDate = Index(
+    'idx_local_transactions_card_date',
+    'CREATE INDEX idx_local_transactions_card_date ON local_transactions (user_card_id, transaction_at_ms)',
+  );
+  late final Index idxLocalTransactionsProfileSync = Index(
+    'idx_local_transactions_profile_sync',
+    'CREATE INDEX idx_local_transactions_profile_sync ON local_transactions (profile_id, sync_status)',
+  );
+  late final Index idxLocalCashbackProfileCard = Index(
+    'idx_local_cashback_profile_card',
+    'CREATE INDEX idx_local_cashback_profile_card ON local_cashback_calculations (profile_id, user_card_id, created_at_ms)',
+  );
+  late final Index idxSyncConflictsUnresolved = Index(
+    'idx_sync_conflicts_unresolved',
+    'CREATE INDEX idx_sync_conflicts_unresolved ON sync_conflicts (profile_id, resolved_at_ms, detected_at_ms)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -7357,9 +12906,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     merchantCategoryCodesCache,
     rewardRulesCache,
     rewardRuleMccsCache,
+    merchantMccCandidatesCache,
+    merchantBranchesCache,
     localUserCards,
+    localMerchantMccContributions,
     syncOutbox,
     syncState,
+    localMerchants,
+    localTransactions,
+    localCashbackCalculations,
+    syncConflicts,
     idxLocalProfilesSyncStatus,
     uqLocalProfilesAuthUser,
     uqLocalProfilesServerUser,
@@ -7373,9 +12929,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxMccCacheCategoryActive,
     idxRewardRulesCacheCardActive,
     idxRewardRuleMccsCacheMcc,
+    idxMerchantMccCandidatesCacheName,
+    idxMerchantMccCandidatesCacheMcc,
+    idxMerchantBranchesCacheName,
     idxLocalUserCardsProfileActive,
     uqLocalUserCardsDefault,
+    idxLocalMerchantMccContributionsProfileMerchant,
     idxSyncOutboxReady,
+    idxLocalMerchantsProfileName,
+    uqLocalMerchantsServerId,
+    idxLocalTransactionsProfileDate,
+    idxLocalTransactionsCardDate,
+    idxLocalTransactionsProfileSync,
+    idxLocalCashbackProfileCard,
+    idxSyncConflictsUnresolved,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -7398,7 +12965,58 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'local_profiles',
         limitUpdateKind: UpdateKind.delete,
       ),
+      result: [
+        TableUpdate(
+          'local_merchant_mcc_contributions',
+          kind: UpdateKind.delete,
+        ),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
       result: [TableUpdate('sync_outbox', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('local_merchants', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('local_transactions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('local_cashback_calculations', kind: UpdateKind.delete),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_transactions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('local_cashback_calculations', kind: UpdateKind.delete),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_profiles',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('sync_conflicts', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -7485,6 +13103,32 @@ final class $$LocalProfilesTableReferences
     );
   }
 
+  static MultiTypedResultKey<
+    $LocalMerchantMccContributionsTable,
+    List<LocalMerchantMccContributionRow>
+  >
+  _localMerchantMccContributionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localMerchantMccContributions,
+        aliasName:
+            'local_profiles__id__local_merchant_mcc_contributions__profile_id',
+      );
+
+  $$LocalMerchantMccContributionsTableProcessedTableManager
+  get localMerchantMccContributionsRefs {
+    final manager = $$LocalMerchantMccContributionsTableTableManager(
+      $_db,
+      $_db.localMerchantMccContributions,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localMerchantMccContributionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$SyncOutboxTable, List<SyncOutboxRow>>
   _syncOutboxRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.syncOutbox,
@@ -7498,6 +13142,89 @@ final class $$LocalProfilesTableReferences
     ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_syncOutboxRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$LocalMerchantsTable, List<LocalMerchantRow>>
+  _localMerchantsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.localMerchants,
+    aliasName: 'local_profiles__id__local_merchants__profile_id',
+  );
+
+  $$LocalMerchantsTableProcessedTableManager get localMerchantsRefs {
+    final manager = $$LocalMerchantsTableTableManager(
+      $_db,
+      $_db.localMerchants,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_localMerchantsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$LocalTransactionsTable, List<LocalTransactionRow>>
+  _localTransactionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localTransactions,
+        aliasName: 'local_profiles__id__local_transactions__profile_id',
+      );
+
+  $$LocalTransactionsTableProcessedTableManager get localTransactionsRefs {
+    final manager = $$LocalTransactionsTableTableManager(
+      $_db,
+      $_db.localTransactions,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localTransactionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $LocalCashbackCalculationsTable,
+    List<LocalCashbackCalculationRow>
+  >
+  _localCashbackCalculationsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localCashbackCalculations,
+        aliasName:
+            'local_profiles__id__local_cashback_calculations__profile_id',
+      );
+
+  $$LocalCashbackCalculationsTableProcessedTableManager
+  get localCashbackCalculationsRefs {
+    final manager = $$LocalCashbackCalculationsTableTableManager(
+      $_db,
+      $_db.localCashbackCalculations,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localCashbackCalculationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SyncConflictsTable, List<SyncConflictRow>>
+  _syncConflictsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.syncConflicts,
+    aliasName: 'local_profiles__id__sync_conflicts__profile_id',
+  );
+
+  $$SyncConflictsTableProcessedTableManager get syncConflictsRefs {
+    final manager = $$SyncConflictsTableTableManager(
+      $_db,
+      $_db.syncConflicts,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_syncConflictsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -7633,6 +13360,35 @@ class $$LocalProfilesTableFilterComposer
     return f(composer);
   }
 
+  Expression<bool> localMerchantMccContributionsRefs(
+    Expression<bool> Function(
+      $$LocalMerchantMccContributionsTableFilterComposer f,
+    )
+    f,
+  ) {
+    final $$LocalMerchantMccContributionsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localMerchantMccContributions,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalMerchantMccContributionsTableFilterComposer(
+                $db: $db,
+                $table: $db.localMerchantMccContributions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<bool> syncOutboxRefs(
     Expression<bool> Function($$SyncOutboxTableFilterComposer f) f,
   ) {
@@ -7649,6 +13405,108 @@ class $$LocalProfilesTableFilterComposer
           }) => $$SyncOutboxTableFilterComposer(
             $db: $db,
             $table: $db.syncOutbox,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> localMerchantsRefs(
+    Expression<bool> Function($$LocalMerchantsTableFilterComposer f) f,
+  ) {
+    final $$LocalMerchantsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.localMerchants,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalMerchantsTableFilterComposer(
+            $db: $db,
+            $table: $db.localMerchants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> localTransactionsRefs(
+    Expression<bool> Function($$LocalTransactionsTableFilterComposer f) f,
+  ) {
+    final $$LocalTransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.localTransactions,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalTransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.localTransactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> localCashbackCalculationsRefs(
+    Expression<bool> Function($$LocalCashbackCalculationsTableFilterComposer f)
+    f,
+  ) {
+    final $$LocalCashbackCalculationsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localCashbackCalculations,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalCashbackCalculationsTableFilterComposer(
+                $db: $db,
+                $table: $db.localCashbackCalculations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> syncConflictsRefs(
+    Expression<bool> Function($$SyncConflictsTableFilterComposer f) f,
+  ) {
+    final $$SyncConflictsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.syncConflicts,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SyncConflictsTableFilterComposer(
+            $db: $db,
+            $table: $db.syncConflicts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7864,6 +13722,35 @@ class $$LocalProfilesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> localMerchantMccContributionsRefs<T extends Object>(
+    Expression<T> Function(
+      $$LocalMerchantMccContributionsTableAnnotationComposer a,
+    )
+    f,
+  ) {
+    final $$LocalMerchantMccContributionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localMerchantMccContributions,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalMerchantMccContributionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localMerchantMccContributions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> syncOutboxRefs<T extends Object>(
     Expression<T> Function($$SyncOutboxTableAnnotationComposer a) f,
   ) {
@@ -7880,6 +13767,109 @@ class $$LocalProfilesTableAnnotationComposer
           }) => $$SyncOutboxTableAnnotationComposer(
             $db: $db,
             $table: $db.syncOutbox,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> localMerchantsRefs<T extends Object>(
+    Expression<T> Function($$LocalMerchantsTableAnnotationComposer a) f,
+  ) {
+    final $$LocalMerchantsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.localMerchants,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalMerchantsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localMerchants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> localTransactionsRefs<T extends Object>(
+    Expression<T> Function($$LocalTransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$LocalTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localTransactions,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalTransactionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localTransactions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> localCashbackCalculationsRefs<T extends Object>(
+    Expression<T> Function($$LocalCashbackCalculationsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$LocalCashbackCalculationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localCashbackCalculations,
+          getReferencedColumn: (t) => t.profileId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalCashbackCalculationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localCashbackCalculations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> syncConflictsRefs<T extends Object>(
+    Expression<T> Function($$SyncConflictsTableAnnotationComposer a) f,
+  ) {
+    final $$SyncConflictsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.syncConflicts,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SyncConflictsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.syncConflicts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7906,7 +13896,12 @@ class $$LocalProfilesTableTableManager
           PrefetchHooks Function({
             bool appSettingsRefs,
             bool localUserCardsRefs,
+            bool localMerchantMccContributionsRefs,
             bool syncOutboxRefs,
+            bool localMerchantsRefs,
+            bool localTransactionsRefs,
+            bool localCashbackCalculationsRefs,
+            bool syncConflictsRefs,
           })
         > {
   $$LocalProfilesTableTableManager(_$AppDatabase db, $LocalProfilesTable table)
@@ -8000,14 +13995,26 @@ class $$LocalProfilesTableTableManager
               ({
                 appSettingsRefs = false,
                 localUserCardsRefs = false,
+                localMerchantMccContributionsRefs = false,
                 syncOutboxRefs = false,
+                localMerchantsRefs = false,
+                localTransactionsRefs = false,
+                localCashbackCalculationsRefs = false,
+                syncConflictsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (appSettingsRefs) db.appSettings,
                     if (localUserCardsRefs) db.localUserCards,
+                    if (localMerchantMccContributionsRefs)
+                      db.localMerchantMccContributions,
                     if (syncOutboxRefs) db.syncOutbox,
+                    if (localMerchantsRefs) db.localMerchants,
+                    if (localTransactionsRefs) db.localTransactions,
+                    if (localCashbackCalculationsRefs)
+                      db.localCashbackCalculations,
+                    if (syncConflictsRefs) db.syncConflicts,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -8054,6 +14061,27 @@ class $$LocalProfilesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (localMerchantMccContributionsRefs)
+                        await $_getPrefetchedData<
+                          LocalProfileRow,
+                          $LocalProfilesTable,
+                          LocalMerchantMccContributionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalProfilesTableReferences
+                              ._localMerchantMccContributionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localMerchantMccContributionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (syncOutboxRefs)
                         await $_getPrefetchedData<
                           LocalProfileRow,
@@ -8069,6 +14097,90 @@ class $$LocalProfilesTableTableManager
                                 table,
                                 p0,
                               ).syncOutboxRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (localMerchantsRefs)
+                        await $_getPrefetchedData<
+                          LocalProfileRow,
+                          $LocalProfilesTable,
+                          LocalMerchantRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalProfilesTableReferences
+                              ._localMerchantsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localMerchantsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (localTransactionsRefs)
+                        await $_getPrefetchedData<
+                          LocalProfileRow,
+                          $LocalProfilesTable,
+                          LocalTransactionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalProfilesTableReferences
+                              ._localTransactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localTransactionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (localCashbackCalculationsRefs)
+                        await $_getPrefetchedData<
+                          LocalProfileRow,
+                          $LocalProfilesTable,
+                          LocalCashbackCalculationRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalProfilesTableReferences
+                              ._localCashbackCalculationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localCashbackCalculationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.profileId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (syncConflictsRefs)
+                        await $_getPrefetchedData<
+                          LocalProfileRow,
+                          $LocalProfilesTable,
+                          SyncConflictRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalProfilesTableReferences
+                              ._syncConflictsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).syncConflictsRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.profileId == item.id,
@@ -8098,7 +14210,12 @@ typedef $$LocalProfilesTableProcessedTableManager =
       PrefetchHooks Function({
         bool appSettingsRefs,
         bool localUserCardsRefs,
+        bool localMerchantMccContributionsRefs,
         bool syncOutboxRefs,
+        bool localMerchantsRefs,
+        bool localTransactionsRefs,
+        bool localCashbackCalculationsRefs,
+        bool syncConflictsRefs,
       })
     >;
 typedef $$AppSettingsTableCreateCompanionBuilder =
@@ -10229,6 +16346,599 @@ typedef $$RewardRuleMccsCacheTableProcessedTableManager =
       RewardRuleMccCacheRow,
       PrefetchHooks Function()
     >;
+typedef $$MerchantMccCandidatesCacheTableCreateCompanionBuilder =
+    MerchantMccCandidatesCacheCompanion Function({
+      required String id,
+      required String merchantServerId,
+      required String merchantName,
+      required String merchantNameNormalized,
+      Value<String?> locationText,
+      required String mccCode,
+      Value<String?> mccDescription,
+      Value<String> paymentType,
+      required String source,
+      Value<int?> confidencePpm,
+      required String status,
+      Value<int> datasetVersion,
+      Value<int> rowid,
+    });
+typedef $$MerchantMccCandidatesCacheTableUpdateCompanionBuilder =
+    MerchantMccCandidatesCacheCompanion Function({
+      Value<String> id,
+      Value<String> merchantServerId,
+      Value<String> merchantName,
+      Value<String> merchantNameNormalized,
+      Value<String?> locationText,
+      Value<String> mccCode,
+      Value<String?> mccDescription,
+      Value<String> paymentType,
+      Value<String> source,
+      Value<int?> confidencePpm,
+      Value<String> status,
+      Value<int> datasetVersion,
+      Value<int> rowid,
+    });
+
+class $$MerchantMccCandidatesCacheTableFilterComposer
+    extends Composer<_$AppDatabase, $MerchantMccCandidatesCacheTable> {
+  $$MerchantMccCandidatesCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchantServerId => $composableBuilder(
+    column: $table.merchantServerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchantName => $composableBuilder(
+    column: $table.merchantName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchantNameNormalized => $composableBuilder(
+    column: $table.merchantNameNormalized,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mccCode => $composableBuilder(
+    column: $table.mccCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mccDescription => $composableBuilder(
+    column: $table.mccDescription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentType => $composableBuilder(
+    column: $table.paymentType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get confidencePpm => $composableBuilder(
+    column: $table.confidencePpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get datasetVersion => $composableBuilder(
+    column: $table.datasetVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MerchantMccCandidatesCacheTableOrderingComposer
+    extends Composer<_$AppDatabase, $MerchantMccCandidatesCacheTable> {
+  $$MerchantMccCandidatesCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchantServerId => $composableBuilder(
+    column: $table.merchantServerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchantName => $composableBuilder(
+    column: $table.merchantName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchantNameNormalized => $composableBuilder(
+    column: $table.merchantNameNormalized,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mccCode => $composableBuilder(
+    column: $table.mccCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mccDescription => $composableBuilder(
+    column: $table.mccDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paymentType => $composableBuilder(
+    column: $table.paymentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get confidencePpm => $composableBuilder(
+    column: $table.confidencePpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get datasetVersion => $composableBuilder(
+    column: $table.datasetVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MerchantMccCandidatesCacheTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MerchantMccCandidatesCacheTable> {
+  $$MerchantMccCandidatesCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get merchantServerId => $composableBuilder(
+    column: $table.merchantServerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get merchantName => $composableBuilder(
+    column: $table.merchantName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get merchantNameNormalized => $composableBuilder(
+    column: $table.merchantNameNormalized,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mccCode =>
+      $composableBuilder(column: $table.mccCode, builder: (column) => column);
+
+  GeneratedColumn<String> get mccDescription => $composableBuilder(
+    column: $table.mccDescription,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get paymentType => $composableBuilder(
+    column: $table.paymentType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<int> get confidencePpm => $composableBuilder(
+    column: $table.confidencePpm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get datasetVersion => $composableBuilder(
+    column: $table.datasetVersion,
+    builder: (column) => column,
+  );
+}
+
+class $$MerchantMccCandidatesCacheTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MerchantMccCandidatesCacheTable,
+          MerchantMccCandidateCacheRow,
+          $$MerchantMccCandidatesCacheTableFilterComposer,
+          $$MerchantMccCandidatesCacheTableOrderingComposer,
+          $$MerchantMccCandidatesCacheTableAnnotationComposer,
+          $$MerchantMccCandidatesCacheTableCreateCompanionBuilder,
+          $$MerchantMccCandidatesCacheTableUpdateCompanionBuilder,
+          (
+            MerchantMccCandidateCacheRow,
+            BaseReferences<
+              _$AppDatabase,
+              $MerchantMccCandidatesCacheTable,
+              MerchantMccCandidateCacheRow
+            >,
+          ),
+          MerchantMccCandidateCacheRow,
+          PrefetchHooks Function()
+        > {
+  $$MerchantMccCandidatesCacheTableTableManager(
+    _$AppDatabase db,
+    $MerchantMccCandidatesCacheTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MerchantMccCandidatesCacheTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MerchantMccCandidatesCacheTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MerchantMccCandidatesCacheTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> merchantServerId = const Value.absent(),
+                Value<String> merchantName = const Value.absent(),
+                Value<String> merchantNameNormalized = const Value.absent(),
+                Value<String?> locationText = const Value.absent(),
+                Value<String> mccCode = const Value.absent(),
+                Value<String?> mccDescription = const Value.absent(),
+                Value<String> paymentType = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<int?> confidencePpm = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> datasetVersion = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MerchantMccCandidatesCacheCompanion(
+                id: id,
+                merchantServerId: merchantServerId,
+                merchantName: merchantName,
+                merchantNameNormalized: merchantNameNormalized,
+                locationText: locationText,
+                mccCode: mccCode,
+                mccDescription: mccDescription,
+                paymentType: paymentType,
+                source: source,
+                confidencePpm: confidencePpm,
+                status: status,
+                datasetVersion: datasetVersion,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String merchantServerId,
+                required String merchantName,
+                required String merchantNameNormalized,
+                Value<String?> locationText = const Value.absent(),
+                required String mccCode,
+                Value<String?> mccDescription = const Value.absent(),
+                Value<String> paymentType = const Value.absent(),
+                required String source,
+                Value<int?> confidencePpm = const Value.absent(),
+                required String status,
+                Value<int> datasetVersion = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MerchantMccCandidatesCacheCompanion.insert(
+                id: id,
+                merchantServerId: merchantServerId,
+                merchantName: merchantName,
+                merchantNameNormalized: merchantNameNormalized,
+                locationText: locationText,
+                mccCode: mccCode,
+                mccDescription: mccDescription,
+                paymentType: paymentType,
+                source: source,
+                confidencePpm: confidencePpm,
+                status: status,
+                datasetVersion: datasetVersion,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MerchantMccCandidatesCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MerchantMccCandidatesCacheTable,
+      MerchantMccCandidateCacheRow,
+      $$MerchantMccCandidatesCacheTableFilterComposer,
+      $$MerchantMccCandidatesCacheTableOrderingComposer,
+      $$MerchantMccCandidatesCacheTableAnnotationComposer,
+      $$MerchantMccCandidatesCacheTableCreateCompanionBuilder,
+      $$MerchantMccCandidatesCacheTableUpdateCompanionBuilder,
+      (
+        MerchantMccCandidateCacheRow,
+        BaseReferences<
+          _$AppDatabase,
+          $MerchantMccCandidatesCacheTable,
+          MerchantMccCandidateCacheRow
+        >,
+      ),
+      MerchantMccCandidateCacheRow,
+      PrefetchHooks Function()
+    >;
+typedef $$MerchantBranchesCacheTableCreateCompanionBuilder =
+    MerchantBranchesCacheCompanion Function({
+      required String id,
+      required String name,
+      required String nameNormalized,
+      Value<String?> locationText,
+      Value<int> datasetVersion,
+      Value<int> rowid,
+    });
+typedef $$MerchantBranchesCacheTableUpdateCompanionBuilder =
+    MerchantBranchesCacheCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> nameNormalized,
+      Value<String?> locationText,
+      Value<int> datasetVersion,
+      Value<int> rowid,
+    });
+
+class $$MerchantBranchesCacheTableFilterComposer
+    extends Composer<_$AppDatabase, $MerchantBranchesCacheTable> {
+  $$MerchantBranchesCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nameNormalized => $composableBuilder(
+    column: $table.nameNormalized,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get datasetVersion => $composableBuilder(
+    column: $table.datasetVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MerchantBranchesCacheTableOrderingComposer
+    extends Composer<_$AppDatabase, $MerchantBranchesCacheTable> {
+  $$MerchantBranchesCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nameNormalized => $composableBuilder(
+    column: $table.nameNormalized,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get datasetVersion => $composableBuilder(
+    column: $table.datasetVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MerchantBranchesCacheTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MerchantBranchesCacheTable> {
+  $$MerchantBranchesCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get nameNormalized => $composableBuilder(
+    column: $table.nameNormalized,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get datasetVersion => $composableBuilder(
+    column: $table.datasetVersion,
+    builder: (column) => column,
+  );
+}
+
+class $$MerchantBranchesCacheTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MerchantBranchesCacheTable,
+          MerchantBranchCacheRow,
+          $$MerchantBranchesCacheTableFilterComposer,
+          $$MerchantBranchesCacheTableOrderingComposer,
+          $$MerchantBranchesCacheTableAnnotationComposer,
+          $$MerchantBranchesCacheTableCreateCompanionBuilder,
+          $$MerchantBranchesCacheTableUpdateCompanionBuilder,
+          (
+            MerchantBranchCacheRow,
+            BaseReferences<
+              _$AppDatabase,
+              $MerchantBranchesCacheTable,
+              MerchantBranchCacheRow
+            >,
+          ),
+          MerchantBranchCacheRow,
+          PrefetchHooks Function()
+        > {
+  $$MerchantBranchesCacheTableTableManager(
+    _$AppDatabase db,
+    $MerchantBranchesCacheTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MerchantBranchesCacheTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MerchantBranchesCacheTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MerchantBranchesCacheTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> nameNormalized = const Value.absent(),
+                Value<String?> locationText = const Value.absent(),
+                Value<int> datasetVersion = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MerchantBranchesCacheCompanion(
+                id: id,
+                name: name,
+                nameNormalized: nameNormalized,
+                locationText: locationText,
+                datasetVersion: datasetVersion,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String nameNormalized,
+                Value<String?> locationText = const Value.absent(),
+                Value<int> datasetVersion = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MerchantBranchesCacheCompanion.insert(
+                id: id,
+                name: name,
+                nameNormalized: nameNormalized,
+                locationText: locationText,
+                datasetVersion: datasetVersion,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MerchantBranchesCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MerchantBranchesCacheTable,
+      MerchantBranchCacheRow,
+      $$MerchantBranchesCacheTableFilterComposer,
+      $$MerchantBranchesCacheTableOrderingComposer,
+      $$MerchantBranchesCacheTableAnnotationComposer,
+      $$MerchantBranchesCacheTableCreateCompanionBuilder,
+      $$MerchantBranchesCacheTableUpdateCompanionBuilder,
+      (
+        MerchantBranchCacheRow,
+        BaseReferences<
+          _$AppDatabase,
+          $MerchantBranchesCacheTable,
+          MerchantBranchCacheRow
+        >,
+      ),
+      MerchantBranchCacheRow,
+      PrefetchHooks Function()
+    >;
 typedef $$LocalUserCardsTableCreateCompanionBuilder =
     LocalUserCardsCompanion Function({
       required String id,
@@ -10238,6 +16948,7 @@ typedef $$LocalUserCardsTableCreateCompanionBuilder =
       required String bankNameSnapshot,
       required String nickname,
       required int billingCycleDay,
+      Value<int> creditLimitMinor,
       Value<bool> isDefault,
       Value<bool> hasAnnualFee,
       required int createdAtMs,
@@ -10257,6 +16968,7 @@ typedef $$LocalUserCardsTableUpdateCompanionBuilder =
       Value<String> bankNameSnapshot,
       Value<String> nickname,
       Value<int> billingCycleDay,
+      Value<int> creditLimitMinor,
       Value<bool> isDefault,
       Value<bool> hasAnnualFee,
       Value<int> createdAtMs,
@@ -10292,6 +17004,53 @@ final class $$LocalUserCardsTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$LocalTransactionsTable, List<LocalTransactionRow>>
+  _localTransactionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localTransactions,
+        aliasName: 'local_user_cards__id__local_transactions__user_card_id',
+      );
+
+  $$LocalTransactionsTableProcessedTableManager get localTransactionsRefs {
+    final manager = $$LocalTransactionsTableTableManager(
+      $_db,
+      $_db.localTransactions,
+    ).filter((f) => f.userCardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localTransactionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $LocalCashbackCalculationsTable,
+    List<LocalCashbackCalculationRow>
+  >
+  _localCashbackCalculationsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localCashbackCalculations,
+        aliasName:
+            'local_user_cards__id__local_cashback_calculations__user_card_id',
+      );
+
+  $$LocalCashbackCalculationsTableProcessedTableManager
+  get localCashbackCalculationsRefs {
+    final manager = $$LocalCashbackCalculationsTableTableManager(
+      $_db,
+      $_db.localCashbackCalculations,
+    ).filter((f) => f.userCardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localCashbackCalculationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -10332,6 +17091,11 @@ class $$LocalUserCardsTableFilterComposer
 
   ColumnFilters<int> get billingCycleDay => $composableBuilder(
     column: $table.billingCycleDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get creditLimitMinor => $composableBuilder(
+    column: $table.creditLimitMinor,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10397,6 +17161,58 @@ class $$LocalUserCardsTableFilterComposer
     );
     return composer;
   }
+
+  Expression<bool> localTransactionsRefs(
+    Expression<bool> Function($$LocalTransactionsTableFilterComposer f) f,
+  ) {
+    final $$LocalTransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.localTransactions,
+      getReferencedColumn: (t) => t.userCardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalTransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.localTransactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> localCashbackCalculationsRefs(
+    Expression<bool> Function($$LocalCashbackCalculationsTableFilterComposer f)
+    f,
+  ) {
+    final $$LocalCashbackCalculationsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localCashbackCalculations,
+          getReferencedColumn: (t) => t.userCardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalCashbackCalculationsTableFilterComposer(
+                $db: $db,
+                $table: $db.localCashbackCalculations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$LocalUserCardsTableOrderingComposer
@@ -10435,6 +17251,11 @@ class $$LocalUserCardsTableOrderingComposer
 
   ColumnOrderings<int> get billingCycleDay => $composableBuilder(
     column: $table.billingCycleDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get creditLimitMinor => $composableBuilder(
+    column: $table.creditLimitMinor,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -10535,6 +17356,11 @@ class $$LocalUserCardsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get creditLimitMinor => $composableBuilder(
+    column: $table.creditLimitMinor,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
 
@@ -10595,6 +17421,59 @@ class $$LocalUserCardsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> localTransactionsRefs<T extends Object>(
+    Expression<T> Function($$LocalTransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$LocalTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localTransactions,
+          getReferencedColumn: (t) => t.userCardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalTransactionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localTransactions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> localCashbackCalculationsRefs<T extends Object>(
+    Expression<T> Function($$LocalCashbackCalculationsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$LocalCashbackCalculationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localCashbackCalculations,
+          getReferencedColumn: (t) => t.userCardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalCashbackCalculationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localCashbackCalculations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$LocalUserCardsTableTableManager
@@ -10610,7 +17489,11 @@ class $$LocalUserCardsTableTableManager
           $$LocalUserCardsTableUpdateCompanionBuilder,
           (LocalUserCardRow, $$LocalUserCardsTableReferences),
           LocalUserCardRow,
-          PrefetchHooks Function({bool profileId})
+          PrefetchHooks Function({
+            bool profileId,
+            bool localTransactionsRefs,
+            bool localCashbackCalculationsRefs,
+          })
         > {
   $$LocalUserCardsTableTableManager(
     _$AppDatabase db,
@@ -10634,6 +17517,7 @@ class $$LocalUserCardsTableTableManager
                 Value<String> bankNameSnapshot = const Value.absent(),
                 Value<String> nickname = const Value.absent(),
                 Value<int> billingCycleDay = const Value.absent(),
+                Value<int> creditLimitMinor = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
                 Value<bool> hasAnnualFee = const Value.absent(),
                 Value<int> createdAtMs = const Value.absent(),
@@ -10651,6 +17535,7 @@ class $$LocalUserCardsTableTableManager
                 bankNameSnapshot: bankNameSnapshot,
                 nickname: nickname,
                 billingCycleDay: billingCycleDay,
+                creditLimitMinor: creditLimitMinor,
                 isDefault: isDefault,
                 hasAnnualFee: hasAnnualFee,
                 createdAtMs: createdAtMs,
@@ -10670,6 +17555,7 @@ class $$LocalUserCardsTableTableManager
                 required String bankNameSnapshot,
                 required String nickname,
                 required int billingCycleDay,
+                Value<int> creditLimitMinor = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
                 Value<bool> hasAnnualFee = const Value.absent(),
                 required int createdAtMs,
@@ -10687,6 +17573,7 @@ class $$LocalUserCardsTableTableManager
                 bankNameSnapshot: bankNameSnapshot,
                 nickname: nickname,
                 billingCycleDay: billingCycleDay,
+                creditLimitMinor: creditLimitMinor,
                 isDefault: isDefault,
                 hasAnnualFee: hasAnnualFee,
                 createdAtMs: createdAtMs,
@@ -10702,6 +17589,534 @@ class $$LocalUserCardsTableTableManager
                 (e) => (
                   e.readTable(table),
                   $$LocalUserCardsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                profileId = false,
+                localTransactionsRefs = false,
+                localCashbackCalculationsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (localTransactionsRefs) db.localTransactions,
+                    if (localCashbackCalculationsRefs)
+                      db.localCashbackCalculations,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (profileId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.profileId,
+                                    referencedTable:
+                                        $$LocalUserCardsTableReferences
+                                            ._profileIdTable(db),
+                                    referencedColumn:
+                                        $$LocalUserCardsTableReferences
+                                            ._profileIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (localTransactionsRefs)
+                        await $_getPrefetchedData<
+                          LocalUserCardRow,
+                          $LocalUserCardsTable,
+                          LocalTransactionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUserCardsTableReferences
+                              ._localTransactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUserCardsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localTransactionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userCardId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (localCashbackCalculationsRefs)
+                        await $_getPrefetchedData<
+                          LocalUserCardRow,
+                          $LocalUserCardsTable,
+                          LocalCashbackCalculationRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUserCardsTableReferences
+                              ._localCashbackCalculationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUserCardsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localCashbackCalculationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userCardId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$LocalUserCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalUserCardsTable,
+      LocalUserCardRow,
+      $$LocalUserCardsTableFilterComposer,
+      $$LocalUserCardsTableOrderingComposer,
+      $$LocalUserCardsTableAnnotationComposer,
+      $$LocalUserCardsTableCreateCompanionBuilder,
+      $$LocalUserCardsTableUpdateCompanionBuilder,
+      (LocalUserCardRow, $$LocalUserCardsTableReferences),
+      LocalUserCardRow,
+      PrefetchHooks Function({
+        bool profileId,
+        bool localTransactionsRefs,
+        bool localCashbackCalculationsRefs,
+      })
+    >;
+typedef $$LocalMerchantMccContributionsTableCreateCompanionBuilder =
+    LocalMerchantMccContributionsCompanion Function({
+      required String id,
+      required String profileId,
+      required String merchantServerId,
+      required String merchantNameSnapshot,
+      Value<String?> locationText,
+      required String mccCode,
+      Value<String?> mccDescriptionSnapshot,
+      required String paymentType,
+      Value<String?> note,
+      required int createdAtMs,
+      required int updatedAtMs,
+      Value<int> rowid,
+    });
+typedef $$LocalMerchantMccContributionsTableUpdateCompanionBuilder =
+    LocalMerchantMccContributionsCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<String> merchantServerId,
+      Value<String> merchantNameSnapshot,
+      Value<String?> locationText,
+      Value<String> mccCode,
+      Value<String?> mccDescriptionSnapshot,
+      Value<String> paymentType,
+      Value<String?> note,
+      Value<int> createdAtMs,
+      Value<int> updatedAtMs,
+      Value<int> rowid,
+    });
+
+final class $$LocalMerchantMccContributionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LocalMerchantMccContributionsTable,
+          LocalMerchantMccContributionRow
+        > {
+  $$LocalMerchantMccContributionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalProfilesTable _profileIdTable(_$AppDatabase db) =>
+      db.localProfiles.createAlias(
+        'local_merchant_mcc_contributions__profile_id__local_profiles__id',
+      );
+
+  $$LocalProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$LocalProfilesTableTableManager(
+      $_db,
+      $_db.localProfiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LocalMerchantMccContributionsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalMerchantMccContributionsTable> {
+  $$LocalMerchantMccContributionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchantServerId => $composableBuilder(
+    column: $table.merchantServerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchantNameSnapshot => $composableBuilder(
+    column: $table.merchantNameSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mccCode => $composableBuilder(
+    column: $table.mccCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mccDescriptionSnapshot => $composableBuilder(
+    column: $table.mccDescriptionSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentType => $composableBuilder(
+    column: $table.paymentType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalProfilesTableFilterComposer get profileId {
+    final $$LocalProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalMerchantMccContributionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalMerchantMccContributionsTable> {
+  $$LocalMerchantMccContributionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchantServerId => $composableBuilder(
+    column: $table.merchantServerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchantNameSnapshot => $composableBuilder(
+    column: $table.merchantNameSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mccCode => $composableBuilder(
+    column: $table.mccCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mccDescriptionSnapshot => $composableBuilder(
+    column: $table.mccDescriptionSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paymentType => $composableBuilder(
+    column: $table.paymentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalProfilesTableOrderingComposer get profileId {
+    final $$LocalProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalMerchantMccContributionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalMerchantMccContributionsTable> {
+  $$LocalMerchantMccContributionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get merchantServerId => $composableBuilder(
+    column: $table.merchantServerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get merchantNameSnapshot => $composableBuilder(
+    column: $table.merchantNameSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mccCode =>
+      $composableBuilder(column: $table.mccCode, builder: (column) => column);
+
+  GeneratedColumn<String> get mccDescriptionSnapshot => $composableBuilder(
+    column: $table.mccDescriptionSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get paymentType => $composableBuilder(
+    column: $table.paymentType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => column,
+  );
+
+  $$LocalProfilesTableAnnotationComposer get profileId {
+    final $$LocalProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalMerchantMccContributionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalMerchantMccContributionsTable,
+          LocalMerchantMccContributionRow,
+          $$LocalMerchantMccContributionsTableFilterComposer,
+          $$LocalMerchantMccContributionsTableOrderingComposer,
+          $$LocalMerchantMccContributionsTableAnnotationComposer,
+          $$LocalMerchantMccContributionsTableCreateCompanionBuilder,
+          $$LocalMerchantMccContributionsTableUpdateCompanionBuilder,
+          (
+            LocalMerchantMccContributionRow,
+            $$LocalMerchantMccContributionsTableReferences,
+          ),
+          LocalMerchantMccContributionRow,
+          PrefetchHooks Function({bool profileId})
+        > {
+  $$LocalMerchantMccContributionsTableTableManager(
+    _$AppDatabase db,
+    $LocalMerchantMccContributionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalMerchantMccContributionsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LocalMerchantMccContributionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LocalMerchantMccContributionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<String> merchantServerId = const Value.absent(),
+                Value<String> merchantNameSnapshot = const Value.absent(),
+                Value<String?> locationText = const Value.absent(),
+                Value<String> mccCode = const Value.absent(),
+                Value<String?> mccDescriptionSnapshot = const Value.absent(),
+                Value<String> paymentType = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> createdAtMs = const Value.absent(),
+                Value<int> updatedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalMerchantMccContributionsCompanion(
+                id: id,
+                profileId: profileId,
+                merchantServerId: merchantServerId,
+                merchantNameSnapshot: merchantNameSnapshot,
+                locationText: locationText,
+                mccCode: mccCode,
+                mccDescriptionSnapshot: mccDescriptionSnapshot,
+                paymentType: paymentType,
+                note: note,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                required String merchantServerId,
+                required String merchantNameSnapshot,
+                Value<String?> locationText = const Value.absent(),
+                required String mccCode,
+                Value<String?> mccDescriptionSnapshot = const Value.absent(),
+                required String paymentType,
+                Value<String?> note = const Value.absent(),
+                required int createdAtMs,
+                required int updatedAtMs,
+                Value<int> rowid = const Value.absent(),
+              }) => LocalMerchantMccContributionsCompanion.insert(
+                id: id,
+                profileId: profileId,
+                merchantServerId: merchantServerId,
+                merchantNameSnapshot: merchantNameSnapshot,
+                locationText: locationText,
+                mccCode: mccCode,
+                mccDescriptionSnapshot: mccDescriptionSnapshot,
+                paymentType: paymentType,
+                note: note,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LocalMerchantMccContributionsTableReferences(db, table, e),
                 ),
               )
               .toList(),
@@ -10730,10 +18145,11 @@ class $$LocalUserCardsTableTableManager
                           state.withJoin(
                                 currentTable: table,
                                 currentColumn: table.profileId,
-                                referencedTable: $$LocalUserCardsTableReferences
-                                    ._profileIdTable(db),
+                                referencedTable:
+                                    $$LocalMerchantMccContributionsTableReferences
+                                        ._profileIdTable(db),
                                 referencedColumn:
-                                    $$LocalUserCardsTableReferences
+                                    $$LocalMerchantMccContributionsTableReferences
                                         ._profileIdTable(db)
                                         .id,
                               )
@@ -10751,18 +18167,21 @@ class $$LocalUserCardsTableTableManager
       );
 }
 
-typedef $$LocalUserCardsTableProcessedTableManager =
+typedef $$LocalMerchantMccContributionsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $LocalUserCardsTable,
-      LocalUserCardRow,
-      $$LocalUserCardsTableFilterComposer,
-      $$LocalUserCardsTableOrderingComposer,
-      $$LocalUserCardsTableAnnotationComposer,
-      $$LocalUserCardsTableCreateCompanionBuilder,
-      $$LocalUserCardsTableUpdateCompanionBuilder,
-      (LocalUserCardRow, $$LocalUserCardsTableReferences),
-      LocalUserCardRow,
+      $LocalMerchantMccContributionsTable,
+      LocalMerchantMccContributionRow,
+      $$LocalMerchantMccContributionsTableFilterComposer,
+      $$LocalMerchantMccContributionsTableOrderingComposer,
+      $$LocalMerchantMccContributionsTableAnnotationComposer,
+      $$LocalMerchantMccContributionsTableCreateCompanionBuilder,
+      $$LocalMerchantMccContributionsTableUpdateCompanionBuilder,
+      (
+        LocalMerchantMccContributionRow,
+        $$LocalMerchantMccContributionsTableReferences,
+      ),
+      LocalMerchantMccContributionRow,
       PrefetchHooks Function({bool profileId})
     >;
 typedef $$SyncOutboxTableCreateCompanionBuilder =
@@ -11520,6 +18939,2696 @@ typedef $$SyncStateTableProcessedTableManager =
       SyncStateRow,
       PrefetchHooks Function()
     >;
+typedef $$LocalMerchantsTableCreateCompanionBuilder =
+    LocalMerchantsCompanion Function({
+      required String id,
+      required String profileId,
+      Value<String?> serverMerchantId,
+      required String nameRaw,
+      required String nameNormalized,
+      Value<String?> locationText,
+      Value<String> countryCode,
+      required int createdAtMs,
+      required int updatedAtMs,
+      Value<int?> deletedAtMs,
+      Value<String> syncStatus,
+      Value<int?> serverVersion,
+      Value<int?> lastSyncedAtMs,
+      Value<int> rowid,
+    });
+typedef $$LocalMerchantsTableUpdateCompanionBuilder =
+    LocalMerchantsCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<String?> serverMerchantId,
+      Value<String> nameRaw,
+      Value<String> nameNormalized,
+      Value<String?> locationText,
+      Value<String> countryCode,
+      Value<int> createdAtMs,
+      Value<int> updatedAtMs,
+      Value<int?> deletedAtMs,
+      Value<String> syncStatus,
+      Value<int?> serverVersion,
+      Value<int?> lastSyncedAtMs,
+      Value<int> rowid,
+    });
+
+final class $$LocalMerchantsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $LocalMerchantsTable, LocalMerchantRow> {
+  $$LocalMerchantsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalProfilesTable _profileIdTable(_$AppDatabase db) => db
+      .localProfiles
+      .createAlias('local_merchants__profile_id__local_profiles__id');
+
+  $$LocalProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$LocalProfilesTableTableManager(
+      $_db,
+      $_db.localProfiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$LocalTransactionsTable, List<LocalTransactionRow>>
+  _localTransactionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localTransactions,
+        aliasName: 'local_merchants__id__local_transactions__merchant_id',
+      );
+
+  $$LocalTransactionsTableProcessedTableManager get localTransactionsRefs {
+    final manager = $$LocalTransactionsTableTableManager(
+      $_db,
+      $_db.localTransactions,
+    ).filter((f) => f.merchantId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localTransactionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$LocalMerchantsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalMerchantsTable> {
+  $$LocalMerchantsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverMerchantId => $composableBuilder(
+    column: $table.serverMerchantId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nameRaw => $composableBuilder(
+    column: $table.nameRaw,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nameNormalized => $composableBuilder(
+    column: $table.nameNormalized,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get countryCode => $composableBuilder(
+    column: $table.countryCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deletedAtMs => $composableBuilder(
+    column: $table.deletedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastSyncedAtMs => $composableBuilder(
+    column: $table.lastSyncedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalProfilesTableFilterComposer get profileId {
+    final $$LocalProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> localTransactionsRefs(
+    Expression<bool> Function($$LocalTransactionsTableFilterComposer f) f,
+  ) {
+    final $$LocalTransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.localTransactions,
+      getReferencedColumn: (t) => t.merchantId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalTransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.localTransactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$LocalMerchantsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalMerchantsTable> {
+  $$LocalMerchantsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverMerchantId => $composableBuilder(
+    column: $table.serverMerchantId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nameRaw => $composableBuilder(
+    column: $table.nameRaw,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nameNormalized => $composableBuilder(
+    column: $table.nameNormalized,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get countryCode => $composableBuilder(
+    column: $table.countryCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deletedAtMs => $composableBuilder(
+    column: $table.deletedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastSyncedAtMs => $composableBuilder(
+    column: $table.lastSyncedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalProfilesTableOrderingComposer get profileId {
+    final $$LocalProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalMerchantsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalMerchantsTable> {
+  $$LocalMerchantsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serverMerchantId => $composableBuilder(
+    column: $table.serverMerchantId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nameRaw =>
+      $composableBuilder(column: $table.nameRaw, builder: (column) => column);
+
+  GeneratedColumn<String> get nameNormalized => $composableBuilder(
+    column: $table.nameNormalized,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get countryCode => $composableBuilder(
+    column: $table.countryCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get deletedAtMs => $composableBuilder(
+    column: $table.deletedAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastSyncedAtMs => $composableBuilder(
+    column: $table.lastSyncedAtMs,
+    builder: (column) => column,
+  );
+
+  $$LocalProfilesTableAnnotationComposer get profileId {
+    final $$LocalProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> localTransactionsRefs<T extends Object>(
+    Expression<T> Function($$LocalTransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$LocalTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localTransactions,
+          getReferencedColumn: (t) => t.merchantId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalTransactionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localTransactions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$LocalMerchantsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalMerchantsTable,
+          LocalMerchantRow,
+          $$LocalMerchantsTableFilterComposer,
+          $$LocalMerchantsTableOrderingComposer,
+          $$LocalMerchantsTableAnnotationComposer,
+          $$LocalMerchantsTableCreateCompanionBuilder,
+          $$LocalMerchantsTableUpdateCompanionBuilder,
+          (LocalMerchantRow, $$LocalMerchantsTableReferences),
+          LocalMerchantRow,
+          PrefetchHooks Function({bool profileId, bool localTransactionsRefs})
+        > {
+  $$LocalMerchantsTableTableManager(
+    _$AppDatabase db,
+    $LocalMerchantsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalMerchantsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalMerchantsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalMerchantsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<String?> serverMerchantId = const Value.absent(),
+                Value<String> nameRaw = const Value.absent(),
+                Value<String> nameNormalized = const Value.absent(),
+                Value<String?> locationText = const Value.absent(),
+                Value<String> countryCode = const Value.absent(),
+                Value<int> createdAtMs = const Value.absent(),
+                Value<int> updatedAtMs = const Value.absent(),
+                Value<int?> deletedAtMs = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int?> serverVersion = const Value.absent(),
+                Value<int?> lastSyncedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalMerchantsCompanion(
+                id: id,
+                profileId: profileId,
+                serverMerchantId: serverMerchantId,
+                nameRaw: nameRaw,
+                nameNormalized: nameNormalized,
+                locationText: locationText,
+                countryCode: countryCode,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                deletedAtMs: deletedAtMs,
+                syncStatus: syncStatus,
+                serverVersion: serverVersion,
+                lastSyncedAtMs: lastSyncedAtMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                Value<String?> serverMerchantId = const Value.absent(),
+                required String nameRaw,
+                required String nameNormalized,
+                Value<String?> locationText = const Value.absent(),
+                Value<String> countryCode = const Value.absent(),
+                required int createdAtMs,
+                required int updatedAtMs,
+                Value<int?> deletedAtMs = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int?> serverVersion = const Value.absent(),
+                Value<int?> lastSyncedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalMerchantsCompanion.insert(
+                id: id,
+                profileId: profileId,
+                serverMerchantId: serverMerchantId,
+                nameRaw: nameRaw,
+                nameNormalized: nameNormalized,
+                locationText: locationText,
+                countryCode: countryCode,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                deletedAtMs: deletedAtMs,
+                syncStatus: syncStatus,
+                serverVersion: serverVersion,
+                lastSyncedAtMs: lastSyncedAtMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LocalMerchantsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({profileId = false, localTransactionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (localTransactionsRefs) db.localTransactions,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (profileId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.profileId,
+                                    referencedTable:
+                                        $$LocalMerchantsTableReferences
+                                            ._profileIdTable(db),
+                                    referencedColumn:
+                                        $$LocalMerchantsTableReferences
+                                            ._profileIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (localTransactionsRefs)
+                        await $_getPrefetchedData<
+                          LocalMerchantRow,
+                          $LocalMerchantsTable,
+                          LocalTransactionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalMerchantsTableReferences
+                              ._localTransactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalMerchantsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localTransactionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.merchantId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$LocalMerchantsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalMerchantsTable,
+      LocalMerchantRow,
+      $$LocalMerchantsTableFilterComposer,
+      $$LocalMerchantsTableOrderingComposer,
+      $$LocalMerchantsTableAnnotationComposer,
+      $$LocalMerchantsTableCreateCompanionBuilder,
+      $$LocalMerchantsTableUpdateCompanionBuilder,
+      (LocalMerchantRow, $$LocalMerchantsTableReferences),
+      LocalMerchantRow,
+      PrefetchHooks Function({bool profileId, bool localTransactionsRefs})
+    >;
+typedef $$LocalTransactionsTableCreateCompanionBuilder =
+    LocalTransactionsCompanion Function({
+      required String id,
+      required String profileId,
+      required String userCardId,
+      Value<String?> merchantId,
+      required int transactionAtMs,
+      required int amountMinor,
+      Value<String> currency,
+      Value<String?> mccCode,
+      Value<String?> mccSource,
+      Value<String?> category,
+      Value<int?> cashbackEstimatedMinor,
+      Value<int?> cashbackConfidencePpm,
+      Value<String> source,
+      Value<String?> note,
+      required int createdAtMs,
+      required int updatedAtMs,
+      Value<int?> deletedAtMs,
+      Value<String> syncStatus,
+      Value<int?> serverVersion,
+      Value<int?> lastSyncedAtMs,
+      Value<int> rowid,
+    });
+typedef $$LocalTransactionsTableUpdateCompanionBuilder =
+    LocalTransactionsCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<String> userCardId,
+      Value<String?> merchantId,
+      Value<int> transactionAtMs,
+      Value<int> amountMinor,
+      Value<String> currency,
+      Value<String?> mccCode,
+      Value<String?> mccSource,
+      Value<String?> category,
+      Value<int?> cashbackEstimatedMinor,
+      Value<int?> cashbackConfidencePpm,
+      Value<String> source,
+      Value<String?> note,
+      Value<int> createdAtMs,
+      Value<int> updatedAtMs,
+      Value<int?> deletedAtMs,
+      Value<String> syncStatus,
+      Value<int?> serverVersion,
+      Value<int?> lastSyncedAtMs,
+      Value<int> rowid,
+    });
+
+final class $$LocalTransactionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LocalTransactionsTable,
+          LocalTransactionRow
+        > {
+  $$LocalTransactionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalProfilesTable _profileIdTable(_$AppDatabase db) => db
+      .localProfiles
+      .createAlias('local_transactions__profile_id__local_profiles__id');
+
+  $$LocalProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$LocalProfilesTableTableManager(
+      $_db,
+      $_db.localProfiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalUserCardsTable _userCardIdTable(_$AppDatabase db) => db
+      .localUserCards
+      .createAlias('local_transactions__user_card_id__local_user_cards__id');
+
+  $$LocalUserCardsTableProcessedTableManager get userCardId {
+    final $_column = $_itemColumn<String>('user_card_id')!;
+
+    final manager = $$LocalUserCardsTableTableManager(
+      $_db,
+      $_db.localUserCards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userCardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalMerchantsTable _merchantIdTable(_$AppDatabase db) => db
+      .localMerchants
+      .createAlias('local_transactions__merchant_id__local_merchants__id');
+
+  $$LocalMerchantsTableProcessedTableManager? get merchantId {
+    final $_column = $_itemColumn<String>('merchant_id');
+    if ($_column == null) return null;
+    final manager = $$LocalMerchantsTableTableManager(
+      $_db,
+      $_db.localMerchants,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_merchantIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $LocalCashbackCalculationsTable,
+    List<LocalCashbackCalculationRow>
+  >
+  _localCashbackCalculationsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.localCashbackCalculations,
+    aliasName:
+        'local_transactions__id__local_cashback_calculations__transaction_id',
+  );
+
+  $$LocalCashbackCalculationsTableProcessedTableManager
+  get localCashbackCalculationsRefs {
+    final manager = $$LocalCashbackCalculationsTableTableManager(
+      $_db,
+      $_db.localCashbackCalculations,
+    ).filter((f) => f.transactionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localCashbackCalculationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$LocalTransactionsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalTransactionsTable> {
+  $$LocalTransactionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get transactionAtMs => $composableBuilder(
+    column: $table.transactionAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mccCode => $composableBuilder(
+    column: $table.mccCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mccSource => $composableBuilder(
+    column: $table.mccSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cashbackEstimatedMinor => $composableBuilder(
+    column: $table.cashbackEstimatedMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cashbackConfidencePpm => $composableBuilder(
+    column: $table.cashbackConfidencePpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deletedAtMs => $composableBuilder(
+    column: $table.deletedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastSyncedAtMs => $composableBuilder(
+    column: $table.lastSyncedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalProfilesTableFilterComposer get profileId {
+    final $$LocalProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalUserCardsTableFilterComposer get userCardId {
+    final $$LocalUserCardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userCardId,
+      referencedTable: $db.localUserCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUserCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.localUserCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalMerchantsTableFilterComposer get merchantId {
+    final $$LocalMerchantsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.merchantId,
+      referencedTable: $db.localMerchants,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalMerchantsTableFilterComposer(
+            $db: $db,
+            $table: $db.localMerchants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> localCashbackCalculationsRefs(
+    Expression<bool> Function($$LocalCashbackCalculationsTableFilterComposer f)
+    f,
+  ) {
+    final $$LocalCashbackCalculationsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localCashbackCalculations,
+          getReferencedColumn: (t) => t.transactionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalCashbackCalculationsTableFilterComposer(
+                $db: $db,
+                $table: $db.localCashbackCalculations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$LocalTransactionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalTransactionsTable> {
+  $$LocalTransactionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get transactionAtMs => $composableBuilder(
+    column: $table.transactionAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mccCode => $composableBuilder(
+    column: $table.mccCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mccSource => $composableBuilder(
+    column: $table.mccSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cashbackEstimatedMinor => $composableBuilder(
+    column: $table.cashbackEstimatedMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cashbackConfidencePpm => $composableBuilder(
+    column: $table.cashbackConfidencePpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deletedAtMs => $composableBuilder(
+    column: $table.deletedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastSyncedAtMs => $composableBuilder(
+    column: $table.lastSyncedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalProfilesTableOrderingComposer get profileId {
+    final $$LocalProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalUserCardsTableOrderingComposer get userCardId {
+    final $$LocalUserCardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userCardId,
+      referencedTable: $db.localUserCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUserCardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUserCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalMerchantsTableOrderingComposer get merchantId {
+    final $$LocalMerchantsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.merchantId,
+      referencedTable: $db.localMerchants,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalMerchantsTableOrderingComposer(
+            $db: $db,
+            $table: $db.localMerchants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalTransactionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalTransactionsTable> {
+  $$LocalTransactionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get transactionAtMs => $composableBuilder(
+    column: $table.transactionAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get mccCode =>
+      $composableBuilder(column: $table.mccCode, builder: (column) => column);
+
+  GeneratedColumn<String> get mccSource =>
+      $composableBuilder(column: $table.mccSource, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get cashbackEstimatedMinor => $composableBuilder(
+    column: $table.cashbackEstimatedMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get cashbackConfidencePpm => $composableBuilder(
+    column: $table.cashbackConfidencePpm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get deletedAtMs => $composableBuilder(
+    column: $table.deletedAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastSyncedAtMs => $composableBuilder(
+    column: $table.lastSyncedAtMs,
+    builder: (column) => column,
+  );
+
+  $$LocalProfilesTableAnnotationComposer get profileId {
+    final $$LocalProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalUserCardsTableAnnotationComposer get userCardId {
+    final $$LocalUserCardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userCardId,
+      referencedTable: $db.localUserCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUserCardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUserCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalMerchantsTableAnnotationComposer get merchantId {
+    final $$LocalMerchantsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.merchantId,
+      referencedTable: $db.localMerchants,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalMerchantsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localMerchants,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> localCashbackCalculationsRefs<T extends Object>(
+    Expression<T> Function($$LocalCashbackCalculationsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$LocalCashbackCalculationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localCashbackCalculations,
+          getReferencedColumn: (t) => t.transactionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalCashbackCalculationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localCashbackCalculations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$LocalTransactionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalTransactionsTable,
+          LocalTransactionRow,
+          $$LocalTransactionsTableFilterComposer,
+          $$LocalTransactionsTableOrderingComposer,
+          $$LocalTransactionsTableAnnotationComposer,
+          $$LocalTransactionsTableCreateCompanionBuilder,
+          $$LocalTransactionsTableUpdateCompanionBuilder,
+          (LocalTransactionRow, $$LocalTransactionsTableReferences),
+          LocalTransactionRow,
+          PrefetchHooks Function({
+            bool profileId,
+            bool userCardId,
+            bool merchantId,
+            bool localCashbackCalculationsRefs,
+          })
+        > {
+  $$LocalTransactionsTableTableManager(
+    _$AppDatabase db,
+    $LocalTransactionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalTransactionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalTransactionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalTransactionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<String> userCardId = const Value.absent(),
+                Value<String?> merchantId = const Value.absent(),
+                Value<int> transactionAtMs = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String?> mccCode = const Value.absent(),
+                Value<String?> mccSource = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<int?> cashbackEstimatedMinor = const Value.absent(),
+                Value<int?> cashbackConfidencePpm = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> createdAtMs = const Value.absent(),
+                Value<int> updatedAtMs = const Value.absent(),
+                Value<int?> deletedAtMs = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int?> serverVersion = const Value.absent(),
+                Value<int?> lastSyncedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalTransactionsCompanion(
+                id: id,
+                profileId: profileId,
+                userCardId: userCardId,
+                merchantId: merchantId,
+                transactionAtMs: transactionAtMs,
+                amountMinor: amountMinor,
+                currency: currency,
+                mccCode: mccCode,
+                mccSource: mccSource,
+                category: category,
+                cashbackEstimatedMinor: cashbackEstimatedMinor,
+                cashbackConfidencePpm: cashbackConfidencePpm,
+                source: source,
+                note: note,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                deletedAtMs: deletedAtMs,
+                syncStatus: syncStatus,
+                serverVersion: serverVersion,
+                lastSyncedAtMs: lastSyncedAtMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                required String userCardId,
+                Value<String?> merchantId = const Value.absent(),
+                required int transactionAtMs,
+                required int amountMinor,
+                Value<String> currency = const Value.absent(),
+                Value<String?> mccCode = const Value.absent(),
+                Value<String?> mccSource = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<int?> cashbackEstimatedMinor = const Value.absent(),
+                Value<int?> cashbackConfidencePpm = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                required int createdAtMs,
+                required int updatedAtMs,
+                Value<int?> deletedAtMs = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int?> serverVersion = const Value.absent(),
+                Value<int?> lastSyncedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalTransactionsCompanion.insert(
+                id: id,
+                profileId: profileId,
+                userCardId: userCardId,
+                merchantId: merchantId,
+                transactionAtMs: transactionAtMs,
+                amountMinor: amountMinor,
+                currency: currency,
+                mccCode: mccCode,
+                mccSource: mccSource,
+                category: category,
+                cashbackEstimatedMinor: cashbackEstimatedMinor,
+                cashbackConfidencePpm: cashbackConfidencePpm,
+                source: source,
+                note: note,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                deletedAtMs: deletedAtMs,
+                syncStatus: syncStatus,
+                serverVersion: serverVersion,
+                lastSyncedAtMs: lastSyncedAtMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LocalTransactionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                profileId = false,
+                userCardId = false,
+                merchantId = false,
+                localCashbackCalculationsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (localCashbackCalculationsRefs)
+                      db.localCashbackCalculations,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (profileId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.profileId,
+                                    referencedTable:
+                                        $$LocalTransactionsTableReferences
+                                            ._profileIdTable(db),
+                                    referencedColumn:
+                                        $$LocalTransactionsTableReferences
+                                            ._profileIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (userCardId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userCardId,
+                                    referencedTable:
+                                        $$LocalTransactionsTableReferences
+                                            ._userCardIdTable(db),
+                                    referencedColumn:
+                                        $$LocalTransactionsTableReferences
+                                            ._userCardIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (merchantId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.merchantId,
+                                    referencedTable:
+                                        $$LocalTransactionsTableReferences
+                                            ._merchantIdTable(db),
+                                    referencedColumn:
+                                        $$LocalTransactionsTableReferences
+                                            ._merchantIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (localCashbackCalculationsRefs)
+                        await $_getPrefetchedData<
+                          LocalTransactionRow,
+                          $LocalTransactionsTable,
+                          LocalCashbackCalculationRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalTransactionsTableReferences
+                              ._localCashbackCalculationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalTransactionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).localCashbackCalculationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.transactionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$LocalTransactionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalTransactionsTable,
+      LocalTransactionRow,
+      $$LocalTransactionsTableFilterComposer,
+      $$LocalTransactionsTableOrderingComposer,
+      $$LocalTransactionsTableAnnotationComposer,
+      $$LocalTransactionsTableCreateCompanionBuilder,
+      $$LocalTransactionsTableUpdateCompanionBuilder,
+      (LocalTransactionRow, $$LocalTransactionsTableReferences),
+      LocalTransactionRow,
+      PrefetchHooks Function({
+        bool profileId,
+        bool userCardId,
+        bool merchantId,
+        bool localCashbackCalculationsRefs,
+      })
+    >;
+typedef $$LocalCashbackCalculationsTableCreateCompanionBuilder =
+    LocalCashbackCalculationsCompanion Function({
+      required String id,
+      required String profileId,
+      required String transactionId,
+      required String userCardId,
+      Value<String?> rewardRuleId,
+      Value<int?> estimatedCashbackMinor,
+      Value<int?> appliedRatePpm,
+      Value<int?> confidencePpm,
+      Value<String?> explanation,
+      Value<String> status,
+      Value<String> calculationSource,
+      required int createdAtMs,
+      required int updatedAtMs,
+      Value<int> rowid,
+    });
+typedef $$LocalCashbackCalculationsTableUpdateCompanionBuilder =
+    LocalCashbackCalculationsCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<String> transactionId,
+      Value<String> userCardId,
+      Value<String?> rewardRuleId,
+      Value<int?> estimatedCashbackMinor,
+      Value<int?> appliedRatePpm,
+      Value<int?> confidencePpm,
+      Value<String?> explanation,
+      Value<String> status,
+      Value<String> calculationSource,
+      Value<int> createdAtMs,
+      Value<int> updatedAtMs,
+      Value<int> rowid,
+    });
+
+final class $$LocalCashbackCalculationsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LocalCashbackCalculationsTable,
+          LocalCashbackCalculationRow
+        > {
+  $$LocalCashbackCalculationsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalProfilesTable _profileIdTable(_$AppDatabase db) =>
+      db.localProfiles.createAlias(
+        'local_cashback_calculations__profile_id__local_profiles__id',
+      );
+
+  $$LocalProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$LocalProfilesTableTableManager(
+      $_db,
+      $_db.localProfiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalTransactionsTable _transactionIdTable(_$AppDatabase db) =>
+      db.localTransactions.createAlias(
+        'local_cashback_calculations__transaction_id__local_transactions__id',
+      );
+
+  $$LocalTransactionsTableProcessedTableManager get transactionId {
+    final $_column = $_itemColumn<String>('transaction_id')!;
+
+    final manager = $$LocalTransactionsTableTableManager(
+      $_db,
+      $_db.localTransactions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_transactionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalUserCardsTable _userCardIdTable(_$AppDatabase db) =>
+      db.localUserCards.createAlias(
+        'local_cashback_calculations__user_card_id__local_user_cards__id',
+      );
+
+  $$LocalUserCardsTableProcessedTableManager get userCardId {
+    final $_column = $_itemColumn<String>('user_card_id')!;
+
+    final manager = $$LocalUserCardsTableTableManager(
+      $_db,
+      $_db.localUserCards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userCardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LocalCashbackCalculationsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalCashbackCalculationsTable> {
+  $$LocalCashbackCalculationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rewardRuleId => $composableBuilder(
+    column: $table.rewardRuleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get estimatedCashbackMinor => $composableBuilder(
+    column: $table.estimatedCashbackMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get appliedRatePpm => $composableBuilder(
+    column: $table.appliedRatePpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get confidencePpm => $composableBuilder(
+    column: $table.confidencePpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get calculationSource => $composableBuilder(
+    column: $table.calculationSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalProfilesTableFilterComposer get profileId {
+    final $$LocalProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalTransactionsTableFilterComposer get transactionId {
+    final $$LocalTransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.localTransactions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalTransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.localTransactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalUserCardsTableFilterComposer get userCardId {
+    final $$LocalUserCardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userCardId,
+      referencedTable: $db.localUserCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUserCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.localUserCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalCashbackCalculationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalCashbackCalculationsTable> {
+  $$LocalCashbackCalculationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rewardRuleId => $composableBuilder(
+    column: $table.rewardRuleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get estimatedCashbackMinor => $composableBuilder(
+    column: $table.estimatedCashbackMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get appliedRatePpm => $composableBuilder(
+    column: $table.appliedRatePpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get confidencePpm => $composableBuilder(
+    column: $table.confidencePpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get calculationSource => $composableBuilder(
+    column: $table.calculationSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalProfilesTableOrderingComposer get profileId {
+    final $$LocalProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalTransactionsTableOrderingComposer get transactionId {
+    final $$LocalTransactionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.localTransactions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalTransactionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.localTransactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalUserCardsTableOrderingComposer get userCardId {
+    final $$LocalUserCardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userCardId,
+      referencedTable: $db.localUserCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUserCardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUserCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalCashbackCalculationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalCashbackCalculationsTable> {
+  $$LocalCashbackCalculationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rewardRuleId => $composableBuilder(
+    column: $table.rewardRuleId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get estimatedCashbackMinor => $composableBuilder(
+    column: $table.estimatedCashbackMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get appliedRatePpm => $composableBuilder(
+    column: $table.appliedRatePpm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get confidencePpm => $composableBuilder(
+    column: $table.confidencePpm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get calculationSource => $composableBuilder(
+    column: $table.calculationSource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => column,
+  );
+
+  $$LocalProfilesTableAnnotationComposer get profileId {
+    final $$LocalProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalTransactionsTableAnnotationComposer get transactionId {
+    final $$LocalTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.transactionId,
+          referencedTable: $db.localTransactions,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalTransactionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localTransactions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
+  $$LocalUserCardsTableAnnotationComposer get userCardId {
+    final $$LocalUserCardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userCardId,
+      referencedTable: $db.localUserCards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUserCardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUserCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalCashbackCalculationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalCashbackCalculationsTable,
+          LocalCashbackCalculationRow,
+          $$LocalCashbackCalculationsTableFilterComposer,
+          $$LocalCashbackCalculationsTableOrderingComposer,
+          $$LocalCashbackCalculationsTableAnnotationComposer,
+          $$LocalCashbackCalculationsTableCreateCompanionBuilder,
+          $$LocalCashbackCalculationsTableUpdateCompanionBuilder,
+          (
+            LocalCashbackCalculationRow,
+            $$LocalCashbackCalculationsTableReferences,
+          ),
+          LocalCashbackCalculationRow,
+          PrefetchHooks Function({
+            bool profileId,
+            bool transactionId,
+            bool userCardId,
+          })
+        > {
+  $$LocalCashbackCalculationsTableTableManager(
+    _$AppDatabase db,
+    $LocalCashbackCalculationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalCashbackCalculationsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LocalCashbackCalculationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LocalCashbackCalculationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<String> transactionId = const Value.absent(),
+                Value<String> userCardId = const Value.absent(),
+                Value<String?> rewardRuleId = const Value.absent(),
+                Value<int?> estimatedCashbackMinor = const Value.absent(),
+                Value<int?> appliedRatePpm = const Value.absent(),
+                Value<int?> confidencePpm = const Value.absent(),
+                Value<String?> explanation = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> calculationSource = const Value.absent(),
+                Value<int> createdAtMs = const Value.absent(),
+                Value<int> updatedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalCashbackCalculationsCompanion(
+                id: id,
+                profileId: profileId,
+                transactionId: transactionId,
+                userCardId: userCardId,
+                rewardRuleId: rewardRuleId,
+                estimatedCashbackMinor: estimatedCashbackMinor,
+                appliedRatePpm: appliedRatePpm,
+                confidencePpm: confidencePpm,
+                explanation: explanation,
+                status: status,
+                calculationSource: calculationSource,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                required String transactionId,
+                required String userCardId,
+                Value<String?> rewardRuleId = const Value.absent(),
+                Value<int?> estimatedCashbackMinor = const Value.absent(),
+                Value<int?> appliedRatePpm = const Value.absent(),
+                Value<int?> confidencePpm = const Value.absent(),
+                Value<String?> explanation = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> calculationSource = const Value.absent(),
+                required int createdAtMs,
+                required int updatedAtMs,
+                Value<int> rowid = const Value.absent(),
+              }) => LocalCashbackCalculationsCompanion.insert(
+                id: id,
+                profileId: profileId,
+                transactionId: transactionId,
+                userCardId: userCardId,
+                rewardRuleId: rewardRuleId,
+                estimatedCashbackMinor: estimatedCashbackMinor,
+                appliedRatePpm: appliedRatePpm,
+                confidencePpm: confidencePpm,
+                explanation: explanation,
+                status: status,
+                calculationSource: calculationSource,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LocalCashbackCalculationsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({profileId = false, transactionId = false, userCardId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (profileId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.profileId,
+                                    referencedTable:
+                                        $$LocalCashbackCalculationsTableReferences
+                                            ._profileIdTable(db),
+                                    referencedColumn:
+                                        $$LocalCashbackCalculationsTableReferences
+                                            ._profileIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (transactionId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.transactionId,
+                                    referencedTable:
+                                        $$LocalCashbackCalculationsTableReferences
+                                            ._transactionIdTable(db),
+                                    referencedColumn:
+                                        $$LocalCashbackCalculationsTableReferences
+                                            ._transactionIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (userCardId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userCardId,
+                                    referencedTable:
+                                        $$LocalCashbackCalculationsTableReferences
+                                            ._userCardIdTable(db),
+                                    referencedColumn:
+                                        $$LocalCashbackCalculationsTableReferences
+                                            ._userCardIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$LocalCashbackCalculationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalCashbackCalculationsTable,
+      LocalCashbackCalculationRow,
+      $$LocalCashbackCalculationsTableFilterComposer,
+      $$LocalCashbackCalculationsTableOrderingComposer,
+      $$LocalCashbackCalculationsTableAnnotationComposer,
+      $$LocalCashbackCalculationsTableCreateCompanionBuilder,
+      $$LocalCashbackCalculationsTableUpdateCompanionBuilder,
+      (LocalCashbackCalculationRow, $$LocalCashbackCalculationsTableReferences),
+      LocalCashbackCalculationRow,
+      PrefetchHooks Function({
+        bool profileId,
+        bool transactionId,
+        bool userCardId,
+      })
+    >;
+typedef $$SyncConflictsTableCreateCompanionBuilder =
+    SyncConflictsCompanion Function({
+      required String id,
+      required String profileId,
+      required String mutationId,
+      required String entityType,
+      required String entityId,
+      required String localPayloadJson,
+      required String serverPayloadJson,
+      required int serverVersion,
+      required int detectedAtMs,
+      Value<int?> resolvedAtMs,
+      Value<String?> resolution,
+      Value<int> rowid,
+    });
+typedef $$SyncConflictsTableUpdateCompanionBuilder =
+    SyncConflictsCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<String> mutationId,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<String> localPayloadJson,
+      Value<String> serverPayloadJson,
+      Value<int> serverVersion,
+      Value<int> detectedAtMs,
+      Value<int?> resolvedAtMs,
+      Value<String?> resolution,
+      Value<int> rowid,
+    });
+
+final class $$SyncConflictsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $SyncConflictsTable, SyncConflictRow> {
+  $$SyncConflictsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalProfilesTable _profileIdTable(_$AppDatabase db) => db
+      .localProfiles
+      .createAlias('sync_conflicts__profile_id__local_profiles__id');
+
+  $$LocalProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$LocalProfilesTableTableManager(
+      $_db,
+      $_db.localProfiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SyncConflictsTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncConflictsTable> {
+  $$SyncConflictsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mutationId => $composableBuilder(
+    column: $table.mutationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localPayloadJson => $composableBuilder(
+    column: $table.localPayloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverPayloadJson => $composableBuilder(
+    column: $table.serverPayloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get detectedAtMs => $composableBuilder(
+    column: $table.detectedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get resolvedAtMs => $composableBuilder(
+    column: $table.resolvedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resolution => $composableBuilder(
+    column: $table.resolution,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalProfilesTableFilterComposer get profileId {
+    final $$LocalProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SyncConflictsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncConflictsTable> {
+  $$SyncConflictsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mutationId => $composableBuilder(
+    column: $table.mutationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localPayloadJson => $composableBuilder(
+    column: $table.localPayloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverPayloadJson => $composableBuilder(
+    column: $table.serverPayloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get detectedAtMs => $composableBuilder(
+    column: $table.detectedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get resolvedAtMs => $composableBuilder(
+    column: $table.resolvedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resolution => $composableBuilder(
+    column: $table.resolution,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalProfilesTableOrderingComposer get profileId {
+    final $$LocalProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SyncConflictsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncConflictsTable> {
+  $$SyncConflictsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get mutationId => $composableBuilder(
+    column: $table.mutationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get localPayloadJson => $composableBuilder(
+    column: $table.localPayloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get serverPayloadJson => $composableBuilder(
+    column: $table.serverPayloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get serverVersion => $composableBuilder(
+    column: $table.serverVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get detectedAtMs => $composableBuilder(
+    column: $table.detectedAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get resolvedAtMs => $composableBuilder(
+    column: $table.resolvedAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get resolution => $composableBuilder(
+    column: $table.resolution,
+    builder: (column) => column,
+  );
+
+  $$LocalProfilesTableAnnotationComposer get profileId {
+    final $$LocalProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.localProfiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SyncConflictsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncConflictsTable,
+          SyncConflictRow,
+          $$SyncConflictsTableFilterComposer,
+          $$SyncConflictsTableOrderingComposer,
+          $$SyncConflictsTableAnnotationComposer,
+          $$SyncConflictsTableCreateCompanionBuilder,
+          $$SyncConflictsTableUpdateCompanionBuilder,
+          (SyncConflictRow, $$SyncConflictsTableReferences),
+          SyncConflictRow,
+          PrefetchHooks Function({bool profileId})
+        > {
+  $$SyncConflictsTableTableManager(_$AppDatabase db, $SyncConflictsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncConflictsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncConflictsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncConflictsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<String> mutationId = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<String> localPayloadJson = const Value.absent(),
+                Value<String> serverPayloadJson = const Value.absent(),
+                Value<int> serverVersion = const Value.absent(),
+                Value<int> detectedAtMs = const Value.absent(),
+                Value<int?> resolvedAtMs = const Value.absent(),
+                Value<String?> resolution = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncConflictsCompanion(
+                id: id,
+                profileId: profileId,
+                mutationId: mutationId,
+                entityType: entityType,
+                entityId: entityId,
+                localPayloadJson: localPayloadJson,
+                serverPayloadJson: serverPayloadJson,
+                serverVersion: serverVersion,
+                detectedAtMs: detectedAtMs,
+                resolvedAtMs: resolvedAtMs,
+                resolution: resolution,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                required String mutationId,
+                required String entityType,
+                required String entityId,
+                required String localPayloadJson,
+                required String serverPayloadJson,
+                required int serverVersion,
+                required int detectedAtMs,
+                Value<int?> resolvedAtMs = const Value.absent(),
+                Value<String?> resolution = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncConflictsCompanion.insert(
+                id: id,
+                profileId: profileId,
+                mutationId: mutationId,
+                entityType: entityType,
+                entityId: entityId,
+                localPayloadJson: localPayloadJson,
+                serverPayloadJson: serverPayloadJson,
+                serverVersion: serverVersion,
+                detectedAtMs: detectedAtMs,
+                resolvedAtMs: resolvedAtMs,
+                resolution: resolution,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SyncConflictsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({profileId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (profileId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.profileId,
+                                referencedTable: $$SyncConflictsTableReferences
+                                    ._profileIdTable(db),
+                                referencedColumn: $$SyncConflictsTableReferences
+                                    ._profileIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SyncConflictsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncConflictsTable,
+      SyncConflictRow,
+      $$SyncConflictsTableFilterComposer,
+      $$SyncConflictsTableOrderingComposer,
+      $$SyncConflictsTableAnnotationComposer,
+      $$SyncConflictsTableCreateCompanionBuilder,
+      $$SyncConflictsTableUpdateCompanionBuilder,
+      (SyncConflictRow, $$SyncConflictsTableReferences),
+      SyncConflictRow,
+      PrefetchHooks Function({bool profileId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11544,10 +21653,35 @@ class $AppDatabaseManager {
       $$RewardRulesCacheTableTableManager(_db, _db.rewardRulesCache);
   $$RewardRuleMccsCacheTableTableManager get rewardRuleMccsCache =>
       $$RewardRuleMccsCacheTableTableManager(_db, _db.rewardRuleMccsCache);
+  $$MerchantMccCandidatesCacheTableTableManager
+  get merchantMccCandidatesCache =>
+      $$MerchantMccCandidatesCacheTableTableManager(
+        _db,
+        _db.merchantMccCandidatesCache,
+      );
+  $$MerchantBranchesCacheTableTableManager get merchantBranchesCache =>
+      $$MerchantBranchesCacheTableTableManager(_db, _db.merchantBranchesCache);
   $$LocalUserCardsTableTableManager get localUserCards =>
       $$LocalUserCardsTableTableManager(_db, _db.localUserCards);
+  $$LocalMerchantMccContributionsTableTableManager
+  get localMerchantMccContributions =>
+      $$LocalMerchantMccContributionsTableTableManager(
+        _db,
+        _db.localMerchantMccContributions,
+      );
   $$SyncOutboxTableTableManager get syncOutbox =>
       $$SyncOutboxTableTableManager(_db, _db.syncOutbox);
   $$SyncStateTableTableManager get syncState =>
       $$SyncStateTableTableManager(_db, _db.syncState);
+  $$LocalMerchantsTableTableManager get localMerchants =>
+      $$LocalMerchantsTableTableManager(_db, _db.localMerchants);
+  $$LocalTransactionsTableTableManager get localTransactions =>
+      $$LocalTransactionsTableTableManager(_db, _db.localTransactions);
+  $$LocalCashbackCalculationsTableTableManager get localCashbackCalculations =>
+      $$LocalCashbackCalculationsTableTableManager(
+        _db,
+        _db.localCashbackCalculations,
+      );
+  $$SyncConflictsTableTableManager get syncConflicts =>
+      $$SyncConflictsTableTableManager(_db, _db.syncConflicts);
 }

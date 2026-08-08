@@ -15,8 +15,9 @@ The current app starts at Sign in and supports:
 - local guest entry from Sign in or the access-choice screen;
 - a shared initial setup flow for guest and authenticated users: display name,
   first card, then Home;
-- a Home shell with Dashboard, Cards, a centered quick Add action,
+- a five-item Home shell with Dashboard, Cards, a centered quick Add action,
   Transactions, and Profile on a floating glass navigation bar;
+- `Transactions | Merchants` sections inside the Transactions destination;
 - Supabase sign-out from Profile;
 - reusable validation copy under `core/constants` and app notifications through
   `toastification` under `core/notifications`.
@@ -26,6 +27,8 @@ The current app starts at Sign in and supports:
   the active guest or the current Supabase auth user ID;
 - lazy bank bootstrap from `GET /api/v1/banks`: Card Setup reads SQLite first
   and only downloads the catalog when `banks_cache` is empty.
+- a cache-first Merchant directory grouped by normalized brand, with branch,
+  payment-type MCC details and profile-scoped local MCC contributions.
 
 Initial setup profile/card data now survives app-process restarts in
 `cardpilot.sqlite`. Backend profile persistence, user-data sync,
@@ -155,15 +158,15 @@ presentation -> domain <- data
 
 ## Core responsibilities
 
-| Folder | Current responsibility |
-|--------|------------------------|
-| `config/` | `AppConfig`, API/Supabase dart-defines, OAuth redirect URL |
-| `constants/` | Shared validation messages |
-| `network/` | Reusable Dio client, API envelope decoding, request metadata, and typed API errors |
-| `errors/` | App-level failure representation |
-| `notifications/` | `AppToast`, a thin app adapter over `toastification` |
-| `result/` | Typed success/failure result wrapper |
-| `routing/` | Named routes and route generation |
+| Folder           | Current responsibility                                                             |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| `config/`        | `AppConfig`, API/Supabase dart-defines, OAuth redirect URL                         |
+| `constants/`     | Shared validation messages                                                         |
+| `network/`       | Reusable Dio client, API envelope decoding, request metadata, and typed API errors |
+| `errors/`        | App-level failure representation                                                   |
+| `notifications/` | `AppToast`, a thin app adapter over `toastification`                               |
+| `result/`        | Typed success/failure result wrapper                                               |
+| `routing/`       | Named routes and route generation                                                  |
 
 The current named routes are:
 
@@ -271,6 +274,18 @@ transaction, and then opens the picker. The bootstrap stores
 `dataset_version = 1` on bank rows but deliberately does not create a
 `sync_state` version. Dataset comparison and refresh of an existing cache are
 reserved for the future user-triggered `Sync Now` flow.
+
+The Merchants section under Transactions lazily calls `GET /api/v1/merchants`
+the first time it is opened, stores the complete branch snapshot in
+`merchant_branches_cache` and
+`merchant_mcc_candidates_cache`, then renders from SQLite. A merchant brand is
+a UI grouping by `name_normalized`; each cloud merchant row remains a branch.
+MCC mappings include a separate payment type so direct payment and food-
+delivery channels are not conflated. Contributions are stored only in
+`local_merchant_mcc_contributions`, scoped by local profile, and deliberately
+do not enter `sync_outbox` until a backend review/sync contract exists.
+The manual transaction form also exposes a `Browse merchants` shortcut to the
+same directory without duplicating its data or state management.
 
 The implementation source of truth for this planned area is
 [`docs/architecture/mobile-sqlite.md`](./architecture/mobile-sqlite.md). It

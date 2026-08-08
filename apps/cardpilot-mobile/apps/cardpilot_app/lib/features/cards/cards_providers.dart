@@ -32,6 +32,7 @@ class UserCardController extends Notifier<UserCardMutationState> {
     required String creditCardId,
     required String nickname,
     required int billingCycleDay,
+    required int creditLimitMinor,
   }) async {
     state = const UserCardMutationState(status: UserCardMutationStatus.saving);
     try {
@@ -46,6 +47,7 @@ class UserCardController extends Notifier<UserCardMutationState> {
               bankName: bankName,
               nickname: nickname.trim(),
               billingCycleDay: billingCycleDay,
+              creditLimitMinor: creditLimitMinor,
             ),
           );
       _finish(cards);
@@ -63,6 +65,7 @@ class UserCardController extends Notifier<UserCardMutationState> {
     required String creditCardId,
     required String nickname,
     required int billingCycleDay,
+    required int creditLimitMinor,
   }) async {
     state = const UserCardMutationState(status: UserCardMutationStatus.saving);
     try {
@@ -77,6 +80,7 @@ class UserCardController extends Notifier<UserCardMutationState> {
               bankName: bankName,
               nickname: nickname.trim(),
               billingCycleDay: billingCycleDay,
+              creditLimitMinor: creditLimitMinor,
             ),
           );
       _finish(cards);

@@ -150,3 +150,62 @@ class RewardRuleMccsCache extends Table {
     {rewardRuleId, mccCode, matchType},
   ];
 }
+
+@DataClassName('MerchantMccCandidateCacheRow')
+@TableIndex(
+  name: 'idx_merchant_mcc_candidates_cache_name',
+  columns: {#merchantNameNormalized},
+)
+@TableIndex(name: 'idx_merchant_mcc_candidates_cache_mcc', columns: {#mccCode})
+class MerchantMccCandidatesCache extends Table {
+  @override
+  String get tableName => 'merchant_mcc_candidates_cache';
+
+  TextColumn get id => text()();
+  TextColumn get merchantServerId => text()();
+  TextColumn get merchantName => text()();
+  TextColumn get merchantNameNormalized => text()();
+  TextColumn get locationText => text().nullable()();
+  TextColumn get mccCode => text().withLength(min: 4, max: 4)();
+  TextColumn get mccDescription => text().nullable()();
+  TextColumn get paymentType => text()
+      .withDefault(const Constant('unknown'))
+      .check(
+        paymentType.isIn(const [
+          'unknown',
+          'in_store',
+          'online',
+          'shopee_food',
+          'grab_food',
+          'other',
+        ]),
+      )();
+  TextColumn get source => text()();
+  IntColumn get confidencePpm => integer().nullable().check(
+    confidencePpm.isNull() | confidencePpm.isBetweenValues(0, 1000000),
+  )();
+  TextColumn get status => text()();
+  IntColumn get datasetVersion => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('MerchantBranchCacheRow')
+@TableIndex(
+  name: 'idx_merchant_branches_cache_name',
+  columns: {#nameNormalized},
+)
+class MerchantBranchesCache extends Table {
+  @override
+  String get tableName => 'merchant_branches_cache';
+
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get nameNormalized => text()();
+  TextColumn get locationText => text().nullable()();
+  IntColumn get datasetVersion => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

@@ -52,6 +52,7 @@ class InitialSetupLocalDataSource {
                 bankNameSnapshot: card.bankName,
                 nickname: card.nickname,
                 billingCycleDay: card.billingCycleDay,
+                creditLimitMinor: Value(card.creditLimitMinor),
                 isDefault: Value(index == 0),
                 createdAtMs: now,
                 updatedAtMs: now,
@@ -169,6 +170,7 @@ class InitialSetupLocalDataSource {
               bankName: card.bankNameSnapshot,
               nickname: card.nickname,
               billingCycleDay: card.billingCycleDay,
+              creditLimitMinor: card.creditLimitMinor,
             ),
           )
           .toList(growable: false),

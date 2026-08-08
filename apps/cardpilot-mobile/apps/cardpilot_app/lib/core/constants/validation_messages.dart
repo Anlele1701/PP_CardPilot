@@ -13,4 +13,10 @@ abstract final class ValidationMessages {
   static const creditCardRequired = 'Please choose a card.';
   static const cardNicknameRequired = 'Please add a card nickname.';
   static const billingDayOutOfRange = 'Billing day must be between 1 and 31.';
+  static const creditLimitPositive = 'Enter a credit limit greater than 0.';
+
+  static const transactionCardRequired = 'Please choose a card.';
+  static const merchantRequired = 'Please enter a merchant.';
+  static const mccRequired = 'Please choose an MCC.';
+  static const transactionAmountPositive = 'Enter an amount greater than 0.';
 }

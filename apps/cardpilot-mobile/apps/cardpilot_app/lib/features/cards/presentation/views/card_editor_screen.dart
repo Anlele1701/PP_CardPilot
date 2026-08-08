@@ -33,6 +33,7 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
   final _bankFieldKey = GlobalKey<FormFieldState<String>>();
   final _creditCardFieldKey = GlobalKey<FormFieldState<String>>();
   late final TextEditingController _nicknameController;
+  late final TextEditingController _creditLimitController;
   late final TextEditingController _billingDayController;
 
   String? _bankId;
@@ -48,6 +49,11 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
     _bankName = card?.bankName;
     _creditCardId = card?.creditCardId;
     _nicknameController = TextEditingController(text: card?.nickname ?? '');
+    _creditLimitController = TextEditingController(
+      text: card == null || card.creditLimitMinor <= 0
+          ? ''
+          : card.creditLimitMinor.toString(),
+    );
     _billingDayController = TextEditingController(
       text: (card?.billingCycleDay ?? 15).toString(),
     );
@@ -56,6 +62,7 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
   @override
   void dispose() {
     _nicknameController.dispose();
+    _creditLimitController.dispose();
     _billingDayController.dispose();
     super.dispose();
   }
@@ -199,6 +206,7 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
             creditCardId: creditCardId,
             nickname: _nicknameController.text,
             billingCycleDay: int.parse(_billingDayController.text),
+            creditLimitMinor: int.parse(_creditLimitController.text),
           )
         : await controller.update(
             profileId: widget.profileId,
@@ -208,6 +216,7 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
             creditCardId: creditCardId,
             nickname: _nicknameController.text,
             billingCycleDay: int.parse(_billingDayController.text),
+            creditLimitMinor: int.parse(_creditLimitController.text),
           );
     if (!mounted) {
       return;
@@ -313,6 +322,26 @@ class _CardEditorScreenState extends ConsumerState<CardEditorScreen> {
                   validator: (value) => (value?.trim() ?? '').isEmpty
                       ? ValidationMessages.cardNicknameRequired
                       : null,
+                ),
+                const SizedBox(height: ui.AppSpacing.md),
+                TextFormField(
+                  controller: _creditLimitController,
+                  enabled: !isSaving,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'Credit limit',
+                    hintText: 'e.g. 20000000',
+                    suffixText: 'VND',
+                    helperText: 'Enter the total limit assigned by your bank.',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    final limit = int.tryParse(value ?? '');
+                    return limit == null || limit <= 0
+                        ? ValidationMessages.creditLimitPositive
+                        : null;
+                  },
                 ),
                 const SizedBox(height: ui.AppSpacing.md),
                 TextFormField(

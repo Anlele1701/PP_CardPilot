@@ -94,7 +94,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Available Balance'), findsOneWidget);
+    expect(find.text('Estimated Remaining Limit'), findsOneWidget);
     expect(find.byKey(const Key('premium-card')), findsOneWidget);
     await tester.scrollUntilVisible(
       find.byKey(const Key('spending-overview-card')),
@@ -125,6 +125,7 @@ void main() {
     await tester.tap(find.byKey(const Key('navigation-item-3')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('transaction-filter-button')), findsOneWidget);
+    expect(find.byKey(const Key('transaction-section-picker')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('navigation-item-4')));
     await tester.pumpAndSettle();
@@ -149,6 +150,7 @@ class _SignedInInitialSetupController extends InitialSetupController {
             bankName: 'ACB',
             nickname: 'Everyday card',
             billingCycleDay: 15,
+            creditLimitMinor: 20000000,
           ),
         ],
       ),

@@ -7,9 +7,10 @@ import '../../../../core/presentation/views/error_screen.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../cards/presentation/views/cards_page.dart';
 import '../../../initial_setup/initial_setup_providers.dart';
+import '../../../transactions/presentation/views/transaction_editor_screen.dart';
+import '../../../transactions/presentation/views/transactions_page.dart';
 import 'home_page.dart';
 import 'profile_page.dart';
-import 'transactions_page.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -92,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   subtitle: const Text('Enter amount, merchant and card.'),
                   onTap: () {
                     Navigator.pop(sheetContext);
-                    _showComingSoon('Manual transaction entry');
+                    _openManualTransaction();
                   },
                 ),
               ],
@@ -105,6 +106,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _showComingSoon(String feature) {
     AppToast.showInfo(context, '$feature is coming next.');
+  }
+
+  void _openManualTransaction() {
+    final workspace = ref.read(initialSetupControllerProvider).workspace;
+    if (workspace == null) {
+      AppToast.showError(context, 'Could not load your workspace.');
+      return;
+    }
+
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => TransactionEditorScreen(
+          profileId: workspace.localId,
+          cards: workspace.cards,
+        ),
+      ),
+    );
   }
 
   @override
@@ -139,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pages = [
       HomePage(workspace: workspace),
       CardsPage(workspace: workspace),
-      const TransactionsPage(),
+      TransactionsPage(workspace: workspace),
       ProfilePage(workspace: workspace),
     ];
     final pageIndex = switch (_selectedIndex) {
