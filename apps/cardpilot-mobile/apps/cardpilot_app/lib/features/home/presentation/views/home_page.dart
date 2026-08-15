@@ -4,10 +4,13 @@ import 'package:cardpilot_ui/cardpilot_ui.dart' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../cards/presentation/card_visual_style.dart';
+import '../../../cards/presentation/views/card_details_screen.dart';
 import '../../../initial_setup/domain/entities/local_user_card.dart';
 import '../../../initial_setup/domain/entities/local_workspace.dart';
 import '../../../transactions/domain/entities/local_transaction.dart';
 import '../../../transactions/presentation/transaction_formatters.dart';
+import '../../../transactions/presentation/views/transaction_details_screen.dart';
 import '../../../transactions/transaction_providers.dart';
 
 const _pagePadding = EdgeInsets.fromLTRB(
@@ -17,22 +20,75 @@ const _pagePadding = EdgeInsets.fromLTRB(
   132,
 );
 
-class HomePage extends ConsumerWidget {
-  const HomePage({required this.workspace});
+class HomePage extends ConsumerStatefulWidget {
+  const HomePage({required this.workspace, super.key});
 
   final LocalWorkspace workspace;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final firstCard = workspace.cards.first;
-    final transactions = ref
-        .watch(transactionsProvider(workspace.localId))
-        .value;
-    final summaries = workspace.cards
-        .map((card) => _CreditUsage.forCard(card, transactions ?? const []))
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  String? _selectedCardId;
+
+  LocalUserCard get _selectedCard {
+    return widget.workspace.cards.firstWhere(
+      (card) => card.id == _selectedCardId,
+      orElse: () => widget.workspace.cards.first,
+    );
+  }
+
+  Future<void> _handleCardTap(LocalUserCard card) async {
+    if (card.id != _selectedCard.id) {
+      setState(() => _selectedCardId = card.id);
+      return;
+    }
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CardDetailsScreen(
+          profileId: widget.workspace.localId,
+          card: card,
+          cardCount: widget.workspace.cards.length,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openTransaction(LocalTransaction transaction) {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => TransactionDetailsScreen(
+          profileId: widget.workspace.localId,
+          cards: widget.workspace.cards,
+          transaction: transaction,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final transactionState = ref.watch(
+      transactionsProvider(widget.workspace.localId),
+    );
+    final transactions = transactionState.value ?? const <LocalTransaction>[];
+    final summaries = widget.workspace.cards
+        .map((card) => _CreditUsage.forCard(card, transactions))
         .toList(growable: false);
-    final firstCardUsage = summaries.first;
-    final availableBalance = summaries.fold<int>(
+    final currentTransactions = _transactionsInCurrentCycles(
+      widget.workspace.cards,
+      transactions,
+    );
+    final selectedUsage = summaries.firstWhere(
+      (summary) => summary.cardId == _selectedCard.id,
+    );
+    final totalLimit = widget.workspace.cards.fold<int>(
+      0,
+      (total, card) => total + card.creditLimitMinor,
+    );
+    final availableLimit = summaries.fold<int>(
       0,
       (total, summary) => total + summary.availableMinor,
     );
@@ -44,44 +100,16 @@ class HomePage extends ConsumerWidget {
       0,
       (total, summary) => total + summary.cashbackMinor,
     );
+    final utilization = totalLimit <= 0
+        ? 0.0
+        : (totalSpent / totalLimit).clamp(0.0, 1.0);
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
           padding: _pagePadding,
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      workspace.profile.displayName.characters.first
-                          .toUpperCase(),
-                      style: const TextStyle(
-                        color: ui.AppColors.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: ui.AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    'Hi, ${workspace.profile.displayName}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: ui.AppColors.ink,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _HomeHeader(displayName: widget.workspace.profile.displayName),
             const SizedBox(height: ui.AppSpacing.xl),
             const Text(
               'Estimated Remaining Limit',
@@ -93,7 +121,7 @@ class HomePage extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    formatVnd(availableBalance),
+                    formatVnd(availableLimit),
                     style: const TextStyle(
                       color: ui.AppColors.ink,
                       fontSize: 38,
@@ -107,48 +135,60 @@ class HomePage extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: ui.AppSpacing.sm),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.trending_up_rounded,
-                      color: ui.AppColors.brandTeal,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      workspace.cards.any((card) => card.creditLimitMinor <= 0)
-                          ? 'Add card limits to calculate usage'
-                          : transactions == null
-                          ? 'Calculating current billing cycle'
-                          : '${formatVnd(totalSpent)} used this cycle',
-                      style: const TextStyle(
-                        color: ui.AppColors.brandTeal,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
+            _UsageStatus(
+              isLoading: transactionState.isLoading,
+              hasMissingLimit: widget.workspace.cards.any(
+                (card) => card.creditLimitMinor <= 0,
               ),
+              totalSpent: totalSpent,
+              utilization: utilization,
             ),
             const SizedBox(height: ui.AppSpacing.lg),
-            _PremiumCard(card: firstCard, usage: firstCardUsage),
+            _SectionHeader(
+              title: 'Your cards',
+              trailing: widget.workspace.cards.length == 1
+                  ? '1 card'
+                  : '${widget.workspace.cards.length} cards',
+            ),
+            const SizedBox(height: ui.AppSpacing.sm),
+            Text(
+              'Tap a card to bring it forward. Tap the active card again to view details.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: ui.AppColors.muted),
+            ),
             const SizedBox(height: ui.AppSpacing.md),
-            _CashbackProgressCard(earnedMinor: totalCashback),
+            _CardStack(
+              cards: widget.workspace.cards,
+              selectedCard: _selectedCard,
+              selectedUsage: selectedUsage,
+              onCardTap: _handleCardTap,
+            ),
+            const SizedBox(height: ui.AppSpacing.lg),
+            _InsightsGrid(
+              spentMinor: totalSpent,
+              cashbackMinor: totalCashback,
+              transactionCount: currentTransactions.length,
+              utilization: utilization,
+            ),
             const SizedBox(height: ui.AppSpacing.md),
-            _SpendingOverviewCard(totalSpent: totalSpent),
+            _CashbackByCardChart(
+              cards: widget.workspace.cards,
+              summaries: summaries,
+              totalCashbackMinor: totalCashback,
+            ),
+            const SizedBox(height: ui.AppSpacing.md),
+            _CreditUtilizationChart(
+              cards: widget.workspace.cards,
+              summaries: summaries,
+            ),
+            const SizedBox(height: ui.AppSpacing.md),
+            _SpendingOverviewCard(transactions: currentTransactions),
+            const SizedBox(height: ui.AppSpacing.md),
+            _RecentActivityCard(
+              transactions: transactions,
+              onTransactionTap: _openTransaction,
+            ),
           ],
         ),
       ),
@@ -156,30 +196,224 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _PremiumCard extends StatelessWidget {
-  const _PremiumCard({required this.card, required this.usage});
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({required this.displayName});
 
-  final LocalUserCard card;
-  final _CreditUsage usage;
+  final String displayName;
 
   @override
   Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              displayName.characters.first.toUpperCase(),
+              style: const TextStyle(
+                color: ui.AppColors.ink,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: ui.AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hi, $displayName',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: ui.AppColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Text(
+                'Here is your current spending picture.',
+                style: TextStyle(color: ui.AppColors.muted, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UsageStatus extends StatelessWidget {
+  const _UsageStatus({
+    required this.isLoading,
+    required this.hasMissingLimit,
+    required this.totalSpent,
+    required this.utilization,
+  });
+
+  final bool isLoading;
+  final bool hasMissingLimit;
+  final int totalSpent;
+  final double utilization;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = hasMissingLimit
+        ? 'Add limits to every card for a complete overview'
+        : isLoading
+        ? 'Calculating current billing cycles'
+        : '${formatVnd(totalSpent)} used · ${(utilization * 100).round()}% of total limit';
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.insights_rounded,
+              color: ui.AppColors.brandTeal,
+              size: 16,
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: ui.AppColors.brandTeal,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.trailing});
+
+  final String title;
+  final String trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: ui.AppColors.ink,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Text(
+          trailing,
+          style: const TextStyle(
+            color: ui.AppColors.brandBlue,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CardStack extends StatelessWidget {
+  const _CardStack({
+    required this.cards,
+    required this.selectedCard,
+    required this.selectedUsage,
+    required this.onCardTap,
+  });
+
+  final List<LocalUserCard> cards;
+  final LocalUserCard selectedCard;
+  final _CreditUsage selectedUsage;
+  final ValueChanged<LocalUserCard> onCardTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const cardHeight = 184.0;
+    const exposedHeight = 52.0;
+    final orderedCards = [
+      ...cards.where((card) => card.id != selectedCard.id),
+      selectedCard,
+    ];
+    final stackHeight = cardHeight + exposedHeight * (cards.length - 1);
+
+    return SizedBox(
+      height: stackHeight,
+      child: Stack(
+        children: [
+          for (var index = 0; index < orderedCards.length; index++)
+            AnimatedPositioned(
+              key: ValueKey('home-card-position-${orderedCards[index].id}'),
+              duration: const Duration(milliseconds: 360),
+              curve: Curves.easeOutCubic,
+              top: exposedHeight * index,
+              left: 0,
+              right: 0,
+              height: cardHeight,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onCardTap(orderedCards[index]),
+                child: _StackedCard(
+                  card: orderedCards[index],
+                  usage: orderedCards[index].id == selectedCard.id
+                      ? selectedUsage
+                      : null,
+                  isSelected: orderedCards[index].id == selectedCard.id,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StackedCard extends StatelessWidget {
+  const _StackedCard({
+    required this.card,
+    required this.usage,
+    required this.isSelected,
+  });
+
+  final LocalUserCard card;
+  final _CreditUsage? usage;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUsage = usage;
     return Container(
-      key: const Key('premium-card'),
-      height: 184,
+      key: isSelected
+          ? const Key('premium-card')
+          : Key('stacked-card-${card.id}'),
       padding: const EdgeInsets.all(ui.AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF075DE7), Color(0xFF078CD7), Color(0xFF17C79E)],
-        ),
+        gradient: CardVisualStyle.gradientFor(card.id),
         borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
         boxShadow: [
           BoxShadow(
-            color: ui.AppColors.brandBlue.withValues(alpha: 0.20),
-            blurRadius: 26,
-            offset: const Offset(0, 12),
+            color: ui.AppColors.brandBlue.withValues(alpha: 0.18),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -190,59 +424,47 @@ class _PremiumCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  card.nickname,
+                  '${card.nickname} · ${card.bankName}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
               const Icon(Icons.contactless_rounded, color: Colors.white),
-              const SizedBox(width: ui.AppSpacing.sm),
-              Container(
-                width: 34,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC34D),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: ui.AppSpacing.sm),
-          Text(
-            card.bankName,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.82)),
-          ),
-          const Spacer(),
-          Text(
-            'Current cycle · ${_formatShortDate(usage.periodStart)} – '
-            '${_formatShortDate(usage.periodEnd.subtract(const Duration(days: 1)))}',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.72),
-              fontSize: 11,
+          if (isSelected && currentUsage != null) ...[
+            const Spacer(),
+            Text(
+              'Current cycle · ${_formatShortDate(currentUsage.periodStart)} – '
+              '${_formatShortDate(currentUsage.periodEnd.subtract(const Duration(days: 1)))}',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.72),
+                fontSize: 11,
+              ),
             ),
-          ),
-          const SizedBox(height: ui.AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _CardMetric(
-                  label: 'Credit limit',
-                  value: formatVnd(card.creditLimitMinor),
+            const SizedBox(height: ui.AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _CardMetric(
+                    label: 'Available',
+                    value: formatVnd(currentUsage.availableMinor),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: _CardMetric(
-                  label: 'Used this cycle',
-                  value: formatVnd(usage.spentMinor),
+                Expanded(
+                  child: _CardMetric(
+                    label: 'Used this cycle',
+                    value: formatVnd(currentUsage.spentMinor),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -270,6 +492,8 @@ class _CardMetric extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 17,
@@ -281,49 +505,400 @@ class _CardMetric extends StatelessWidget {
   }
 }
 
-class _CashbackProgressCard extends StatelessWidget {
-  const _CashbackProgressCard({required this.earnedMinor});
+class _InsightsGrid extends StatelessWidget {
+  const _InsightsGrid({
+    required this.spentMinor,
+    required this.cashbackMinor,
+    required this.transactionCount,
+    required this.utilization,
+  });
 
-  final int earnedMinor;
+  final int spentMinor;
+  final int cashbackMinor;
+  final int transactionCount;
+  final double utilization;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      crossAxisCount: 2,
+      crossAxisSpacing: ui.AppSpacing.sm,
+      mainAxisSpacing: ui.AppSpacing.sm,
+      childAspectRatio: 1.55,
+      children: [
+        _InsightTile(
+          icon: Icons.payments_outlined,
+          label: 'Cycle spending',
+          value: formatVnd(spentMinor),
+          color: ui.AppColors.brandBlue,
+        ),
+        _InsightTile(
+          key: const Key('cashback-progress-card'),
+          icon: Icons.savings_outlined,
+          label: 'Est. cashback',
+          value: formatVnd(cashbackMinor),
+          color: ui.AppColors.brandTeal,
+        ),
+        _InsightTile(
+          icon: Icons.receipt_long_outlined,
+          label: 'Transactions',
+          value: '$transactionCount',
+          color: const Color(0xFF7B61FF),
+        ),
+        _InsightTile(
+          icon: Icons.donut_large_rounded,
+          label: 'Limit used',
+          value: '${(utilization * 100).round()}%',
+          color: const Color(0xFFFF7A59),
+        ),
+      ],
+    );
+  }
+}
+
+class _InsightTile extends StatelessWidget {
+  const _InsightTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      key: const Key('cashback-progress-card'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(ui.AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: color, size: 22),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: ui.AppColors.ink,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: ui.AppColors.muted, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CashbackByCardChart extends StatelessWidget {
+  const _CashbackByCardChart({
+    required this.cards,
+    required this.summaries,
+    required this.totalCashbackMinor,
+  });
+
+  final List<LocalUserCard> cards;
+  final List<_CreditUsage> summaries;
+  final int totalCashbackMinor;
+
+  @override
+  Widget build(BuildContext context) {
+    final cashbackByCard = [
+      for (final card in cards)
+        (
+          card: card,
+          amount: summaries
+              .firstWhere((summary) => summary.cardId == card.id)
+              .cashbackMinor,
+        ),
+    ];
+    final highestCashback = cashbackByCard.fold<int>(
+      0,
+      (highest, item) => math.max(highest, item.amount),
+    );
+
+    return Card(
+      key: const Key('cashback-by-card-chart'),
       child: Padding(
         padding: const EdgeInsets.all(ui.AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
-                  child: Text(
-                    'Cashback Progress',
-                    style: TextStyle(
-                      color: ui.AppColors.ink,
-                      fontWeight: FontWeight.w700,
-                    ),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: ui.AppColors.brandTeal.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.savings_outlined,
+                    color: ui.AppColors.brandTeal,
                   ),
                 ),
-                _SmallPill(label: 'View all', onTap: () {}),
+                const SizedBox(width: ui.AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cashback by card',
+                        style: TextStyle(
+                          color: ui.AppColors.ink,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${formatVnd(totalCashbackMinor)} estimated this cycle',
+                        style: const TextStyle(
+                          color: ui.AppColors.brandTeal,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: ui.AppSpacing.md),
+            const SizedBox(height: ui.AppSpacing.lg),
+            for (final item in cashbackByCard) ...[
+              _CashbackBar(
+                card: item.card,
+                amountMinor: item.amount,
+                fraction: highestCashback == 0
+                    ? 0.0
+                    : item.amount / highestCashback,
+              ),
+              if (item != cashbackByCard.last)
+                const SizedBox(height: ui.AppSpacing.md),
+            ],
+            if (totalCashbackMinor == 0) ...[
+              const SizedBox(height: ui.AppSpacing.md),
+              const Text(
+                'Cashback will appear after a transaction has a confirmed MCC and matching reward rule.',
+                style: TextStyle(color: ui.AppColors.muted, fontSize: 11),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CashbackBar extends StatelessWidget {
+  const _CashbackBar({
+    required this.card,
+    required this.amountMinor,
+    required this.fraction,
+  });
+
+  final LocalUserCard card;
+  final int amountMinor;
+  final double fraction;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = CardVisualStyle.gradientFor(card.id).colors.first;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                '${card.nickname} · ${card.bankName}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: ui.AppColors.ink,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
             Text(
-              '${formatVnd(earnedMinor)} estimated',
+              formatVnd(amountMinor),
               style: const TextStyle(
-                color: ui.AppColors.brandTeal,
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
+                color: ui.AppColors.ink,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        _AnimatedProgressBar(value: fraction, color: color),
+      ],
+    );
+  }
+}
+
+class _CreditUtilizationChart extends StatelessWidget {
+  const _CreditUtilizationChart({required this.cards, required this.summaries});
+
+  final List<LocalUserCard> cards;
+  final List<_CreditUsage> summaries;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      key: const Key('credit-utilization-chart'),
+      child: Padding(
+        padding: const EdgeInsets.all(ui.AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Credit limit usage',
+              style: TextStyle(
+                color: ui.AppColors.ink,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Calculated locally from cached card rules and confirmed MCCs.',
+              'Amount used compared with each card limit',
               style: TextStyle(color: ui.AppColors.muted, fontSize: 12),
             ),
+            const SizedBox(height: ui.AppSpacing.lg),
+            for (final card in cards) ...[
+              _CreditUtilizationRow(
+                card: card,
+                usage: summaries.firstWhere(
+                  (summary) => summary.cardId == card.id,
+                ),
+              ),
+              if (card != cards.last) const SizedBox(height: ui.AppSpacing.lg),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CreditUtilizationRow extends StatelessWidget {
+  const _CreditUtilizationRow({required this.card, required this.usage});
+
+  final LocalUserCard card;
+  final _CreditUsage usage;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasLimit = card.creditLimitMinor > 0;
+    final rawUtilization = hasLimit
+        ? usage.spentMinor / card.creditLimitMinor
+        : 0.0;
+    final progress = rawUtilization.clamp(0.0, 1.0);
+    final isHighUsage = rawUtilization >= 0.8;
+    final isOverLimit = rawUtilization > 1;
+    final color = isOverLimit
+        ? Theme.of(context).colorScheme.error
+        : isHighUsage
+        ? const Color(0xFFFF8A3D)
+        : CardVisualStyle.gradientFor(card.id).colors.first;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${card.nickname} · ${card.bankName}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: ui.AppColors.ink,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Text(
+              hasLimit ? '${(rawUtilization * 100).round()}%' : 'No limit',
+              style: TextStyle(
+                color: hasLimit ? color : ui.AppColors.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Text(
+          hasLimit
+              ? '${formatVnd(usage.spentMinor)} used of ${formatVnd(card.creditLimitMinor)}'
+              : '${formatVnd(usage.spentMinor)} used · Add a credit limit',
+          style: const TextStyle(color: ui.AppColors.muted, fontSize: 11),
+        ),
+        const SizedBox(height: 8),
+        _AnimatedProgressBar(value: progress, color: color, height: 9),
+        if (isHighUsage && hasLimit) ...[
+          const SizedBox(height: 6),
+          Text(
+            isOverLimit
+                ? 'Spending is above the configured credit limit.'
+                : 'You have used at least 80% of this card limit.',
+            style: TextStyle(color: color, fontSize: 10),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AnimatedProgressBar extends StatelessWidget {
+  const _AnimatedProgressBar({
+    required this.value,
+    required this.color,
+    this.height = 7,
+  });
+
+  final double value;
+  final Color color;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value),
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedValue, _) => ClipRRect(
+        borderRadius: BorderRadius.circular(height),
+        child: LinearProgressIndicator(
+          value: animatedValue,
+          minHeight: height,
+          backgroundColor: ui.AppColors.appBackground,
+          valueColor: AlwaysStoppedAnimation(color),
         ),
       ),
     );
@@ -331,92 +906,51 @@ class _CashbackProgressCard extends StatelessWidget {
 }
 
 class _SpendingOverviewCard extends StatelessWidget {
-  const _SpendingOverviewCard({required this.totalSpent});
+  const _SpendingOverviewCard({required this.transactions});
 
-  final int totalSpent;
+  final List<LocalTransaction> transactions;
 
   @override
   Widget build(BuildContext context) {
+    final categories = _categoryTotals(transactions);
+    final total = categories.fold<int>(0, (sum, item) => sum + item.amount);
+
     return Card(
       key: const Key('spending-overview-card'),
       child: Padding(
         padding: const EdgeInsets.all(ui.AppSpacing.lg),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Spending Overview',
-                    style: TextStyle(
-                      color: ui.AppColors.ink,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                _SmallPill(label: 'Current cycles', onTap: () {}),
-              ],
+            const Text(
+              'Spending Overview',
+              style: TextStyle(
+                color: ui.AppColors.ink,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Across the current billing cycle of each card',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: ui.AppColors.muted),
             ),
             const SizedBox(height: ui.AppSpacing.lg),
-            Row(
-              children: [
-                SizedBox(
-                  width: 116,
-                  height: 116,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CustomPaint(
-                        size: const Size.square(116),
-                        painter: const _SpendingRingPainter(),
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            formatVnd(totalSpent),
-                            style: const TextStyle(
-                              color: ui.AppColors.ink,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Text(
-                            'Total spent',
-                            style: TextStyle(
-                              color: ui.AppColors.muted,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+            if (categories.isEmpty)
+              const _EmptyInsight(
+                icon: Icons.pie_chart_outline_rounded,
+                message: 'Add a transaction to see where your money goes.',
+              )
+            else
+              for (final item in categories) ...[
+                _CategoryBar(
+                  category: item,
+                  fraction: total == 0 ? 0 : item.amount / total,
                 ),
-                const SizedBox(width: ui.AppSpacing.lg),
-                const Expanded(
-                  child: Column(
-                    children: [
-                      _SpendingLegend(
-                        color: ui.AppColors.brandBlue,
-                        label: 'Shopping',
-                      ),
-                      _SpendingLegend(
-                        color: ui.AppColors.brandTeal,
-                        label: 'Food & Dining',
-                      ),
-                      _SpendingLegend(
-                        color: Color(0xFF7B61FF),
-                        label: 'Transport',
-                      ),
-                      _SpendingLegend(
-                        color: Color(0xFFDCE8F7),
-                        label: 'Others',
-                      ),
-                    ],
-                  ),
-                ),
+                if (item != categories.last)
+                  const SizedBox(height: ui.AppSpacing.md),
               ],
-            ),
           ],
         ),
       ),
@@ -424,8 +958,164 @@ class _SpendingOverviewCard extends StatelessWidget {
   }
 }
 
+class _CategoryBar extends StatelessWidget {
+  const _CategoryBar({required this.category, required this.fraction});
+
+  final _CategorySpend category;
+  final double fraction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                category.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: ui.AppColors.ink,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              formatVnd(category.amount),
+              style: const TextStyle(
+                color: ui.AppColors.ink,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: fraction,
+            minHeight: 7,
+            backgroundColor: ui.AppColors.appBackground,
+            valueColor: AlwaysStoppedAnimation(category.color),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RecentActivityCard extends StatelessWidget {
+  const _RecentActivityCard({
+    required this.transactions,
+    required this.onTransactionTap,
+  });
+
+  final List<LocalTransaction> transactions;
+  final ValueChanged<LocalTransaction> onTransactionTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final recent = [...transactions]
+      ..sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
+    final visible = recent.take(3).toList(growable: false);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: ui.AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                ui.AppSpacing.lg,
+                ui.AppSpacing.sm,
+                ui.AppSpacing.lg,
+                ui.AppSpacing.sm,
+              ),
+              child: Text(
+                'Recent activity',
+                style: TextStyle(
+                  color: ui.AppColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            if (visible.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(ui.AppSpacing.lg),
+                child: _EmptyInsight(
+                  icon: Icons.receipt_long_outlined,
+                  message: 'Your latest transactions will appear here.',
+                ),
+              )
+            else
+              for (final transaction in visible)
+                ListTile(
+                  onTap: () => onTransactionTap(transaction),
+                  leading: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: const BoxDecoration(
+                      color: ui.AppColors.appBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.storefront_outlined,
+                      color: ui.AppColors.brandBlue,
+                    ),
+                  ),
+                  title: Text(
+                    transaction.merchantName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${transaction.cardNickname} · ${_formatShortDate(transaction.transactionAt)}',
+                  ),
+                  trailing: Text(
+                    '-${formatVnd(transaction.amountMinor)}',
+                    style: const TextStyle(
+                      color: ui.AppColors.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyInsight extends StatelessWidget {
+  const _EmptyInsight({required this.icon, required this.message});
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: ui.AppColors.muted),
+        const SizedBox(width: ui.AppSpacing.sm),
+        Expanded(
+          child: Text(
+            message,
+            style: const TextStyle(color: ui.AppColors.muted, fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _CreditUsage {
   const _CreditUsage({
+    required this.cardId,
     required this.spentMinor,
     required this.availableMinor,
     required this.cashbackMinor,
@@ -438,14 +1128,12 @@ class _CreditUsage {
     List<LocalTransaction> transactions,
   ) {
     final cycle = _billingCycle(DateTime.now(), card.billingCycleDay);
-    final cycleTransactions = transactions
-        .where(
-          (transaction) =>
-              transaction.userCardId == card.id &&
-              !transaction.transactionAt.isBefore(cycle.$1) &&
-              transaction.transactionAt.isBefore(cycle.$2),
-        )
-        .toList(growable: false);
+    final cycleTransactions = transactions.where(
+      (transaction) =>
+          transaction.userCardId == card.id &&
+          !transaction.transactionAt.isBefore(cycle.$1) &&
+          transaction.transactionAt.isBefore(cycle.$2),
+    );
     final spent = cycleTransactions.fold<int>(
       0,
       (total, transaction) => total + transaction.amountMinor,
@@ -456,6 +1144,7 @@ class _CreditUsage {
     );
 
     return _CreditUsage(
+      cardId: card.id,
       spentMinor: spent,
       availableMinor: math.max(0, card.creditLimitMinor - spent),
       cashbackMinor: cashback,
@@ -464,11 +1153,72 @@ class _CreditUsage {
     );
   }
 
+  final String cardId;
   final int spentMinor;
   final int availableMinor;
   final int cashbackMinor;
   final DateTime periodStart;
   final DateTime periodEnd;
+}
+
+class _CategorySpend {
+  const _CategorySpend({
+    required this.name,
+    required this.amount,
+    required this.color,
+  });
+
+  final String name;
+  final int amount;
+  final Color color;
+}
+
+List<LocalTransaction> _transactionsInCurrentCycles(
+  List<LocalUserCard> cards,
+  List<LocalTransaction> transactions,
+) {
+  final cardsById = {for (final card in cards) card.id: card};
+  final now = DateTime.now();
+  return transactions
+      .where((transaction) {
+        final card = cardsById[transaction.userCardId];
+        if (card == null) return false;
+        final cycle = _billingCycle(now, card.billingCycleDay);
+        return !transaction.transactionAt.isBefore(cycle.$1) &&
+            transaction.transactionAt.isBefore(cycle.$2);
+      })
+      .toList(growable: false);
+}
+
+List<_CategorySpend> _categoryTotals(List<LocalTransaction> transactions) {
+  const colors = [
+    ui.AppColors.brandBlue,
+    ui.AppColors.brandTeal,
+    Color(0xFF7B61FF),
+    Color(0xFFFF7A59),
+  ];
+  final totals = <String, int>{};
+  for (final transaction in transactions) {
+    final rawCategory = transaction.category?.trim();
+    final category = rawCategory == null || rawCategory.isEmpty
+        ? 'Other'
+        : rawCategory;
+    totals.update(
+      category,
+      (amount) => amount + transaction.amountMinor,
+      ifAbsent: () => transaction.amountMinor,
+    );
+  }
+  final sorted = totals.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  return [
+    for (var index = 0; index < math.min(4, sorted.length); index++)
+      _CategorySpend(
+        name: sorted[index].key,
+        amount: sorted[index].value,
+        color: colors[index],
+      ),
+  ];
 }
 
 (DateTime, DateTime) _billingCycle(DateTime now, int billingDay) {
@@ -496,106 +1246,4 @@ DateTime _clampedDate(int year, int month, int day) {
 String _formatShortDate(DateTime date) {
   return '${date.day.toString().padLeft(2, '0')}/'
       '${date.month.toString().padLeft(2, '0')}';
-}
-
-class _SmallPill extends StatelessWidget {
-  const _SmallPill({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: ui.AppColors.appBackground,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: ui.AppColors.ink,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SpendingLegend extends StatelessWidget {
-  const _SpendingLegend({required this.color, required this.label});
-
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: ui.AppColors.muted, fontSize: 11),
-            ),
-          ),
-          const Text(
-            '₫0',
-            style: TextStyle(
-              color: ui.AppColors.ink,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SpendingRingPainter extends CustomPainter {
-  const _SpendingRingPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final stroke = size.width * 0.13;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round
-      ..shader = const SweepGradient(
-        colors: [
-          ui.AppColors.brandBlue,
-          Color(0xFF7B61FF),
-          ui.AppColors.brandTeal,
-          ui.AppColors.brandBlue,
-        ],
-      ).createShader(rect);
-    canvas.drawArc(
-      Rect.fromCircle(center: size.center(Offset.zero), radius: 46),
-      -math.pi / 2,
-      math.pi * 2,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -50,7 +50,9 @@ class TransactionDraft {
     this.mccSource = 'manual',
     this.mccConfidencePpm,
     this.merchantServerId,
+    this.merchantLocalId,
     this.merchantLocation,
+    this.source = 'manual',
   });
 
   final String userCardId;
@@ -61,7 +63,9 @@ class TransactionDraft {
   final String mccSource;
   final int? mccConfidencePpm;
   final String? merchantServerId;
+  final String? merchantLocalId;
   final String? merchantLocation;
+  final String source;
   final String? category;
   final String? note;
 }

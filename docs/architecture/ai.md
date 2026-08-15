@@ -5,8 +5,9 @@
 **Version:** 1.0
 **Date:** 2026-07-22
 **Trạng thái tổng thể:** Receipt OCR backend POC đã được implement tại
-`apps/cardpilot-ocr-service`; mobile/NestJS orchestration và benchmark bằng hóa
-đơn thật vẫn đang chờ triển khai. Python ML dependencies được cô lập trong
+`apps/cardpilot-ocr-service`; mobile đã hỗ trợ camera/gallery, upload trực tiếp
+tới OCR service được cấu hình và preview trước khi user xác nhận. NestJS job
+orchestration và benchmark bằng hóa đơn thật vẫn đang chờ triển khai. Python ML dependencies được cô lập trong
 Docker, không nằm trong `pubspec.yaml` hoặc Node dependency graph.
 
 ---

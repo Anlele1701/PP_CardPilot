@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:cardpilot_ui/cardpilot_ui.dart' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/validation_messages.dart';
@@ -10,7 +7,9 @@ import '../../../../core/notifications/app_toast.dart';
 import '../../../cashback_reference/cashback_reference_providers.dart';
 import '../../../cashback_reference/domain/cashback_reference.dart';
 import '../../../initial_setup/domain/entities/local_user_card.dart';
+import '../../../merchants/domain/merchant_directory.dart';
 import '../../../merchants/presentation/views/merchants_page.dart';
+import '../../../receipt_scan/domain/receipt_scan_draft.dart';
 import '../../domain/entities/local_transaction.dart';
 import '../../transaction_providers.dart';
 import '../transaction_formatters.dart';
@@ -20,12 +19,14 @@ class TransactionEditorScreen extends ConsumerStatefulWidget {
     required this.profileId,
     required this.cards,
     this.initialTransaction,
+    this.initialReceiptScan,
     super.key,
-  });
+  }) : assert(initialTransaction == null || initialReceiptScan == null);
 
   final String profileId;
   final List<LocalUserCard> cards;
   final LocalTransaction? initialTransaction;
+  final ReceiptScanDraft? initialReceiptScan;
 
   bool get isEditing => initialTransaction != null;
 
@@ -46,6 +47,7 @@ class _TransactionEditorScreenState
   ];
 
   final _formKey = GlobalKey<FormState>();
+  final _merchantFieldKey = GlobalKey<FormFieldState<String>>();
   final _mccFieldKey = GlobalKey<FormFieldState<String>>();
   late final TextEditingController _merchantController;
   late final TextEditingController _amountController;
@@ -56,25 +58,37 @@ class _TransactionEditorScreenState
   String _mccSource = 'manual';
   int? _mccConfidencePpm;
   String? _merchantServerId;
+  String? _merchantLocalId;
   String? _merchantLocation;
-  Timer? _merchantDebounce;
+  MerchantPaymentType? _merchantPaymentType;
+  bool _isLocalMerchant = false;
+  late final String _source;
   late DateTime _transactionAt;
 
   @override
   void initState() {
     super.initState();
     final transaction = widget.initialTransaction;
+    final receipt = widget.initialReceiptScan;
     _merchantController = TextEditingController(
-      text: transaction?.merchantName ?? '',
+      text: transaction?.merchantName ?? receipt?.merchant ?? '',
     );
     _amountController = TextEditingController(
-      text: transaction?.amountMinor.toString() ?? '',
+      text: transaction != null
+          ? formatAmountInput(transaction.amountMinor)
+          : receipt?.amountMinor == null
+          ? ''
+          : formatAmountInput(receipt!.amountMinor!),
     );
     _noteController = TextEditingController(text: transaction?.note ?? '');
     _cardId = transaction?.userCardId ?? widget.cards.firstOrNull?.id;
     _category = transaction?.category;
     _mccCode = transaction?.mccCode;
-    _transactionAt = transaction?.transactionAt ?? DateTime.now();
+    _merchantLocalId = transaction?.merchantId;
+    _merchantLocation = receipt?.address;
+    _source = transaction?.source ?? (receipt == null ? 'manual' : 'ocr');
+    _transactionAt =
+        transaction?.transactionAt ?? receipt?.occurredAt ?? DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadReferenceData());
   }
 
@@ -83,12 +97,22 @@ class _TransactionEditorScreenState
     _merchantController.dispose();
     _amountController.dispose();
     _noteController.dispose();
-    _merchantDebounce?.cancel();
     super.dispose();
   }
 
   LocalUserCard? get _selectedCard =>
       widget.cards.where((card) => card.id == _cardId).firstOrNull;
+
+  String get _merchantSelectionDescription {
+    final parts = <String>[
+      if (_isLocalMerchant) 'Local merchant',
+      if (widget.initialReceiptScan != null) 'Scanned from receipt',
+      if (_merchantLocation?.trim().isNotEmpty == true) _merchantLocation!,
+      if (_merchantPaymentType != null) _merchantPaymentType!.label,
+      if (_mccSource == 'merchant_match' && _mccCode != null) 'MCC $_mccCode',
+    ];
+    return parts.isEmpty ? 'Tap to choose another merchant' : parts.join(' · ');
+  }
 
   Future<void> _loadReferenceData() async {
     final creditCardId = _selectedCard?.creditCardId;
@@ -104,32 +128,6 @@ class _TransactionEditorScreenState
         state.errorMessage ?? 'Could not load MCC and reward data.',
       );
     }
-  }
-
-  void _onMerchantChanged(String value) {
-    _merchantDebounce?.cancel();
-    _merchantServerId = null;
-    _merchantLocation = null;
-    if (_mccSource == 'merchant_match') {
-      setState(() {
-        _mccCode = null;
-        _mccSource = 'manual';
-        _mccConfidencePpm = null;
-      });
-      _mccFieldKey.currentState?.didChange(null);
-    }
-    _merchantDebounce = Timer(const Duration(milliseconds: 500), () async {
-      await ref
-          .read(cashbackReferenceControllerProvider.notifier)
-          .searchMerchant(value);
-      if (!mounted || _merchantController.text.trim() != value.trim()) return;
-      final suggestions = ref
-          .read(cashbackReferenceControllerProvider)
-          .merchantSuggestions;
-      if (suggestions.length == 1) {
-        _applySuggestion(suggestions.single);
-      }
-    });
   }
 
   Future<void> _chooseMcc() async {
@@ -152,44 +150,47 @@ class _TransactionEditorScreenState
         selectedCode: _mccCode,
         allMccs: state.mccs,
         eligibleMccs: state.eligibleMccs,
-        merchantSuggestions: state.merchantSuggestions,
       ),
     );
     if (selection == null || !mounted) return;
     setState(() {
       _mccCode = selection.mccCode;
-      _mccSource = selection.suggestion == null ? 'manual' : 'merchant_match';
-      _mccConfidencePpm = selection.suggestion?.confidencePpm ?? 1000000;
-      if (selection.suggestion != null) {
-        _merchantServerId = selection.suggestion!.merchantId;
-        _merchantLocation = selection.suggestion!.locationText;
-        _merchantController.text = selection.suggestion!.merchantName;
-      }
+      _mccSource = 'manual';
+      _mccConfidencePpm = 1000000;
+      _merchantPaymentType = null;
     });
     _mccFieldKey.currentState?.didChange(selection.mccCode);
   }
 
-  void _applySuggestion(MerchantMccSuggestion suggestion) {
-    setState(() {
-      _merchantController.text = suggestion.merchantName;
-      _mccCode = suggestion.mccCode;
-      _mccSource = 'merchant_match';
-      _mccConfidencePpm = suggestion.confidencePpm;
-      _merchantServerId = suggestion.merchantId;
-      _merchantLocation = suggestion.locationText;
-    });
-    _mccFieldKey.currentState?.didChange(suggestion.mccCode);
-  }
-
-  Future<void> _browseMerchants() {
-    return Navigator.of(context).push<void>(
+  Future<void> _browseMerchants() async {
+    final selection = await Navigator.of(context).push<MerchantSelection>(
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('Merchant directory')),
-          body: MerchantsPage(profileId: widget.profileId, embedded: true),
+          appBar: AppBar(title: const Text('Choose merchant')),
+          body: MerchantsPage(
+            profileId: widget.profileId,
+            embedded: true,
+            selectionMode: true,
+          ),
         ),
       ),
     );
+    if (selection == null || !mounted) return;
+
+    final candidate = selection.mccCandidate;
+    setState(() {
+      _merchantController.text = selection.merchantName;
+      _merchantServerId = selection.merchantServerId;
+      _merchantLocalId = selection.localMerchantId;
+      _merchantLocation = selection.locationText;
+      _merchantPaymentType = candidate?.paymentType;
+      _isLocalMerchant = selection.isLocalMerchant;
+      _mccCode = candidate?.mccCode;
+      _mccSource = candidate == null ? 'manual' : 'merchant_match';
+      _mccConfidencePpm = candidate?.confidencePpm;
+    });
+    _merchantFieldKey.currentState?.didChange(selection.merchantName);
+    _mccFieldKey.currentState?.didChange(candidate?.mccCode);
   }
 
   Future<void> _chooseDateTime() async {
@@ -226,7 +227,7 @@ class _TransactionEditorScreenState
       return;
     }
     final cardId = _cardId;
-    final amount = int.tryParse(_amountController.text);
+    final amount = parseAmountInput(_amountController.text);
     final mccCode = _mccCode;
     if (cardId == null || amount == null || amount <= 0 || mccCode == null) {
       return;
@@ -241,7 +242,9 @@ class _TransactionEditorScreenState
       mccSource: _mccSource,
       mccConfidencePpm: _mccConfidencePpm,
       merchantServerId: _merchantServerId,
+      merchantLocalId: _merchantLocalId,
       merchantLocation: _merchantLocation,
+      source: _source,
       category: _category,
       note: _noteController.text,
     );
@@ -281,7 +284,13 @@ class _TransactionEditorScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit transaction' : 'Add transaction'),
+        title: Text(
+          widget.isEditing
+              ? 'Edit transaction'
+              : widget.initialReceiptScan != null
+              ? 'Review receipt'
+              : 'Add transaction',
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -291,6 +300,10 @@ class _TransactionEditorScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (widget.initialReceiptScan != null) ...[
+                  _ReceiptPreviewNotice(scan: widget.initialReceiptScan!),
+                  const SizedBox(height: ui.AppSpacing.md),
+                ],
                 DropdownButtonFormField<String>(
                   initialValue: _cardId,
                   decoration: const InputDecoration(
@@ -308,14 +321,7 @@ class _TransactionEditorScreenState
                   onChanged: isSaving
                       ? null
                       : (value) {
-                          setState(() {
-                            _cardId = value;
-                            _mccCode = null;
-                            _mccSource = 'manual';
-                            _merchantServerId = null;
-                            _merchantLocation = null;
-                          });
-                          _mccFieldKey.currentState?.didChange(null);
+                          setState(() => _cardId = value);
                           _loadReferenceData();
                         },
                   validator: (value) => value == null
@@ -323,58 +329,47 @@ class _TransactionEditorScreenState
                       : null,
                 ),
                 const SizedBox(height: ui.AppSpacing.md),
-                TextFormField(
-                  controller: _merchantController,
-                  enabled: !isSaving,
-                  textCapitalization: TextCapitalization.words,
-                  onChanged: _onMerchantChanged,
-                  decoration: const InputDecoration(
-                    labelText: 'Merchant',
-                    hintText: 'e.g. Highlands Coffee',
-                    border: OutlineInputBorder(),
-                  ),
+                FormField<String>(
+                  key: _merchantFieldKey,
+                  initialValue: _merchantController.text.trim().isEmpty
+                      ? null
+                      : _merchantController.text,
                   validator: (value) => (value?.trim() ?? '').isEmpty
                       ? ValidationMessages.merchantRequired
                       : null,
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
+                  builder: (field) => InkWell(
                     key: const Key('browse-merchants-button'),
-                    onPressed: isSaving ? null : _browseMerchants,
-                    icon: const Icon(Icons.storefront_outlined, size: 18),
-                    label: const Text('Browse merchants'),
+                    onTap: isSaving ? null : _browseMerchants,
+                    borderRadius: BorderRadius.circular(4),
+                    child: InputDecorator(
+                      // The field always renders either its call-to-action or
+                      // the selected merchant, so the label must stay floated.
+                      isEmpty: false,
+                      decoration: InputDecoration(
+                        enabled: !isSaving,
+                        labelText: 'Merchant',
+                        errorText: field.errorText,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.storefront_outlined),
+                        suffixIcon: const Icon(Icons.chevron_right_rounded),
+                      ),
+                      child: _merchantController.text.trim().isEmpty
+                          ? const Text('Browse merchants')
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(_merchantController.text),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _merchantSelectionDescription,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: ui.AppColors.muted),
+                                ),
+                              ],
+                            ),
+                    ),
                   ),
                 ),
-                if (referenceState.status ==
-                    CashbackReferenceStatus.searching) ...[
-                  const SizedBox(height: ui.AppSpacing.sm),
-                  const LinearProgressIndicator(),
-                ],
-                if (referenceState.merchantSuggestions.isNotEmpty) ...[
-                  const SizedBox(height: ui.AppSpacing.sm),
-                  Text(
-                    'Merchant matches',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  const SizedBox(height: ui.AppSpacing.xs),
-                  ...referenceState.merchantSuggestions
-                      .take(3)
-                      .map(
-                        (suggestion) => ListTile(
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.storefront_outlined),
-                          title: Text(suggestion.merchantName),
-                          subtitle: Text(
-                            '${suggestion.locationText ?? 'All branches'} · '
-                            'MCC ${suggestion.mccCode} · '
-                            '${referenceState.eligibleMccs.any((mcc) => mcc.code == suggestion.mccCode) ? 'Eligible' : 'No matching card rule'}',
-                          ),
-                          onTap: () => _applySuggestion(suggestion),
-                        ),
-                      ),
-                ],
                 const SizedBox(height: ui.AppSpacing.md),
                 FormField<String>(
                   key: _mccFieldKey,
@@ -417,7 +412,7 @@ class _TransactionEditorScreenState
                   controller: _amountController,
                   enabled: !isSaving,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  inputFormatters: const [AmountInputFormatter()],
                   decoration: const InputDecoration(
                     labelText: 'Amount',
                     suffixText: 'VND',
@@ -425,7 +420,7 @@ class _TransactionEditorScreenState
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    final amount = int.tryParse(value ?? '');
+                    final amount = parseAmountInput(value ?? '');
                     return amount == null || amount <= 0
                         ? ValidationMessages.transactionAmountPositive
                         : null;
@@ -477,7 +472,11 @@ class _TransactionEditorScreenState
                 ),
                 const SizedBox(height: ui.AppSpacing.xl),
                 ui.AppPrimaryButton(
-                  label: widget.isEditing ? 'Save changes' : 'Add transaction',
+                  label: widget.isEditing
+                      ? 'Save changes'
+                      : widget.initialReceiptScan != null
+                      ? 'Save transaction'
+                      : 'Add transaction',
                   isLoading: isSaving,
                   onPressed: _save,
                 ),
@@ -490,11 +489,56 @@ class _TransactionEditorScreenState
   }
 }
 
+class _ReceiptPreviewNotice extends StatelessWidget {
+  const _ReceiptPreviewNotice({required this.scan});
+
+  final ReceiptScanDraft scan;
+
+  @override
+  Widget build(BuildContext context) {
+    final warningCount = scan.warnings.length;
+    return Container(
+      padding: const EdgeInsets.all(ui.AppSpacing.md),
+      decoration: BoxDecoration(
+        color: ui.AppColors.softBlue,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.document_scanner_outlined,
+            color: ui.AppColors.brandBlue,
+          ),
+          const SizedBox(width: ui.AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Receipt scanned',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  warningCount == 0
+                      ? 'Review the detected information before saving.'
+                      : 'Review carefully. OCR returned $warningCount warning${warningCount == 1 ? '' : 's'}.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MccSelection {
-  const _MccSelection({required this.mccCode, this.suggestion});
+  const _MccSelection({required this.mccCode});
 
   final String mccCode;
-  final MerchantMccSuggestion? suggestion;
 }
 
 class _MccPickerSheet extends StatefulWidget {
@@ -502,13 +546,11 @@ class _MccPickerSheet extends StatefulWidget {
     required this.selectedCode,
     required this.allMccs,
     required this.eligibleMccs,
-    required this.merchantSuggestions,
   });
 
   final String? selectedCode;
   final List<MerchantCategoryCode> allMccs;
   final List<MerchantCategoryCode> eligibleMccs;
-  final List<MerchantMccSuggestion> merchantSuggestions;
 
   @override
   State<_MccPickerSheet> createState() => _MccPickerSheetState();
@@ -563,33 +605,6 @@ class _MccPickerSheetState extends State<_MccPickerSheet> {
             Expanded(
               child: ListView(
                 children: [
-                  if (query.isEmpty &&
-                      widget.merchantSuggestions.isNotEmpty) ...[
-                    const _PickerHeader('Merchant and branch suggestions'),
-                    ...widget.merchantSuggestions.map(
-                      (suggestion) => ListTile(
-                        leading: const Icon(Icons.storefront_outlined),
-                        title: Text(
-                          '${suggestion.merchantName} · MCC ${suggestion.mccCode}',
-                        ),
-                        subtitle: Text(
-                          '${suggestion.locationText ?? 'All branches'}'
-                          '${suggestion.mccDescription == null ? '' : ' · ${suggestion.mccDescription}'} · '
-                          '${eligibleCodes.contains(suggestion.mccCode) ? 'Eligible' : 'No matching card rule'}',
-                        ),
-                        trailing: suggestion.mccCode == widget.selectedCode
-                            ? const Icon(Icons.check_rounded)
-                            : null,
-                        onTap: () => Navigator.pop(
-                          context,
-                          _MccSelection(
-                            mccCode: suggestion.mccCode,
-                            suggestion: suggestion,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                   if (query.isEmpty && widget.eligibleMccs.isNotEmpty) ...[
                     const _PickerHeader('Eligible for the selected card'),
                     ...widget.eligibleMccs.map(

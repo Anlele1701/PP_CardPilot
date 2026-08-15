@@ -23,6 +23,9 @@ def main():
     parser.add_argument("--model-version", default="mc-ocr-top1-upstream")
     args = parser.parse_args()
     root = args.root.resolve()
+    packaged_root = Path(__file__).resolve().parents[1]
+    if not (root / "mc_ocr").is_dir() and (packaged_root / "mc_ocr").is_dir():
+        root = packaged_root
     model_dir = (args.model_dir or root / "models").resolve()
 
     detector_root = model_dir / "detector"
@@ -38,7 +41,10 @@ def main():
             if gdown.download(url=url, output=str(detector_tar), quiet=False) is None:
                 raise RuntimeError("Failed to download PaddleOCR detector")
         with tarfile.open(str(detector_tar)) as archive:
-            archive.extractall(str(detector_root))
+            try:
+                archive.extractall(str(detector_root), filter="data")
+            except TypeError:
+                archive.extractall(str(detector_root))
 
     rotation = model_dir / "rotation/model.pth"
     rotation.parent.mkdir(parents=True, exist_ok=True)

@@ -50,12 +50,14 @@ class MerchantBranch {
     required this.nameNormalized,
     required this.mccMappings,
     this.locationText,
+    this.localMerchantId,
   });
 
   final String id;
   final String name;
   final String nameNormalized;
   final String? locationText;
+  final String? localMerchantId;
   final List<MerchantMccMapping> mccMappings;
 }
 
@@ -69,6 +71,44 @@ class MerchantDirectoryEntry {
   final String key;
   final String name;
   final List<MerchantBranch> branches;
+}
+
+class MerchantSelection {
+  const MerchantSelection({
+    required this.merchantName,
+    this.merchantServerId,
+    this.localMerchantId,
+    this.locationText,
+    this.mccCandidate,
+  });
+
+  final String merchantName;
+  final String? merchantServerId;
+  final String? localMerchantId;
+  final String? locationText;
+  final MerchantMccMapping? mccCandidate;
+
+  bool get isLocalMerchant => localMerchantId != null;
+}
+
+class LocalMerchantDraft {
+  const LocalMerchantDraft({
+    required this.profileId,
+    required this.name,
+    required this.mccCode,
+    required this.paymentType,
+    this.locationText,
+    this.mccDescription,
+    this.note,
+  });
+
+  final String profileId;
+  final String name;
+  final String? locationText;
+  final String mccCode;
+  final String? mccDescription;
+  final MerchantPaymentType paymentType;
+  final String? note;
 }
 
 class MerchantContributionDraft {

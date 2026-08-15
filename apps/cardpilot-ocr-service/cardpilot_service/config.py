@@ -20,6 +20,7 @@ class Settings:
     model_dir: Path = Path(os.getenv("OCR_MODEL_DIR", "models"))
     work_dir: Path = Path(os.getenv("OCR_WORK_DIR", "/tmp/cardpilot-ocr"))
     device: str = os.getenv("OCR_DEVICE", "cpu")
+    detector_device: str = os.getenv("OCR_DETECTOR_DEVICE", "")
     currency: str = os.getenv("OCR_DEFAULT_CURRENCY", "VND")
     max_upload_bytes: int = _integer("OCR_MAX_UPLOAD_BYTES", 12 * 1024 * 1024)
     max_image_pixels: int = _integer("OCR_MAX_IMAGE_PIXELS", 24_000_000)

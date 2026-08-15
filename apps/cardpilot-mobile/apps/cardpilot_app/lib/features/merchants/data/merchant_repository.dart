@@ -9,12 +9,19 @@ class MerchantRepository {
   final MerchantRemoteDataSource remote;
 
   Future<List<MerchantDirectoryEntry>> ensureLoaded(String profileId) async {
-    final cached = await local.getDirectory(profileId);
-    if (cached.isNotEmpty) return cached;
+    final localDirectory = await local.getDirectory(profileId);
+    if (await local.hasCachedDirectory()) {
+      return localDirectory;
+    }
 
-    final remoteBranches = await remote.fetchDirectory();
-    await local.replaceDirectory(remoteBranches);
-    return local.getDirectory(profileId);
+    try {
+      final remoteBranches = await remote.fetchDirectory();
+      await local.replaceDirectory(remoteBranches);
+      return local.getDirectory(profileId);
+    } on Object {
+      if (localDirectory.isNotEmpty) return localDirectory;
+      rethrow;
+    }
   }
 
   Future<List<MerchantDirectoryEntry>> getLocal(String profileId) {
@@ -23,5 +30,9 @@ class MerchantRepository {
 
   Future<void> saveContribution(MerchantContributionDraft draft) {
     return local.saveContribution(draft);
+  }
+
+  Future<MerchantSelection> createLocalMerchant(LocalMerchantDraft draft) {
+    return local.createLocalMerchant(draft);
   }
 }

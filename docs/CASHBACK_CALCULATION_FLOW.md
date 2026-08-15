@@ -100,11 +100,9 @@ sequenceDiagram
         Ref->>DB: Replace cache trong transaction
     end
 
-    User->>Form: Nhập merchant
-    Form->>Ref: Search sau debounce 500 ms
-    Ref->>API: GET merchant MCC suggestions
-    API-->>Ref: Branch + MCC candidates
-    Ref->>DB: Cache suggestions
+    User->>Form: Browse merchant directory
+    Form->>DB: Đọc merchant branch + MCC candidates đã cache
+    User->>Form: Chọn đúng branch/payment type/MCC candidate
 
     User->>Form: Xác nhận MCC, amount và date
     Form->>DB: Create/update transaction
@@ -127,14 +125,17 @@ This card is not linked to a card product.
 
 ### 4.2 Chọn merchant và MCC
 
-Khi user nhập merchant:
+Merchant field dùng browse-first flow:
 
-1. Form debounce 500 ms.
-2. Controller gọi merchant suggestion API.
-3. Kết quả API được cache để có thể fallback khi API lỗi mạng.
-4. Nếu chỉ có đúng một suggestion, form tự áp dụng merchant và MCC đó.
-5. User vẫn có thể mở MCC picker để chọn suggestion khác, MCC eligible của thẻ,
-   hoặc MCC bất kỳ trong catalog.
+1. User mở Merchant directory đã cache trong SQLite.
+2. User chọn merchant brand, sau đó chọn đúng combination gồm branch, payment
+   type và MCC candidate.
+3. Form nhận merchant server ID, location, MCC và confidence từ candidate.
+4. Nếu merchant chưa tồn tại, user tạo merchant local cùng location, payment
+   type, MCC và note. Merchant + MCC candidate được ghi atomically vào SQLite
+   ngay lúc tạo để có thể tái sử dụng cho transaction khác.
+5. User vẫn có thể mở MCC picker để override bằng MCC eligible của thẻ hoặc MCC
+   bất kỳ trong catalog.
 
 MCC cuối cùng do user xác nhận mới được đưa vào `TransactionDraft.mccCode` và
 dùng để tính cashback. Tên merchant tự nó không quyết định cashback nếu chưa có

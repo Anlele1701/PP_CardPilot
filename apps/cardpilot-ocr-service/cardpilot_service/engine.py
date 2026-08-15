@@ -87,7 +87,12 @@ class McOcrTop1Engine:
                 ckpt_path=str(self.settings.recognition_model), gpu=None
             )
             device = torch.device(self.settings.device)
-            checkpoint = torch.load(str(self.settings.kie_model), map_location=device)
+            try:
+                checkpoint = torch.load(
+                    str(self.settings.kie_model), map_location=device, weights_only=False
+                )
+            except TypeError:
+                checkpoint = torch.load(str(self.settings.kie_model), map_location=device)
             kie = checkpoint["config"].init_obj("model_arch", pick_arch_module)
             kie.load_state_dict(checkpoint["state_dict"])
             kie.to(device).eval()
@@ -118,7 +123,7 @@ class McOcrTop1Engine:
             det_sast_score_thresh=0.5,
             det_sast_nms_thresh=0.2,
             det_sast_polygon=False,
-            use_gpu=self.settings.device.startswith("cuda"),
+            use_gpu=(self.settings.detector_device or self.settings.device).startswith("cuda"),
             gpu_mem=1000,
             use_tensorrt=False,
             use_fp16=False,

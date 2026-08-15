@@ -543,6 +543,7 @@ server-side deletion without relying only on `updated_at` timestamps.
 | `1785715200000-create-reference-dataset-versions.ts` | Tạo registry version cho common datasets và statement-level triggers tự tăng version khi memberships, banks, credit cards, MCC hoặc reward rules thay đổi. |
 | `1786072168025-seed-msb-bank-data.ts`                | Seed các sản phẩm thẻ MSB, reward rules, MCC 5262 còn thiếu và mapping MCC cho từng rule.                                                                  |
 | `1786170000000-add-merchant-payment-type.ts`         | Phân biệt MCC candidate theo payment type và thêm index cho merchant directory.                                                                            |
+| `1786180000000-seed-coffee-merchants.ts`             | Seed Highlands, Starbucks và Phúc Long branch profiles cùng MCC candidate theo in-store/ShopeeFood/GrabFood; dữ liệu ở trạng thái suggested.               |
 
 Chạy migration qua:
 

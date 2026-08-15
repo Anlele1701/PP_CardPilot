@@ -127,7 +127,44 @@ Nếu cùng một thay đổi cần thêm MCC và mapping, thứ tự trong `up(
 reward rule → mapping; thứ tự trong `down()` phải đảo lại: mapping → reward
 rule → MCC.
 
-## 6. Kiểm tra migration
+## 6. Seed merchant, branch và payment type
+
+Một `merchants` row đại diện cho một branch hoặc merchant location. Nhiều branch
+của cùng brand dùng chung `name_normalized` và khác `location_text`.
+
+MCC không được lưu trực tiếp trên merchant. Mỗi khả năng phân loại nằm trong
+`merchant_mcc_candidates` với unique key:
+
+```text
+(merchant_id, mcc_code, payment_type)
+```
+
+`payment_type` hiện hỗ trợ:
+
+```text
+unknown, in_store, online, shopee_food, grab_food, other
+```
+
+Không dùng `source` để chứa payment type. `source` phải mô tả provenance của
+candidate, ví dụ migration seed, bank statement hoặc user feedback.
+
+MCC guide chính thức định nghĩa ý nghĩa của code theo loại hình kinh doanh,
+không đảm bảo một brand cụ thể luôn xuất hiện với code đó trên mọi acquiring
+bank hoặc payment gateway. Ví dụ, Mastercard mô tả `5812` là Eating Places,
+Restaurants và `5814` là Fast Food Restaurants; coffee shops có thể thuộc nhóm
+quick-service. Vì vậy seed phát triển phải dùng `status = suggested`, confidence
+thận trọng và chỉ chuyển sang `verified` sau khi có evidence giao dịch thực tế.
+
+Migration `1786180000000-seed-coffee-merchants.ts` minh họa cấu trúc này với
+Highlands, Starbucks và Phúc Long. Mỗi branch profile có candidate riêng cho
+`in_store`, `shopee_food` và `grab_food`. Các mapping delivery có confidence
+thấp hơn vì giao dịch có thể được ghi nhận dưới merchant/payment facilitator
+của nền tảng thay vì quán cà phê.
+
+Nguồn tham khảo MCC category:
+[Mastercard Quick Reference Booklet — Merchant Edition](https://www.mastercard.us/content/dam/public/mastercardcom/na/global-site/documents/mastercard-quick-reference-booklet-merchant.pdf).
+
+## 7. Kiểm tra migration
 
 Chạy PostgreSQL local và kiểm tra migration theo cả hai chiều:
 

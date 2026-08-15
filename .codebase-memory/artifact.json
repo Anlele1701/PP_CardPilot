@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "0d468c86e40be9ce7ba7903f25f9390ee19a70d2",
+    "indexed_at": "2026-08-12T16:22:09Z",
+    "project": "cardpilot",
+    "nodes": 9311,
+    "edges": 30702,
+    "original_size": 27000832,
+    "compressed_size": 3739219,
+    "compression_level": 9
+}

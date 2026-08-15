@@ -1,7 +1,11 @@
 import 'package:cardpilot_ui/cardpilot_ui.dart' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/validation_messages.dart';
+import '../../../../core/notifications/app_toast.dart';
+import '../../../cashback_reference/domain/cashback_reference.dart';
 import '../../domain/merchant_directory.dart';
 import '../../merchant_providers.dart';
 import 'merchant_details_screen.dart';
@@ -10,11 +14,13 @@ class MerchantsPage extends ConsumerStatefulWidget {
   const MerchantsPage({
     required this.profileId,
     this.embedded = false,
+    this.selectionMode = false,
     super.key,
   });
 
   final String profileId;
   final bool embedded;
+  final bool selectionMode;
 
   @override
   ConsumerState<MerchantsPage> createState() => _MerchantsPageState();
@@ -81,6 +87,15 @@ class _MerchantsPageState extends ConsumerState<MerchantsPage> {
             ),
             onChanged: (value) => setState(() => _query = value),
           ),
+          if (widget.selectionMode) ...[
+            const SizedBox(height: ui.AppSpacing.sm),
+            FilledButton.tonalIcon(
+              key: const Key('create-new-merchant-button'),
+              onPressed: _createMerchant,
+              icon: const Icon(Icons.add_business_outlined),
+              label: const Text('Create new merchant'),
+            ),
+          ],
           const SizedBox(height: ui.AppSpacing.lg),
           if (state.status == MerchantDirectoryStatus.loading &&
               state.merchants.isEmpty)
@@ -101,14 +116,7 @@ class _MerchantsPageState extends ConsumerState<MerchantsPage> {
                 padding: const EdgeInsets.only(bottom: ui.AppSpacing.sm),
                 child: _MerchantTile(
                   merchant: merchant,
-                  onTap: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => MerchantDetailsScreen(
-                        profileId: widget.profileId,
-                        merchantKey: merchant.key,
-                      ),
-                    ),
-                  ),
+                  onTap: () => _openMerchant(merchant),
                 ),
               ),
             ),
@@ -118,6 +126,44 @@ class _MerchantsPageState extends ConsumerState<MerchantsPage> {
 
     if (widget.embedded) return content;
     return Scaffold(body: SafeArea(child: content));
+  }
+
+  Future<void> _openMerchant(MerchantDirectoryEntry merchant) async {
+    final selection = await Navigator.of(context).push<MerchantSelection>(
+      MaterialPageRoute(
+        builder: (_) => MerchantDetailsScreen(
+          profileId: widget.profileId,
+          merchantKey: merchant.key,
+          selectionMode: widget.selectionMode,
+        ),
+      ),
+    );
+    if (selection != null && mounted && widget.selectionMode) {
+      Navigator.pop(context, selection);
+    }
+  }
+
+  Future<void> _createMerchant() async {
+    final draft = await showModalBottomSheet<LocalMerchantDraft>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => _CreateMerchantSheet(
+        profileId: widget.profileId,
+        mccs: ref.read(merchantDirectoryControllerProvider).mccs,
+      ),
+    );
+    if (draft == null || !mounted) return;
+    try {
+      final selection = await ref
+          .read(merchantDirectoryControllerProvider.notifier)
+          .createLocalMerchant(draft);
+      if (mounted) Navigator.pop(context, selection);
+    } on Object {
+      if (mounted) {
+        AppToast.showError(context, 'Could not save the local merchant.');
+      }
+    }
   }
 }
 
@@ -184,5 +230,163 @@ class _EmptyState extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _CreateMerchantSheet extends StatefulWidget {
+  const _CreateMerchantSheet({required this.profileId, required this.mccs});
+
+  final String profileId;
+  final List<MerchantCategoryCode> mccs;
+
+  @override
+  State<_CreateMerchantSheet> createState() => _CreateMerchantSheetState();
+}
+
+class _CreateMerchantSheetState extends State<_CreateMerchantSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _mccController = TextEditingController();
+  final _noteController = TextEditingController();
+  MerchantPaymentType _paymentType = MerchantPaymentType.inStore;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _locationController.dispose();
+    _mccController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        ui.AppSpacing.lg,
+        0,
+        ui.AppSpacing.lg,
+        MediaQuery.viewInsetsOf(context).bottom + ui.AppSpacing.lg,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Create new merchant',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: ui.AppSpacing.xs),
+            Text(
+              'Add its payment MCC so this merchant can be reused in future transactions.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: ui.AppSpacing.lg),
+            TextFormField(
+              controller: _nameController,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Merchant name',
+                hintText: 'e.g. Local coffee shop',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) => (value?.trim().isEmpty ?? true)
+                  ? ValidationMessages.merchantRequired
+                  : null,
+            ),
+            const SizedBox(height: ui.AppSpacing.md),
+            TextFormField(
+              controller: _locationController,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Location (optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: ui.AppSpacing.md),
+            DropdownButtonFormField<MerchantPaymentType>(
+              initialValue: _paymentType,
+              decoration: const InputDecoration(
+                labelText: 'Payment type',
+                border: OutlineInputBorder(),
+              ),
+              items: MerchantPaymentType.values
+                  .where((item) => item != MerchantPaymentType.unknown)
+                  .map(
+                    (item) =>
+                        DropdownMenuItem(value: item, child: Text(item.label)),
+                  )
+                  .toList(growable: false),
+              onChanged: (value) {
+                if (value != null) setState(() => _paymentType = value);
+              },
+            ),
+            const SizedBox(height: ui.AppSpacing.md),
+            TextFormField(
+              controller: _mccController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 4,
+              decoration: InputDecoration(
+                labelText: 'Merchant Category Code (MCC)',
+                hintText: 'e.g. 5814',
+                helperText: _selectedMccDescription,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+              validator: (value) => RegExp(r'^\d{4}$').hasMatch(value ?? '')
+                  ? null
+                  : ValidationMessages.mccInvalid,
+            ),
+            const SizedBox(height: ui.AppSpacing.md),
+            TextFormField(
+              controller: _noteController,
+              minLines: 2,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'MCC note (optional)',
+                hintText: 'How did you identify this MCC?',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: ui.AppSpacing.lg),
+            FilledButton(
+              onPressed: _submit,
+              child: const Text('Create and use merchant'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    final location = _locationController.text.trim();
+    final mccDescription = _selectedMccDescription;
+    Navigator.pop(
+      context,
+      LocalMerchantDraft(
+        profileId: widget.profileId,
+        name: _nameController.text.trim(),
+        locationText: location.isEmpty ? null : location,
+        mccCode: _mccController.text,
+        mccDescription: mccDescription,
+        paymentType: _paymentType,
+        note: _noteController.text,
+      ),
+    );
+  }
+
+  String? get _selectedMccDescription {
+    final code = _mccController.text.trim();
+    for (final mcc in widget.mccs) {
+      if (mcc.code == code) return mcc.description;
+    }
+    return null;
   }
 }

@@ -29,6 +29,9 @@ The current app starts at Sign in and supports:
   and only downloads the catalog when `banks_cache` is empty.
 - a cache-first Merchant directory grouped by normalized brand, with branch,
   payment-type MCC details and profile-scoped local MCC contributions.
+- receipt capture from camera/gallery, multipart upload to the configured OCR
+  service, and a user-confirmed transaction preview prefilled with detected
+  merchant, address, amount, and occurrence time.
 
 Initial setup profile/card data now survives app-process restarts in
 `cardpilot.sqlite`. Backend profile persistence, user-data sync,
@@ -284,8 +287,14 @@ MCC mappings include a separate payment type so direct payment and food-
 delivery channels are not conflated. Contributions are stored only in
 `local_merchant_mcc_contributions`, scoped by local profile, and deliberately
 do not enter `sync_outbox` until a backend review/sync contract exists.
-The manual transaction form also exposes a `Browse merchants` shortcut to the
-same directory without duplicating its data or state management.
+The manual transaction form uses a browse-first merchant field backed by the
+same directory. Selecting an existing merchant returns its exact branch,
+payment type, and MCC candidate to the form. If no suitable merchant exists,
+the user can create a profile-scoped local merchant together with its location,
+payment type, MCC, description snapshot, and optional evidence note. The local
+merchant and candidate are written atomically and immediately become reusable
+from the same directory, independently of whether the current transaction is
+later saved.
 
 The implementation source of truth for this planned area is
 [`docs/architecture/mobile-sqlite.md`](./architecture/mobile-sqlite.md). It

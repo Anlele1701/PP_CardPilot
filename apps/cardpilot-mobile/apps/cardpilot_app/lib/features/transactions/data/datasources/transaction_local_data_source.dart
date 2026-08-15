@@ -105,7 +105,7 @@ class TransactionLocalDataSource {
               category: Value(_nullableTrimmed(draft.category)),
               cashbackEstimatedMinor: Value(estimate.amountMinor),
               cashbackConfidencePpm: Value(estimate.confidencePpm),
-              source: const Value('manual'),
+              source: Value(draft.source),
               note: Value(_nullableTrimmed(draft.note)),
               createdAtMs: now,
               updatedAtMs: now,
@@ -228,6 +228,18 @@ class TransactionLocalDataSource {
   ) async {
     final rawName = draft.merchantName.trim();
     final normalizedName = rawName.toLowerCase();
+    final localMerchantId = draft.merchantLocalId;
+    if (localMerchantId != null) {
+      final selected =
+          await (database.select(database.localMerchants)..where(
+                (row) =>
+                    row.id.equals(localMerchantId) &
+                    row.profileId.equals(profileId) &
+                    row.deletedAtMs.isNull(),
+              ))
+              .getSingleOrNull();
+      if (selected != null) return selected;
+    }
     final serverMerchantId = draft.merchantServerId;
     final query = database.select(database.localMerchants)
       ..where(
@@ -296,13 +308,14 @@ class TransactionLocalDataSource {
       'userCardId': draft.userCardId,
       'merchantId': merchantId,
       'merchantServerId': draft.merchantServerId,
+      'merchantLocalId': draft.merchantLocalId,
       'transactionAt': draft.transactionAt.toUtc().toIso8601String(),
       'amountMinor': draft.amountMinor,
       'currency': 'VND',
       'mccCode': draft.mccCode,
       'mccSource': draft.mccSource,
       'category': _nullableTrimmed(draft.category),
-      'source': 'manual',
+      'source': draft.source,
       'note': _nullableTrimmed(draft.note),
     };
   }

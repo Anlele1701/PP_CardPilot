@@ -101,6 +101,24 @@ class MerchantDirectoryController extends Notifier<MerchantDirectoryState> {
       mccs: state.mccs,
     );
   }
+
+  Future<MerchantSelection> createLocalMerchant(
+    LocalMerchantDraft draft,
+  ) async {
+    final selection = await ref
+        .read(merchantRepositoryProvider)
+        .createLocalMerchant(draft);
+    final merchants = await ref
+        .read(merchantRepositoryProvider)
+        .getLocal(draft.profileId);
+    state = MerchantDirectoryState(
+      status: MerchantDirectoryStatus.ready,
+      profileId: draft.profileId,
+      merchants: merchants,
+      mccs: state.mccs,
+    );
+    return selection;
+  }
 }
 
 final merchantLocalDataSourceProvider = Provider<MerchantLocalDataSource>(

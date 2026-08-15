@@ -4,6 +4,7 @@ class AppConfig {
   static const appName = 'CardPilot';
   static const appTagline = 'Smart cashback tracking for smarter spending';
   static const apiBaseUrl = String.fromEnvironment('API_BASE_URL');
+  static const ocrBaseUrl = String.fromEnvironment('OCR_BASE_URL');
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabasePublishableKey = String.fromEnvironment(
     'SUPABASE_PUBLISHABLE_KEY',
@@ -14,4 +15,6 @@ class AppConfig {
       supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty;
 
   static bool get isApiConfigured => apiBaseUrl.isNotEmpty;
+
+  static bool get isOcrConfigured => ocrBaseUrl.isNotEmpty;
 }

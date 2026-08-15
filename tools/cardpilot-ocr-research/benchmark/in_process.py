@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--detector-device", default="cpu")
     args = parser.parse_args()
     sys.path.insert(0, str(args.service_root.resolve()))
 
@@ -35,6 +36,7 @@ def main():
         root=args.service_root.resolve(),
         model_dir=args.model_dir.resolve(),
         device=args.device,
+        detector_device=args.detector_device,
         preload_models=True,
     )
     engine = McOcrTop1Engine(settings)

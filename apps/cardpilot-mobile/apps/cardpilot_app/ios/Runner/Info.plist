@@ -38,6 +38,15 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>CardPilot uses the camera to scan receipt details for transaction drafts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CardPilot uses receipt images you select to prepare transaction drafts.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

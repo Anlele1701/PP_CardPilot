@@ -18,5 +18,6 @@ abstract final class ValidationMessages {
   static const transactionCardRequired = 'Please choose a card.';
   static const merchantRequired = 'Please enter a merchant.';
   static const mccRequired = 'Please choose an MCC.';
+  static const mccInvalid = 'Enter a valid 4-digit MCC.';
   static const transactionAmountPositive = 'Enter an amount greater than 0.';
 }

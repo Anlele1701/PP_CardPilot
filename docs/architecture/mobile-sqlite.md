@@ -407,7 +407,10 @@ Schema v5 adds `payment_type` to `merchant_mcc_candidates_cache`, plus:
 
 - `merchant_branches_cache`, the complete cloud branch directory keyed by the
   backend merchant UUID;
-- `local_merchant_mcc_contributions`, profile-scoped MCC/payment-type mappings
+- `local_merchant_mcc_contributions`, profile-scoped MCC/payment-type mappings;
+  a newly created local merchant and its first mapping are inserted in one
+  transaction and then participate in the same offline Merchant directory as
+  cached cloud branches
   contributed on the device.
 
 The backend keeps one `merchants` row per branch. Mobile groups branches by

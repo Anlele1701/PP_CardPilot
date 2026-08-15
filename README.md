@@ -105,6 +105,7 @@ ignored file `apps/cardpilot-mobile/apps/cardpilot_app/.env` locally:
 
 ```dotenv
 API_BASE_URL=https://cardpilot-backend.onrender.com
+OCR_BASE_URL=http://localhost:3001
 SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 ```
@@ -115,6 +116,9 @@ Native OAuth returns to the app through
 `io.cardpilot.app://login-callback/`; configure the same redirect URL in
 Supabase Auth. `API_BASE_URL` is the backend origin without the `/api` suffix;
 the reusable mobile API client adds versioned paths such as `/api/v1/banks`.
+`OCR_BASE_URL` points to the FastAPI OCR origin. Use `http://localhost:3001` for
+the iOS Simulator and `http://10.0.2.2:3001` for the Android Emulator when the
+service runs on the development Mac.
 
 ## Useful Nx commands
 
